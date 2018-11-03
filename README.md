@@ -79,6 +79,12 @@ vkbInitDeviceAPI(device, &api);
 vkbBindAPI(&api);
 ```
 
+Examples
+========
+You can find some general Vulkan examples in the "examples" folder. Unlike many other examples out there, these ones
+are flat, all self contained in a single code file, and easy to read. Note that shaders have been pre-compiled by
+glslangValidator (GLSL to SPIR-V compiler). You can see the relevant shaders in the "examples/shaders" folder.
+
 License
 =======
 Public domain or MIT. Choose whichever you prefer.
