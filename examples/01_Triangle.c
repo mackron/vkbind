@@ -826,7 +826,7 @@ int main(int argc, char** argv)
     
 
 
-    static float r = 0;
+    static float r = 0.2f;
 
     // Main loop.
     for (;;) {
