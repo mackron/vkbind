@@ -373,42 +373,7 @@ int main(int argc, char** argv)
 
     /* Clearing the Swapchain and Presenting */
 
-    // Transition all swap chain images to a defined layout before doing anything. To do this we need a command queue.
-    VkCommandPoolCreateInfo cmdpoolInfo;
-    cmdpoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    cmdpoolInfo.pNext = NULL;
-    cmdpoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    cmdpoolInfo.queueFamilyIndex = queueFamilyIndex_Graphics;
-
-    VkCommandPool vkCommandPool;
-    result = vkCreateCommandPool(vkDevice, &cmdpoolInfo, NULL, &vkCommandPool);
-    if (result != VK_SUCCESS) {
-        printf("Failed to create command pool.");
-        return -2;
-    }
-
-    VkCommandBufferAllocateInfo cmdbufferInfo;
-    cmdbufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cmdbufferInfo.pNext = NULL;
-    cmdbufferInfo.commandPool = vkCommandPool;
-    cmdbufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cmdbufferInfo.commandBufferCount = 1;
-
-    VkCommandBuffer vkCmdBuffer;
-    result = vkAllocateCommandBuffers(vkDevice, &cmdbufferInfo, &vkCmdBuffer);
-    if (result != VK_SUCCESS) {
-        printf("Failed to allocate command buffer.");
-        return -2;
-    }
-
-
-
-    VkQueue vkQueue;
-    vkGetDeviceQueue(vkDevice, queueFamilyIndex_Graphics, 0, &vkQueue); // <-- TODO: Change "0" to a variable.
-
-
-    
-    // Now grab each swapchain image.
+    // Grab each swapchain image.
     VkImage images[2];
     uint32_t imageCount = sizeof(images) / sizeof(images[0]);
     result = vkGetSwapchainImagesKHR(vkDevice, vkSwapchain, &imageCount, images);
@@ -443,7 +408,8 @@ int main(int argc, char** argv)
         }
     }
 
-    // Create a semaphore.
+    // Create a semaphore for synchronizing swap chain image swaps. The idea is to pass this to vkAcquireNextImageKHR(), then wait for it to get signaled before
+    // drawing anything to it. You can do this by specifying the semaphore in pWaitSemaphore 
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = 0;
@@ -453,6 +419,8 @@ int main(int argc, char** argv)
 
 
 
+
+    // Renderpass.
     VkAttachmentDescription colorAttachmentDesc[1];
     colorAttachmentDesc[0].flags = 0;
     colorAttachmentDesc[0].format = supportedFormats[iFormat].format;
@@ -729,6 +697,40 @@ int main(int argc, char** argv)
     }
 
 
+
+    // Command queue.
+    VkCommandPoolCreateInfo cmdpoolInfo;
+    cmdpoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmdpoolInfo.pNext = NULL;
+    cmdpoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmdpoolInfo.queueFamilyIndex = queueFamilyIndex_Graphics;
+
+    VkCommandPool vkCommandPool;
+    result = vkCreateCommandPool(vkDevice, &cmdpoolInfo, NULL, &vkCommandPool);
+    if (result != VK_SUCCESS) {
+        printf("Failed to create command pool.");
+        return -2;
+    }
+
+    VkCommandBufferAllocateInfo cmdbufferInfo;
+    cmdbufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdbufferInfo.pNext = NULL;
+    cmdbufferInfo.commandPool = vkCommandPool;
+    cmdbufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cmdbufferInfo.commandBufferCount = 1;
+
+    VkCommandBuffer vkCmdBuffer;
+    result = vkAllocateCommandBuffers(vkDevice, &cmdbufferInfo, &vkCmdBuffer);
+    if (result != VK_SUCCESS) {
+        printf("Failed to allocate command buffer.");
+        return -2;
+    }
+
+    VkQueue vkQueue;
+    vkGetDeviceQueue(vkDevice, queueFamilyIndex_Graphics, 0, &vkQueue); // <-- TODO: Change "0" to a variable.
+
+
+
     // Memory and Buffers
     //
     // Each device can use different types of memory. You retrieve these from the physical device (VkPhysicalDevice) using
@@ -865,7 +867,7 @@ int main(int argc, char** argv)
         vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);
         {
             VkClearValue clearValues[1];
-            clearValues[0].color.float32[0] = r; r = 0.2f;
+            clearValues[0].color.float32[0] = r; //r += 0.02f;
             clearValues[0].color.float32[1] = 0;
             clearValues[0].color.float32[2] = 0;
             clearValues[0].color.float32[3] = 1;
@@ -913,31 +915,31 @@ int main(int argc, char** argv)
             return -2;
         }
 
+
+        VkPipelineStageFlags pWaitDstStageMask[1];
+        pWaitDstStageMask[0] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
         VkSubmitInfo submitInfo;
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext = NULL;
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = &semaphore;
-        submitInfo.pWaitDstStageMask = NULL;
+        submitInfo.pWaitDstStageMask = pWaitDstStageMask;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vkCmdBuffer;
-        submitInfo.signalSemaphoreCount = 0;
-        submitInfo.pSignalSemaphores = NULL;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &semaphore;
         result = vkQueueSubmit(vkQueue, 1, &submitInfo, 0);
         if (result != VK_SUCCESS) {
             printf("Failed to submit buffer.");
             return -2;
         }
 
-        vkQueueWaitIdle(vkQueue);   // TODO: Instead of this, use submitInfo.pSignalSemaphores and info.pWaitSemaphores?
-
-        
-
         VkPresentInfoKHR info;
         info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         info.pNext = NULL;
-        info.waitSemaphoreCount = 0;
-        info.pWaitSemaphores = NULL;
+        info.waitSemaphoreCount = 1;
+        info.pWaitSemaphores = &semaphore;
         info.swapchainCount = 1;
         info.pSwapchains = &vkSwapchain;
         info.pImageIndices = &imageIndex;
