@@ -1871,8 +1871,9 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                         }
 
                         codeOut += "typedef " + type.type + " " + type.name + ";\n";
-                        codegenState.MarkTypeAsOutput(type.name);
                     }
+
+                    codegenState.MarkTypeAsOutput(type.name);
                 }
             }
         }
