@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT. See license statements at the end of this file.
-vkbind - v1.1.90.0 - 2018-11-03
+vkbind - v1.1.90.1 - 2018-11-04
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -24,10 +24,31 @@ There is no need to link to any libraries.
 Before attempting to call any Vulkan or vkbind APIs you first need to initialize vkbind with vkbInit(). Uninitialize
 with vkbUninit(). This will bind statically implemented function pointers to the global vk* names.
 
-For robustness you need to load instance-specific APIs using vkbInitInstanceAPI(). passing in a Vulkan VkInstance
-object. The returned function pointers can then be bound with vkbBindAPI(). You can also load the Vulkan API on a
-per-device basis using vkbInitDeviceAPI() and passing in a Vulkan VkDevice object. Note that you do not need to bind
-any APIs to global scope if you don't want to. Instead you can call the functions directly from the VkbAPI structure.
+Example:
+
+    #define VKBIND_IMPLEMENTATION
+    #include "vkbind.h"
+
+    int main()
+    {
+        VkResult result = vkbInit(NULL);
+        if (result != VK_SUCCESS) {
+            printf("Failed to initialize vkbind.");
+            return -1;
+        }
+
+        // Do stuff here.
+
+        vkbUninit();
+        return 0;
+    }
+
+
+If your platform does not statically expose all Vulkan APIs you need to load instance-specific APIs using
+vkbInitInstanceAPI(), passing in a Vulkan VkInstance object. The returned function pointers can then be bound with
+vkbBindAPI(). You can also load the Vulkan API on a per-device basis using vkbInitDeviceAPI() and passing in a Vulkan
+VkDevice object. Note that you do not need to bind any APIs to global scope if you don't want to. Instead you can call
+the functions directly from the VkbAPI structure.
 
 Example:
 
@@ -43,8 +64,7 @@ Example:
             return -1;
         }
 
-        VkInstance instance;
-        vkCreateInstance(&instanceInfo, NULL, &instance);
+        // ... Create your Vulkan instance here (vkCreateInstance) ...
 
         result = vkbInitInstanceAPI(instance, &api);
         if (result != VK_SUCCESS) {
@@ -104,6 +124,11 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #endif  /* VK_NO_STDINT_H */
 
+/* stddef.h is required for size_t */
+#ifndef VK_NO_STDDEF_H
+    #include <stddef.h>
+#endif  /* VK_NO_STDDEF_H */
+
 
 
 #define VK_VERSION_1_0 1
@@ -145,31 +170,31 @@ typedef uint32_t VkBool32;
 typedef uint64_t VkDeviceSize;
 typedef uint32_t VkSampleMask;
 
-VK_DEFINE_HANDLE(VkInstance);
-VK_DEFINE_HANDLE(VkPhysicalDevice);
-VK_DEFINE_HANDLE(VkDevice);
-VK_DEFINE_HANDLE(VkQueue);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSemaphore);
-VK_DEFINE_HANDLE(VkCommandBuffer);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkFence);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDeviceMemory);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBuffer);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkImage);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkEvent);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkQueryPool);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferView);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkImageView);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkShaderModule);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipelineCache);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipelineLayout);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkRenderPass);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipeline);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorSetLayout);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSampler);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorPool);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorSet);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkFramebuffer);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCommandPool);
+VK_DEFINE_HANDLE(VkInstance)
+VK_DEFINE_HANDLE(VkPhysicalDevice)
+VK_DEFINE_HANDLE(VkDevice)
+VK_DEFINE_HANDLE(VkQueue)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSemaphore)
+VK_DEFINE_HANDLE(VkCommandBuffer)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkFence)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDeviceMemory)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBuffer)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkImage)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkEvent)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkQueryPool)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferView)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkImageView)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkShaderModule)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipelineCache)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipelineLayout)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkRenderPass)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPipeline)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorSetLayout)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSampler)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorPool)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorSet)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkFramebuffer)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCommandPool)
 
 typedef enum
 {
@@ -3029,8 +3054,8 @@ typedef void (VKAPI_PTR *PFN_vkCmdExecuteCommands)(VkCommandBuffer commandBuffer
 #define VK_LUID_SIZE 8
 #define VK_QUEUE_FAMILY_EXTERNAL (~0U-1)
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSamplerYcbcrConversion);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorUpdateTemplate);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSamplerYcbcrConversion)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDescriptorUpdateTemplate)
 
 typedef enum
 {
@@ -3805,7 +3830,7 @@ typedef void (VKAPI_PTR *PFN_vkGetDescriptorSetLayoutSupport)(VkDevice device, c
 #define VK_KHR_SURFACE_SPEC_VERSION 25
 #define VK_KHR_SURFACE_EXTENSION_NAME "VK_KHR_surface"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
 
 typedef enum
 {
@@ -3893,7 +3918,7 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceSurfacePresentModesKHR)(VkPh
 #define VK_KHR_SWAPCHAIN_SPEC_VERSION 70
 #define VK_KHR_SWAPCHAIN_EXTENSION_NAME "VK_KHR_swapchain"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSwapchainKHR);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSwapchainKHR)
 
 
 typedef enum
@@ -4011,8 +4036,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkAcquireNextImage2KHR)(VkDevice device, const 
 #define VK_KHR_DISPLAY_SPEC_VERSION 21
 #define VK_KHR_DISPLAY_EXTENSION_NAME "VK_KHR_display"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDisplayKHR);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDisplayModeKHR);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDisplayKHR)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDisplayModeKHR)
 
 
 typedef enum
@@ -4119,7 +4144,7 @@ typedef VkResult (VKAPI_PTR *PFN_vkCreateSharedSwapchainsKHR)(VkDevice device, u
 #define VK_EXT_DEBUG_REPORT_SPEC_VERSION 9
 #define VK_EXT_DEBUG_REPORT_EXTENSION_NAME "VK_EXT_debug_report"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugReportCallbackEXT);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugReportCallbackEXT)
 
 typedef enum
 {
@@ -4873,8 +4898,8 @@ typedef PFN_vkUpdateDescriptorSetWithTemplate PFN_vkUpdateDescriptorSetWithTempl
 #define VK_NVX_DEVICE_GENERATED_COMMANDS_SPEC_VERSION 3
 #define VK_NVX_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME "VK_NVX_device_generated_commands"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkObjectTableNVX);
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkIndirectCommandsLayoutNVX);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkObjectTableNVX)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkIndirectCommandsLayoutNVX)
 
 typedef enum
 {
@@ -5652,7 +5677,7 @@ typedef VkMemoryDedicatedAllocateInfo VkMemoryDedicatedAllocateInfoKHR;
 #define VK_EXT_DEBUG_UTILS_SPEC_VERSION 1
 #define VK_EXT_DEBUG_UTILS_EXTENSION_NAME "VK_EXT_debug_utils"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugUtilsMessengerEXT);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugUtilsMessengerEXT)
 
 typedef VkFlags VkDebugUtilsMessengerCallbackDataFlagsEXT;
 typedef VkFlags VkDebugUtilsMessengerCreateFlagsEXT;
@@ -6136,7 +6161,7 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetImageDrmFormatModifierPropertiesEXT)(VkDev
 #define VK_EXT_VALIDATION_CACHE_SPEC_VERSION 1
 #define VK_EXT_VALIDATION_CACHE_EXTENSION_NAME "VK_EXT_validation_cache"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkValidationCacheEXT);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkValidationCacheEXT)
 
 typedef enum
 {
@@ -6360,7 +6385,7 @@ typedef void (VKAPI_PTR *PFN_vkCmdSetCoarseSampleOrderNV)(VkCommandBuffer comman
 #define VK_NVX_RAYTRACING_SPEC_VERSION 1
 #define VK_NVX_RAYTRACING_EXTENSION_NAME "VK_NVX_raytracing"
 
-VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkAccelerationStructureNVX);
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkAccelerationStructureNVX)
 
 typedef enum
 {
@@ -6604,7 +6629,6 @@ typedef struct
 #define VK_EXT_EXTERNAL_MEMORY_HOST_SPEC_VERSION 1
 #define VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME "VK_EXT_external_memory_host"
 
-typedef VkExternalMemoryHandleTypeFlags VkExternalMemoryHandleTypeFlagsKHR;
 typedef struct
 {
     VkStructureType sType;
@@ -8226,7 +8250,14 @@ VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 #ifdef _WIN32
     return (VkbProc)GetProcAddress((HMODULE)handle, symbol);
 #else
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     return (VkbProc)dlsym((void*)handle, symbol);
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    #pragma GCC diagnostic pop
+#endif
 #endif
 }
 
@@ -8236,6 +8267,8 @@ static VkbHandle g_vkbVulkanSO = NULL;
 
 VkResult vkbLoadVulkanSO()
 {
+    size_t i;
+
     /* TODO: Add support for more platforms here. */
     const char* vulkanSONames[] = {
 #if defined(_WIN32)
@@ -8245,11 +8278,12 @@ VkResult vkbLoadVulkanSO()
 #elif defined(__ANDROID__)
         "libvulkan.so"
 #else
+        "libvulkan.so.1",
         "libvulkan.so"
 #endif
     };
 
-    for (size_t i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
+    for (i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
         VkbHandle handle = vkb_dlopen(vulkanSONames[i]);
         if (handle != NULL) {
             g_vkbVulkanSO = handle;
