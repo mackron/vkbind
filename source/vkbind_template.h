@@ -24,10 +24,31 @@ There is no need to link to any libraries.
 Before attempting to call any Vulkan or vkbind APIs you first need to initialize vkbind with vkbInit(). Uninitialize
 with vkbUninit(). This will bind statically implemented function pointers to the global vk* names.
 
-For robustness you need to load instance-specific APIs using vkbInitInstanceAPI(). passing in a Vulkan VkInstance
-object. The returned function pointers can then be bound with vkbBindAPI(). You can also load the Vulkan API on a
-per-device basis using vkbInitDeviceAPI() and passing in a Vulkan VkDevice object. Note that you do not need to bind
-any APIs to global scope if you don't want to. Instead you can call the functions directly from the VkbAPI structure.
+Example:
+
+    #define VKBIND_IMPLEMENTATION
+    #include "vkbind.h"
+
+    int main()
+    {
+        VkResult result = vkbInit(NULL);
+        if (result != VK_SUCCESS) {
+            printf("Failed to initialize vkbind.");
+            return -1;
+        }
+
+        // Do stuff here.
+
+        vkbUninit();
+        return 0;
+    }
+
+
+If your platform does not statically expose all Vulkan APIs you need to load instance-specific APIs using
+vkbInitInstanceAPI(), passing in a Vulkan VkInstance object. The returned function pointers can then be bound with
+vkbBindAPI(). You can also load the Vulkan API on a per-device basis using vkbInitDeviceAPI() and passing in a Vulkan
+VkDevice object. Note that you do not need to bind any APIs to global scope if you don't want to. Instead you can call
+the functions directly from the VkbAPI structure.
 
 Example:
 
@@ -43,8 +64,7 @@ Example:
             return -1;
         }
 
-        VkInstance instance;
-        vkCreateInstance(&instanceInfo, NULL, &instance);
+        // ... Create your Vulkan instance here (vkCreateInstance) ...
 
         result = vkbInitInstanceAPI(instance, &api);
         if (result != VK_SUCCESS) {
@@ -103,6 +123,11 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #include <stdint.h>
 #endif
 #endif  /* VK_NO_STDINT_H */
+
+/* stddef.h is required for size_t */
+#ifndef VK_NO_STDDEF_H
+    #include <stddef.h>
+#endif  /* VK_NO_STDDEF_H */
 
 
 /*<<vulkan_main>>*/
@@ -224,6 +249,8 @@ static VkbHandle g_vkbVulkanSO = NULL;
 
 VkResult vkbLoadVulkanSO()
 {
+    size_t i;
+
     /* TODO: Add support for more platforms here. */
     const char* vulkanSONames[] = {
 #if defined(_WIN32)
@@ -233,11 +260,12 @@ VkResult vkbLoadVulkanSO()
 #elif defined(__ANDROID__)
         "libvulkan.so"
 #else
+        "libvulkan.so.1",
         "libvulkan.so"
 #endif
     };
 
-    for (size_t i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
+    for (i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
         VkbHandle handle = vkb_dlopen(vulkanSONames[i]);
         if (handle != NULL) {
             g_vkbVulkanSO = handle;
