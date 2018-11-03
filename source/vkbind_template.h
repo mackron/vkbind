@@ -239,7 +239,14 @@ VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 #ifdef _WIN32
     return (VkbProc)GetProcAddress((HMODULE)handle, symbol);
 #else
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     return (VkbProc)dlsym((void*)handle, symbol);
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    #pragma GCC diagnostic pop
+#endif
 #endif
 }
 
