@@ -39,11 +39,7 @@ int main()
         return -1;
     }
     
-    VkInstanceCreateInfo instanceInfo;
-    // Set your instance details here...
-
-    VkInstance instance;
-    vkCreateInstance(&instanceInfo, NULL, &instance);
+    // ... Create your Vulkan instance here (vkCreateInstance) ...
 
     result = vkbInitInstanceAPI(instance, &api);
     if (result != VK_SUCCESS) {
