@@ -3039,11 +3039,22 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
     return VKB_SUCCESS;
 }
 
+#include <io.h>
 
 int main(int argc, char** argv)
 {
     (void)argc;
     (void)argv;
+
+    if (_access_s(VKB_BUILD_XML_PATH, 04) != 0) {   // 04 = Read access.
+        printf("vk.xml not found. Attempting to download...\n");
+        std::string cmd = "curl -o " VKB_BUILD_XML_PATH " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/master/xml/vk.xml";
+        int result = system(cmd.c_str());
+        if (result != 0) {
+            printf("Failed to download vk.xml\n");
+            return result;
+        }
+    }
 
     tinyxml2::XMLError xmlError;
 
