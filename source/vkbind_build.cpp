@@ -1611,7 +1611,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                     if (type.alias != "") {
                         codeOut += "typedef " + type.alias + " " + type.name + ";\n";
                     } else {
-                        codeOut += type.type + "(" + type.name + ");\n";
+                        codeOut += type.type + "(" + type.name + ")\n";
                         count += 1;
                     }
                     codegenState.MarkTypeAsOutput(type.name);
