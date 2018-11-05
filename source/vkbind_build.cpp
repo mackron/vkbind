@@ -1113,10 +1113,10 @@ vkbResult vkbBuildParseExtensions(vkbBuild &context, tinyxml2::XMLElement* pExte
 
     for (tinyxml2::XMLNode* pChild = pExtensionsElement->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
-        assert(pChildElement != NULL);
-
-        if (strcmp(pChildElement->Name(), "extension") == 0) {
-            vkbBuildParseExtension(context, pChildElement);
+        if (pChildElement != NULL) {
+            if (strcmp(pChildElement->Name(), "extension") == 0) {
+                vkbBuildParseExtension(context, pChildElement);
+            }
         }
     }
 
