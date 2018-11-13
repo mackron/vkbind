@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT. See license statements at the end of this file.
-vkbind - v1.1.91.0 - 2018-11-05
+vkbind - v1.1.92.0 - 2018-11-13
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 91
+#define VK_HEADER_VERSION 92
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -6103,8 +6103,6 @@ typedef PFN_vkBindBufferMemory2 PFN_vkBindBufferMemory2KHR;
 typedef PFN_vkBindImageMemory2 PFN_vkBindImageMemory2KHR;
 
 #define VK_EXT_image_drm_format_modifier 1
-#define VK_EXT_EXTENSION_159_SPEC_VERSION 0
-#define VK_EXT_EXTENSION_159_EXTENSION_NAME "VK_EXT_extension_159"
 #define VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_SPEC_VERSION 1
 #define VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME "VK_EXT_image_drm_format_modifier"
 
