@@ -3047,7 +3047,8 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    if (_access_s(VKB_BUILD_XML_PATH, 04) != 0) {   // 04 = Read access.
+    bool forceDownload = true;
+    if (forceDownload || _access_s(VKB_BUILD_XML_PATH, 04) != 0) {   // 04 = Read access.
         printf("vk.xml not found. Attempting to download...\n");
         std::string cmd = "curl -o " VKB_BUILD_XML_PATH " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/master/xml/vk.xml";
         int result = system(cmd.c_str());
