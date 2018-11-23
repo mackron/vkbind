@@ -264,8 +264,6 @@ VkResult vkbLoadVulkanSO()
         "vulkan-1.dll"
 #elif defined(__APPLE__)
         /* TODO: Set this if possible. May require compile-time linking. */
-#elif defined(__ANDROID__)
-        "libvulkan.so"
 #else
         "libvulkan.so.1",
         "libvulkan.so"
