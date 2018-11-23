@@ -258,12 +258,18 @@ VkResult vkbLoadVulkanSO()
 {
     size_t i;
 
-    /* TODO: Add support for more platforms here. */
     const char* vulkanSONames[] = {
 #if defined(_WIN32)
         "vulkan-1.dll"
 #elif defined(__APPLE__)
-        /* TODO: Set this if possible. May require compile-time linking. */
+        /*
+        The idea here is that since MoltenVK seems to be the de facto standard for Vulkan on Apple platforms at the moment we'll try
+        that first. If Apple ever decides to officially support Vulkan we can perhaps consider dropping it to the bottom of the priority
+        list. Not sure if this reasoning is sound, but it makes sense in my head!
+        */
+        "libMoltenVK.dylib",
+        "libvulkan.dylib.1",
+        "libvulkan.dylib"
 #else
         "libvulkan.so.1",
         "libvulkan.so"
