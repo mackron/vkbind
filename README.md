@@ -1,8 +1,8 @@
 vkbind
 ======
 vkbind is a single file Vulkan API loader. It includes a full implementation of the Vulkan headers (auto-generated
-from the Vulkan spec) so there's no need for any additional libraries or SDKs. Unlike the official headers, the
-platform-specific sections are all contained within the same file.
+from the Vulkan spec) so there's no need for the offical headers or SDK. Unlike the official headers, the platform-
+specific sections are all contained within the same file.
 
 Usage
 =====
