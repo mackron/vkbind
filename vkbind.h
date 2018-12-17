@@ -1,6 +1,6 @@
 /*
-Vulkan API loader. Choice of public domain or MIT. See license statements at the end of this file.
-vkbind - v1.1.95.0 - 2018-12-04
+Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
+vkbind - v1.1.96.0 - 2018-12-17
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 95
+#define VK_HEADER_VERSION 96
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -7083,17 +7083,17 @@ typedef struct
 
 
 #define VK_EXT_pci_bus_info 1
-#define VK_EXT_PCI_BUS_INFO_SPEC_VERSION 1
+#define VK_EXT_PCI_BUS_INFO_SPEC_VERSION 2
 #define VK_EXT_PCI_BUS_INFO_EXTENSION_NAME "VK_EXT_pci_bus_info"
 
 typedef struct
 {
     VkStructureType sType;
     void* pNext;
-    uint16_t pciDomain;
-    uint8_t pciBus;
-    uint8_t pciDevice;
-    uint8_t pciFunction;
+    uint32_t pciDomain;
+    uint32_t pciBus;
+    uint32_t pciDevice;
+    uint32_t pciFunction;
 } VkPhysicalDevicePCIBusInfoPropertiesEXT;
 
 
@@ -7143,12 +7143,12 @@ typedef struct
 
 
 #define VK_GOOGLE_hlsl_functionality1 1
-#define VK_GOOGLE_HLSL_FUNCTIONALITY1_SPEC_VERSION 0
+#define VK_GOOGLE_HLSL_FUNCTIONALITY1_SPEC_VERSION 1
 #define VK_GOOGLE_HLSL_FUNCTIONALITY1_EXTENSION_NAME "VK_GOOGLE_hlsl_functionality1"
 
 
 #define VK_GOOGLE_decorate_string 1
-#define VK_GOOGLE_DECORATE_STRING_SPEC_VERSION 0
+#define VK_GOOGLE_DECORATE_STRING_SPEC_VERSION 1
 #define VK_GOOGLE_DECORATE_STRING_EXTENSION_NAME "VK_GOOGLE_decorate_string"
 
 
@@ -10347,7 +10347,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 For more information, please refer to <http://unlicense.org/>
 
 ===============================================================================
-ALTERNATIVE 2 - MIT
+ALTERNATIVE 2 - MIT No Attribution
 ===============================================================================
 Copyright 2018 David Reid
 
@@ -10356,10 +10356,7 @@ this software and associated documentation files (the "Software"), to deal in
 the Software without restriction, including without limitation the rights to
 use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+so.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
