@@ -83,4 +83,4 @@ glslangValidator (GLSL to SPIR-V compiler). You can see the relevant shaders in 
 
 License
 =======
-Public domain or MIT. Choose whichever you prefer.
+Public domain or MIT-0 (No Attribution). Choose whichever you prefer.
