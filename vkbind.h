@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.96.0 - 2018-12-17
+vkbind - v1.1.97.0 - 2019-01-07
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 96
+#define VK_HEADER_VERSION 97
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -233,6 +233,7 @@ typedef enum
     VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT = -1000158000,
     VK_ERROR_FRAGMENTATION_EXT = -1000161000,
     VK_ERROR_NOT_PERMITTED_EXT = -1000174001,
+    VK_ERROR_INVALID_DEVICE_ADDRESS_EXT = -1000244000,
     VK_ERROR_OUT_OF_POOL_MEMORY_KHR = VK_ERROR_OUT_OF_POOL_MEMORY,
     VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = VK_ERROR_INVALID_EXTERNAL_HANDLE
 } VkResult;
@@ -526,6 +527,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT = 1000190002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR = 1000196000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_KHR = 1000197000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES_KHR = 1000199000,
+    VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_DEPTH_STENCIL_RESOLVE_KHR = 1000199001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV = 1000201000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV = 1000202000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV = 1000202001,
@@ -542,7 +545,14 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT = 1000218001,
     VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT = 1000218002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES_EXT = 1000221000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT = 1000237000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT = 1000238000,
+    VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT = 1000238001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_ADDRESS_FEATURES_EXT = 1000244000,
+    VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_EXT = 1000244001,
+    VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT = 1000244002,
     VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT = 1000246000,
+    VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT = 1000247000,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
@@ -1516,7 +1526,8 @@ typedef enum
     VK_BUFFER_CREATE_SPARSE_BINDING_BIT = 0x00000001,
     VK_BUFFER_CREATE_SPARSE_RESIDENCY_BIT = 0x00000002,
     VK_BUFFER_CREATE_SPARSE_ALIASED_BIT = 0x00000004,
-    VK_BUFFER_CREATE_PROTECTED_BIT = 0x00000008
+    VK_BUFFER_CREATE_PROTECTED_BIT = 0x00000008,
+    VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_EXT = 0x00000010
 } VkBufferCreateFlagBits;
 typedef VkFlags VkBufferCreateFlags;
 
@@ -1534,7 +1545,8 @@ typedef enum
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT = 0x00000800,
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT = 0x00001000,
     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT = 0x00000200,
-    VK_BUFFER_USAGE_RAY_TRACING_BIT_NV = 0x00000400
+    VK_BUFFER_USAGE_RAY_TRACING_BIT_NV = 0x00000400,
+    VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT = 0x00020000
 } VkBufferUsageFlagBits;
 typedef VkFlags VkBufferUsageFlags;
 typedef VkFlags VkBufferViewCreateFlags;
@@ -6936,6 +6948,42 @@ typedef struct
 #define VK_NV_SHADER_SUBGROUP_PARTITIONED_EXTENSION_NAME "VK_NV_shader_subgroup_partitioned"
 
 
+#define VK_KHR_depth_stencil_resolve 1
+#define VK_KHR_DEPTH_STENCIL_RESOLVE_SPEC_VERSION 1
+#define VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME "VK_KHR_depth_stencil_resolve"
+
+
+typedef enum
+{
+    VK_RESOLVE_MODE_NONE_KHR = 0,
+    VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR = 0x00000001,
+    VK_RESOLVE_MODE_AVERAGE_BIT_KHR = 0x00000002,
+    VK_RESOLVE_MODE_MIN_BIT_KHR = 0x00000004,
+    VK_RESOLVE_MODE_MAX_BIT_KHR = 0x00000008
+} VkResolveModeFlagBitsKHR;
+typedef VkFlags VkResolveModeFlagsKHR;
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkResolveModeFlagBitsKHR depthResolveMode;
+    VkResolveModeFlagBitsKHR stencilResolveMode;
+    const VkAttachmentReference2KHR* pDepthStencilResolveAttachment;
+} VkSubpassDescriptionDepthStencilResolveKHR;
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkResolveModeFlagsKHR supportedDepthResolveModes;
+    VkResolveModeFlagsKHR supportedStencilResolveModes;
+    VkBool32 independentResolveNone;
+    VkBool32 independentResolve;
+} VkPhysicalDeviceDepthStencilResolvePropertiesKHR;
+
+
+
 #define VK_KHR_swapchain_mutable_format 1
 #define VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_SPEC_VERSION 1
 #define VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME "VK_KHR_swapchain_mutable_format"
@@ -7152,6 +7200,72 @@ typedef struct
 #define VK_GOOGLE_DECORATE_STRING_EXTENSION_NAME "VK_GOOGLE_decorate_string"
 
 
+#define VK_EXT_memory_budget 1
+#define VK_EXT_MEMORY_BUDGET_SPEC_VERSION 1
+#define VK_EXT_MEMORY_BUDGET_EXTENSION_NAME "VK_EXT_memory_budget"
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceSize heapBudget[VK_MAX_MEMORY_HEAPS];
+    VkDeviceSize heapUsage[VK_MAX_MEMORY_HEAPS];
+} VkPhysicalDeviceMemoryBudgetPropertiesEXT;
+
+
+
+#define VK_EXT_memory_priority 1
+#define VK_EXT_MEMORY_PRIORITY_SPEC_VERSION 1
+#define VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME "VK_EXT_memory_priority"
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 memoryPriority;
+} VkPhysicalDeviceMemoryPriorityFeaturesEXT;
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    float priority;
+} VkMemoryPriorityAllocateInfoEXT;
+
+
+
+#define VK_EXT_buffer_device_address 1
+#define VK_EXT_BUFFER_DEVICE_ADDRESS_SPEC_VERSION 2
+#define VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME "VK_EXT_buffer_device_address"
+
+typedef uint64_t VkDeviceAddress;
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 bufferDeviceAddress;
+    VkBool32 bufferDeviceAddressCaptureReplay;
+    VkBool32 bufferDeviceAddressMultiDevice;
+} VkPhysicalDeviceBufferAddressFeaturesEXT;
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBuffer buffer;
+} VkBufferDeviceAddressInfoEXT;
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceSize deviceAddress;
+} VkBufferDeviceAddressCreateInfoEXT;
+
+
+typedef VkDeviceAddress (VKAPI_PTR *PFN_vkGetBufferDeviceAddressEXT)(VkDevice device, const VkBufferDeviceAddressInfoEXT* pInfo);
+
 #define VK_EXT_separate_stencil_usage 1
 #define VK_EXT_SEPARATE_STENCIL_USAGE_SPEC_VERSION 1
 #define VK_EXT_SEPARATE_STENCIL_USAGE_EXTENSION_NAME "VK_EXT_separate_stencil_usage"
@@ -7162,6 +7276,40 @@ typedef struct
     const void* pNext;
     VkImageUsageFlags stencilUsage;
 } VkImageStencilUsageCreateInfoEXT;
+
+
+
+#define VK_EXT_validation_features 1
+#define VK_EXT_VALIDATION_FEATURES_SPEC_VERSION 1
+#define VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME "VK_EXT_validation_features"
+
+typedef enum
+{
+    VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT = 0,
+    VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT = 1
+} VkValidationFeatureEnableEXT;
+
+typedef enum
+{
+    VK_VALIDATION_FEATURE_DISABLE_ALL_EXT = 0,
+    VK_VALIDATION_FEATURE_DISABLE_SHADERS_EXT = 1,
+    VK_VALIDATION_FEATURE_DISABLE_THREAD_SAFETY_EXT = 2,
+    VK_VALIDATION_FEATURE_DISABLE_API_PARAMETERS_EXT = 3,
+    VK_VALIDATION_FEATURE_DISABLE_OBJECT_LIFETIMES_EXT = 4,
+    VK_VALIDATION_FEATURE_DISABLE_CORE_CHECKS_EXT = 5,
+    VK_VALIDATION_FEATURE_DISABLE_UNIQUE_HANDLES_EXT = 6
+} VkValidationFeatureDisableEXT;
+
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t enabledValidationFeatureCount;
+    const VkValidationFeatureEnableEXT* pEnabledValidationFeatures;
+    uint32_t disabledValidationFeatureCount;
+    const VkValidationFeatureDisableEXT* pDisabledValidationFeatures;
+} VkValidationFeaturesEXT;
 
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -7924,6 +8072,7 @@ PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
 PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8288,6 +8437,7 @@ typedef struct
     PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+    PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8808,6 +8958,7 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorNV");
     vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
+    vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferDeviceAddressEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -9201,6 +9352,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetExclusiveScissorNV = vkCmdSetExclusiveScissorNV;
         pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
         pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
+        pAPI->vkGetBufferDeviceAddressEXT = vkGetBufferDeviceAddressEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -9591,6 +9743,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
+    pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkGetInstanceProcAddr(instance, "vkGetBufferDeviceAddressEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -9905,6 +10058,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
+    pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferDeviceAddressEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -10265,6 +10419,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetExclusiveScissorNV = pAPI->vkCmdSetExclusiveScissorNV;
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
+    vkGetBufferDeviceAddressEXT = pAPI->vkGetBufferDeviceAddressEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -10349,7 +10504,7 @@ For more information, please refer to <http://unlicense.org/>
 ===============================================================================
 ALTERNATIVE 2 - MIT No Attribution
 ===============================================================================
-Copyright 2018 David Reid
+Copyright 2019 David Reid
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
