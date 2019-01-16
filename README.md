@@ -61,7 +61,7 @@ int main()
 ```
 The code above uses the `VkbAPI` structure which contains function pointers to all Vulkan APIs. The idea is that you
 first initialize with `vkbInit()`, then call `vkbInitInstanceAPI()` after you've created your Vulkan instance. The
-`VkbAPI` object will be filled with usable function pointers at this point (so long as their supported by the platform).
+`VkbAPI` object will be filled with usable function pointers at this point (so long as they're supported by the platform).
 In this example, the instance APIs are bound to global scope using `vkbBindAPI()`, however if you have multiple
 instances running at the same time, you should instead invoke the functions directly from the `VkbAPI` object.
 
