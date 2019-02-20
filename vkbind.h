@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.99.0 - 2019-02-05
+vkbind - v1.1.101.0 - 2019-02-20
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 99
+#define VK_HEADER_VERSION 101
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -431,6 +431,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PIPELINE_DISCARD_RECTANGLE_STATE_CREATE_INFO_EXT = 1000099001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONSERVATIVE_RASTERIZATION_PROPERTIES_EXT = 1000101000,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT = 1000101001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT = 1000102000,
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT = 1000102001,
     VK_STRUCTURE_TYPE_HDR_METADATA_EXT = 1000105000,
     VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2_KHR = 1000109000,
     VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2_KHR = 1000109001,
@@ -556,6 +558,9 @@ typedef enum
     VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT = 1000244002,
     VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT = 1000246000,
     VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT = 1000247000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV = 1000249000,
+    VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_NV = 1000249001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV = 1000249002,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
@@ -1159,7 +1164,8 @@ typedef enum
 {
     VK_FILTER_NEAREST = 0,
     VK_FILTER_LINEAR = 1,
-    VK_FILTER_CUBIC_EXT = 1000015000
+    VK_FILTER_CUBIC_IMG = 1000015000,
+    VK_FILTER_CUBIC_EXT = VK_FILTER_CUBIC_IMG
 } VkFilter;
 
 typedef enum
@@ -1321,7 +1327,7 @@ typedef enum
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT = 0x00200000,
     VK_FORMAT_FEATURE_DISJOINT_BIT = 0x00400000,
     VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT = 0x00800000,
-    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_EXT = 0x00002000,
+    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG = 0x00002000,
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT = 0x00010000,
     VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x01000000,
     VK_FORMAT_FEATURE_TRANSFER_SRC_BIT_KHR = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT,
@@ -1332,7 +1338,8 @@ typedef enum
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT_KHR = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_BIT,
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT_KHR = VK_FORMAT_FEATURE_SAMPLED_IMAGE_YCBCR_CONVERSION_CHROMA_RECONSTRUCTION_EXPLICIT_FORCEABLE_BIT,
     VK_FORMAT_FEATURE_DISJOINT_BIT_KHR = VK_FORMAT_FEATURE_DISJOINT_BIT,
-    VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT_KHR = VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT
+    VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT_KHR = VK_FORMAT_FEATURE_COSITED_CHROMA_SAMPLES_BIT,
+    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_EXT = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG
 } VkFormatFeatureFlagBits;
 typedef VkFlags VkFormatFeatureFlags;
 
@@ -5422,6 +5429,28 @@ typedef struct
 
 
 
+#define VK_EXT_depth_clip_enable 1
+#define VK_EXT_DEPTH_CLIP_ENABLE_SPEC_VERSION 1
+#define VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME "VK_EXT_depth_clip_enable"
+
+typedef VkFlags VkPipelineRasterizationDepthClipStateCreateFlagsEXT;
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 depthClipEnable;
+} VkPhysicalDeviceDepthClipEnableFeaturesEXT;
+
+typedef struct
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineRasterizationDepthClipStateCreateFlagsEXT flags;
+    VkBool32 depthClipEnable;
+} VkPipelineRasterizationDepthClipStateCreateInfoEXT;
+
+
+
 #define VK_EXT_swapchain_colorspace 1
 #define VK_EXT_SWAPCHAIN_COLOR_SPACE_SPEC_VERSION 3
 #define VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME "VK_EXT_swapchain_colorspace"
@@ -7350,6 +7379,66 @@ typedef struct
 } VkValidationFeaturesEXT;
 
 
+
+#define VK_NV_cooperative_matrix 1
+#define VK_NV_COOPERATIVE_MATRIX_SPEC_VERSION 1
+#define VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME "VK_NV_cooperative_matrix"
+
+typedef enum
+{
+    VK_COMPONENT_TYPE_FLOAT16_NV = 0,
+    VK_COMPONENT_TYPE_FLOAT32_NV = 1,
+    VK_COMPONENT_TYPE_FLOAT64_NV = 2,
+    VK_COMPONENT_TYPE_SINT8_NV = 3,
+    VK_COMPONENT_TYPE_SINT16_NV = 4,
+    VK_COMPONENT_TYPE_SINT32_NV = 5,
+    VK_COMPONENT_TYPE_SINT64_NV = 6,
+    VK_COMPONENT_TYPE_UINT8_NV = 7,
+    VK_COMPONENT_TYPE_UINT16_NV = 8,
+    VK_COMPONENT_TYPE_UINT32_NV = 9,
+    VK_COMPONENT_TYPE_UINT64_NV = 10
+} VkComponentTypeNV;
+
+typedef enum
+{
+    VK_SCOPE_DEVICE_NV = 1,
+    VK_SCOPE_WORKGROUP_NV = 2,
+    VK_SCOPE_SUBGROUP_NV = 3,
+    VK_SCOPE_QUEUE_FAMILY_NV = 5
+} VkScopeNV;
+
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t MSize;
+    uint32_t NSize;
+    uint32_t KSize;
+    VkComponentTypeNV AType;
+    VkComponentTypeNV BType;
+    VkComponentTypeNV CType;
+    VkComponentTypeNV DType;
+    VkScopeNV scope;
+} VkCooperativeMatrixPropertiesNV;
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 cooperativeMatrix;
+    VkBool32 cooperativeMatrixRobustBufferAccess;
+} VkPhysicalDeviceCooperativeMatrixFeaturesNV;
+
+typedef struct
+{
+    VkStructureType sType;
+    void* pNext;
+    VkShaderStageFlags cooperativeMatrixSupportedStages;
+} VkPhysicalDeviceCooperativeMatrixPropertiesNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)(VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount, VkCooperativeMatrixPropertiesNV* pProperties);
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -8111,6 +8200,7 @@ PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
 PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
+PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8476,6 +8566,7 @@ typedef struct
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
     PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
+    PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8997,6 +9088,7 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
     vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferDeviceAddressEXT");
+    vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -9391,6 +9483,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
         pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
         pAPI->vkGetBufferDeviceAddressEXT = vkGetBufferDeviceAddressEXT;
+        pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -9782,6 +9875,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkGetInstanceProcAddr(instance, "vkGetBufferDeviceAddressEXT");
+    pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -10458,6 +10552,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
     vkGetBufferDeviceAddressEXT = pAPI->vkGetBufferDeviceAddressEXT;
+    vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
