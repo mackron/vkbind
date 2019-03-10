@@ -1896,7 +1896,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                         if (wasFuncPointerOutputLast) {
                             codeOut += "\n";    // Separate function pointers and struct/union types with a space.
                         }
-                        codeOut += "typedef " + type.category + "\n";
+                        codeOut += "typedef " + type.category + " " + type.name + "\n";
                         codeOut += "{\n";
                         for (size_t iMember = 0; iMember < type.structData.members.size(); ++iMember) {
                             codeOut += "    " + type.structData.members[iMember].typeC + " " + type.structData.members[iMember].nameC + ";\n";
