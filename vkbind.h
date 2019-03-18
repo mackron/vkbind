@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.103.0 - 2019-03-12
+vkbind - v1.1.104.0 - 2019-03-18
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 103
+#define VK_HEADER_VERSION 104
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -234,6 +234,7 @@ typedef enum
     VK_ERROR_FRAGMENTATION_EXT = -1000161000,
     VK_ERROR_NOT_PERMITTED_EXT = -1000174001,
     VK_ERROR_INVALID_DEVICE_ADDRESS_EXT = -1000244000,
+    VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT = -1000255000,
     VK_ERROR_OUT_OF_POOL_MEMORY_KHR = VK_ERROR_OUT_OF_POOL_MEMORY,
     VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = VK_ERROR_INVALID_EXTERNAL_HANDLE
 } VkResult;
@@ -530,6 +531,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT = 1000190000,
     VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT = 1000190001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT = 1000190002,
+    VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT = 1000192000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR = 1000196000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_KHR = 1000197000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_STENCIL_RESOLVE_PROPERTIES_KHR = 1000199000,
@@ -545,6 +547,8 @@ typedef enum
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV = 1000206001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES_KHR = 1000211000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT = 1000212000,
+    VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD = 1000213000,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_DISPLAY_NATIVE_HDR_CREATE_INFO_AMD = 1000213001,
     VK_STRUCTURE_TYPE_IMAGEPIPE_SURFACE_CREATE_INFO_FUCHSIA = 1000214000,
     VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT = 1000217000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_FEATURES_EXT = 1000218000,
@@ -554,6 +558,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT = 1000237000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT = 1000238000,
     VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT = 1000238001,
+    VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR = 1000239000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV = 1000240000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_ADDRESS_FEATURES_EXT = 1000244000,
     VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_EXT = 1000244001,
@@ -564,6 +569,10 @@ typedef enum
     VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_NV = 1000249001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV = 1000249002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_IMAGE_ARRAYS_FEATURES_EXT = 1000252000,
+    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT = 1000255000,
+    VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT = 1000255002,
+    VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT = 1000255001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT = 1000261000,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
@@ -3901,7 +3910,8 @@ typedef enum
     VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
     VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT = 1000104012,
     VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
-    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014
+    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
+    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000
 } VkColorSpaceKHR;
 
 typedef enum
@@ -4664,9 +4674,18 @@ typedef VkBindBufferMemoryDeviceGroupInfo VkBindBufferMemoryDeviceGroupInfoKHR;
 
 typedef VkBindImageMemoryDeviceGroupInfo VkBindImageMemoryDeviceGroupInfoKHR;
 
+typedef struct VkPhysicalDeviceSurfaceInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSurfaceKHR surface;
+} VkPhysicalDeviceSurfaceInfo2KHR;
+
+
 typedef PFN_vkGetDeviceGroupPeerMemoryFeatures PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR;
 typedef PFN_vkCmdSetDeviceMask PFN_vkCmdSetDeviceMaskKHR;
 typedef PFN_vkCmdDispatchBase PFN_vkCmdDispatchBaseKHR;
+typedef VkResult (VKAPI_PTR *PFN_vkGetDeviceGroupSurfacePresentModes2EXT)(VkDevice device, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo, VkDeviceGroupPresentModeFlagsKHR* pModes);
 
 #define VK_EXT_validation_flags 1
 #define VK_EXT_VALIDATION_FLAGS_SPEC_VERSION 1
@@ -5678,13 +5697,6 @@ typedef VkPipelineTessellationDomainOriginStateCreateInfo VkPipelineTessellation
 #define VK_KHR_get_surface_capabilities2 1
 #define VK_KHR_GET_SURFACE_CAPABILITIES_2_SPEC_VERSION 1
 #define VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME "VK_KHR_get_surface_capabilities2"
-
-typedef struct VkPhysicalDeviceSurfaceInfo2KHR
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkSurfaceKHR surface;
-} VkPhysicalDeviceSurfaceInfo2KHR;
 
 typedef struct VkSurfaceCapabilities2KHR
 {
@@ -6944,6 +6956,36 @@ typedef struct VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT
 
 
 
+#define VK_EXT_pipeline_creation_feedback 1
+#define VK_EXT_PIPELINE_CREATION_FEEDBACK_SPEC_VERSION 1
+#define VK_EXT_PIPELINE_CREATION_FEEDBACK_EXTENSION_NAME "VK_EXT_pipeline_creation_feedback"
+
+
+typedef enum
+{
+    VK_PIPELINE_CREATION_FEEDBACK_VALID_BIT_EXT = 0x00000001,
+    VK_PIPELINE_CREATION_FEEDBACK_APPLICATION_PIPELINE_CACHE_HIT_BIT_EXT = 0x00000002,
+    VK_PIPELINE_CREATION_FEEDBACK_BASE_PIPELINE_ACCELERATION_BIT_EXT = 0x00000004
+} VkPipelineCreationFeedbackFlagBitsEXT;
+typedef VkFlags VkPipelineCreationFeedbackFlagsEXT;
+
+typedef struct VkPipelineCreationFeedbackEXT
+{
+    VkPipelineCreationFeedbackFlagsEXT flags;
+    uint64_t duration;
+} VkPipelineCreationFeedbackEXT;
+
+typedef struct VkPipelineCreationFeedbackCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineCreationFeedbackEXT* pPipelineCreationFeedback;
+    uint32_t pipelineStageCreationFeedbackCount;
+    VkPipelineCreationFeedbackEXT* pPipelineStageCreationFeedbacks;
+} VkPipelineCreationFeedbackCreateInfoEXT;
+
+
+
 #define VK_KHR_driver_properties 1
 #define VK_KHR_DRIVER_PROPERTIES_SPEC_VERSION 1
 #define VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME "VK_KHR_driver_properties"
@@ -7219,6 +7261,27 @@ typedef struct VkPhysicalDevicePCIBusInfoPropertiesEXT
 
 
 
+#define VK_AMD_display_native_hdr 1
+#define VK_AMD_DISPLAY_NATIVE_HDR_SPEC_VERSION 1
+#define VK_AMD_DISPLAY_NATIVE_HDR_EXTENSION_NAME "VK_AMD_display_native_hdr"
+
+typedef struct VkDisplayNativeHdrSurfaceCapabilitiesAMD
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 localDimmingSupport;
+} VkDisplayNativeHdrSurfaceCapabilitiesAMD;
+
+typedef struct VkSwapchainDisplayNativeHdrCreateInfoAMD
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 localDimmingEnable;
+} VkSwapchainDisplayNativeHdrCreateInfoAMD;
+
+
+typedef void (VKAPI_PTR *PFN_vkSetLocalDimmingAMD)(VkSwapchainKHR swapChain, VkBool32 localDimmingEnable);
+
 #define VK_EXT_fragment_density_map 1
 #define VK_EXT_FRAGMENT_DENSITY_MAP_SPEC_VERSION 1
 #define VK_EXT_FRAGMENT_DENSITY_MAP_EXTENSION_NAME "VK_EXT_fragment_density_map"
@@ -7307,6 +7370,19 @@ typedef struct VkMemoryPriorityAllocateInfoEXT
 
 
 
+#define VK_KHR_surface_protected_capabilities 1
+#define VK_KHR_SURFACE_PROTECTED_CAPABILITIES_SPEC_VERSION 1
+#define VK_KHR_SURFACE_PROTECTED_CAPABILITIES_EXTENSION_NAME "VK_KHR_surface_protected_capabilities"
+
+typedef struct VkSurfaceProtectedCapabilitiesKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 supportsProtected;
+} VkSurfaceProtectedCapabilitiesKHR;
+
+
+
 #define VK_NV_dedicated_allocation_image_aliasing 1
 #define VK_NV_DEDICATED_ALLOCATION_IMAGE_ALIASING_SPEC_VERSION 1
 #define VK_NV_DEDICATED_ALLOCATION_IMAGE_ALIASING_EXTENSION_NAME "VK_NV_dedicated_allocation_image_aliasing"
@@ -7346,7 +7422,7 @@ typedef struct VkBufferDeviceAddressCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    VkDeviceSize deviceAddress;
+    VkDeviceAddress deviceAddress;
 } VkBufferDeviceAddressCreateInfoEXT;
 
 
@@ -7471,6 +7547,20 @@ typedef struct VkPhysicalDeviceYcbcrImageArraysFeaturesEXT
 } VkPhysicalDeviceYcbcrImageArraysFeaturesEXT;
 
 
+
+#define VK_EXT_host_query_reset 1
+#define VK_EXT_HOST_QUERY_RESET_SPEC_VERSION 1
+#define VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME "VK_EXT_host_query_reset"
+
+typedef struct VkPhysicalDeviceHostQueryResetFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 hostQueryReset;
+} VkPhysicalDeviceHostQueryResetFeaturesEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkResetQueryPoolEXT)(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount);
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -7833,6 +7923,45 @@ typedef struct VkFenceGetWin32HandleInfoKHR
 
 typedef VkResult (VKAPI_PTR *PFN_vkImportFenceWin32HandleKHR)(VkDevice device, const VkImportFenceWin32HandleInfoKHR* pImportFenceWin32HandleInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkGetFenceWin32HandleKHR)(VkDevice device, const VkFenceGetWin32HandleInfoKHR* pGetWin32HandleInfo, HANDLE* pHandle);
+
+#define VK_EXT_full_screen_exclusive 1
+#define VK_EXT_FULL_SCREEN_EXCLUSIVE_SPEC_VERSION 3
+#define VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME "VK_EXT_full_screen_exclusive"
+
+typedef enum
+{
+    VK_FULL_SCREEN_EXCLUSIVE_DEFAULT_EXT = 0,
+    VK_FULL_SCREEN_EXCLUSIVE_ALLOWED_EXT = 1,
+    VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT = 2,
+    VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT = 3
+} VkFullScreenExclusiveEXT;
+
+
+typedef struct VkSurfaceFullScreenExclusiveInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkFullScreenExclusiveEXT fullScreenExclusive;
+} VkSurfaceFullScreenExclusiveInfoEXT;
+
+typedef struct VkSurfaceCapabilitiesFullScreenExclusiveEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 fullScreenExclusiveSupported;
+} VkSurfaceCapabilitiesFullScreenExclusiveEXT;
+
+typedef struct VkSurfaceFullScreenExclusiveWin32InfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    HMONITOR hmonitor;
+} VkSurfaceFullScreenExclusiveWin32InfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT)(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes);
+typedef VkResult (VKAPI_PTR *PFN_vkAcquireFullScreenExclusiveModeEXT)(VkDevice device, VkSwapchainKHR swapchain);
+typedef VkResult (VKAPI_PTR *PFN_vkReleaseFullScreenExclusiveModeEXT)(VkDevice device, VkSwapchainKHR swapchain);
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 
 #ifdef VK_USE_PLATFORM_VI_NN
@@ -8155,6 +8284,7 @@ PFN_vkGetPhysicalDeviceSparseImageFormatProperties2KHR vkGetPhysicalDeviceSparse
 PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR vkGetDeviceGroupPeerMemoryFeaturesKHR;
 PFN_vkCmdSetDeviceMaskKHR vkCmdSetDeviceMaskKHR;
 PFN_vkCmdDispatchBaseKHR vkCmdDispatchBaseKHR;
+PFN_vkGetDeviceGroupSurfacePresentModes2EXT vkGetDeviceGroupSurfacePresentModes2EXT;
 PFN_vkTrimCommandPoolKHR vkTrimCommandPoolKHR;
 PFN_vkEnumeratePhysicalDeviceGroupsKHR vkEnumeratePhysicalDeviceGroupsKHR;
 PFN_vkGetPhysicalDeviceExternalBufferPropertiesKHR vkGetPhysicalDeviceExternalBufferPropertiesKHR;
@@ -8257,8 +8387,10 @@ PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
 PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
 PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8290,6 +8422,9 @@ PFN_vkImportSemaphoreWin32HandleKHR vkImportSemaphoreWin32HandleKHR;
 PFN_vkGetSemaphoreWin32HandleKHR vkGetSemaphoreWin32HandleKHR;
 PFN_vkImportFenceWin32HandleKHR vkImportFenceWin32HandleKHR;
 PFN_vkGetFenceWin32HandleKHR vkGetFenceWin32HandleKHR;
+PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT vkGetPhysicalDeviceSurfacePresentModes2EXT;
+PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
+PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
 PFN_vkCreateViSurfaceNN vkCreateViSurfaceNN;
@@ -8525,6 +8660,7 @@ typedef struct
     PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR vkGetDeviceGroupPeerMemoryFeaturesKHR;
     PFN_vkCmdSetDeviceMaskKHR vkCmdSetDeviceMaskKHR;
     PFN_vkCmdDispatchBaseKHR vkCmdDispatchBaseKHR;
+    PFN_vkGetDeviceGroupSurfacePresentModes2EXT vkGetDeviceGroupSurfacePresentModes2EXT;
     PFN_vkTrimCommandPoolKHR vkTrimCommandPoolKHR;
     PFN_vkEnumeratePhysicalDeviceGroupsKHR vkEnumeratePhysicalDeviceGroupsKHR;
     PFN_vkGetPhysicalDeviceExternalBufferPropertiesKHR vkGetPhysicalDeviceExternalBufferPropertiesKHR;
@@ -8627,8 +8763,10 @@ typedef struct
     PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+    PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
     PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
     PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+    PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -8660,6 +8798,9 @@ typedef struct
     PFN_vkGetSemaphoreWin32HandleKHR vkGetSemaphoreWin32HandleKHR;
     PFN_vkImportFenceWin32HandleKHR vkImportFenceWin32HandleKHR;
     PFN_vkGetFenceWin32HandleKHR vkGetFenceWin32HandleKHR;
+    PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT vkGetPhysicalDeviceSurfacePresentModes2EXT;
+    PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT;
+    PFN_vkReleaseFullScreenExclusiveModeEXT vkReleaseFullScreenExclusiveModeEXT;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
     PFN_vkCreateViSurfaceNN vkCreateViSurfaceNN;
@@ -9051,6 +9192,7 @@ VkResult vkbBindGlobalAPI()
     vkGetDeviceGroupPeerMemoryFeaturesKHR = (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
     vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDeviceMaskKHR");
     vkCmdDispatchBaseKHR = (PFN_vkCmdDispatchBaseKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdDispatchBaseKHR");
+    vkGetDeviceGroupSurfacePresentModes2EXT = (PFN_vkGetDeviceGroupSurfacePresentModes2EXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceGroupSurfacePresentModes2EXT");
     vkTrimCommandPoolKHR = (PFN_vkTrimCommandPoolKHR)vkb_dlsym(g_vkbVulkanSO, "vkTrimCommandPoolKHR");
     vkEnumeratePhysicalDeviceGroupsKHR = (PFN_vkEnumeratePhysicalDeviceGroupsKHR)vkb_dlsym(g_vkbVulkanSO, "vkEnumeratePhysicalDeviceGroupsKHR");
     vkGetPhysicalDeviceExternalBufferPropertiesKHR = (PFN_vkGetPhysicalDeviceExternalBufferPropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceExternalBufferPropertiesKHR");
@@ -9153,8 +9295,10 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorNV");
     vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
+    vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkb_dlsym(g_vkbVulkanSO, "vkSetLocalDimmingAMD");
     vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferDeviceAddressEXT");
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
+    vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkb_dlsym(g_vkbVulkanSO, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -9186,6 +9330,9 @@ VkResult vkbBindGlobalAPI()
     vkGetSemaphoreWin32HandleKHR = (PFN_vkGetSemaphoreWin32HandleKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetSemaphoreWin32HandleKHR");
     vkImportFenceWin32HandleKHR = (PFN_vkImportFenceWin32HandleKHR)vkb_dlsym(g_vkbVulkanSO, "vkImportFenceWin32HandleKHR");
     vkGetFenceWin32HandleKHR = (PFN_vkGetFenceWin32HandleKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetFenceWin32HandleKHR");
+    vkGetPhysicalDeviceSurfacePresentModes2EXT = (PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSurfacePresentModes2EXT");
+    vkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkb_dlsym(g_vkbVulkanSO, "vkAcquireFullScreenExclusiveModeEXT");
+    vkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)vkb_dlsym(g_vkbVulkanSO, "vkReleaseFullScreenExclusiveModeEXT");
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
     vkCreateViSurfaceNN = (PFN_vkCreateViSurfaceNN)vkb_dlsym(g_vkbVulkanSO, "vkCreateViSurfaceNN");
@@ -9450,6 +9597,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR = vkGetDeviceGroupPeerMemoryFeaturesKHR;
         pAPI->vkCmdSetDeviceMaskKHR = vkCmdSetDeviceMaskKHR;
         pAPI->vkCmdDispatchBaseKHR = vkCmdDispatchBaseKHR;
+        pAPI->vkGetDeviceGroupSurfacePresentModes2EXT = vkGetDeviceGroupSurfacePresentModes2EXT;
         pAPI->vkTrimCommandPoolKHR = vkTrimCommandPoolKHR;
         pAPI->vkEnumeratePhysicalDeviceGroupsKHR = vkEnumeratePhysicalDeviceGroupsKHR;
         pAPI->vkGetPhysicalDeviceExternalBufferPropertiesKHR = vkGetPhysicalDeviceExternalBufferPropertiesKHR;
@@ -9552,8 +9700,10 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetExclusiveScissorNV = vkCmdSetExclusiveScissorNV;
         pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
         pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
+        pAPI->vkSetLocalDimmingAMD = vkSetLocalDimmingAMD;
         pAPI->vkGetBufferDeviceAddressEXT = vkGetBufferDeviceAddressEXT;
         pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+        pAPI->vkResetQueryPoolEXT = vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -9585,6 +9735,9 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetSemaphoreWin32HandleKHR = vkGetSemaphoreWin32HandleKHR;
         pAPI->vkImportFenceWin32HandleKHR = vkImportFenceWin32HandleKHR;
         pAPI->vkGetFenceWin32HandleKHR = vkGetFenceWin32HandleKHR;
+        pAPI->vkGetPhysicalDeviceSurfacePresentModes2EXT = vkGetPhysicalDeviceSurfacePresentModes2EXT;
+        pAPI->vkAcquireFullScreenExclusiveModeEXT = vkAcquireFullScreenExclusiveModeEXT;
+        pAPI->vkReleaseFullScreenExclusiveModeEXT = vkReleaseFullScreenExclusiveModeEXT;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
         pAPI->vkCreateViSurfaceNN = vkCreateViSurfaceNN;
@@ -9846,6 +9999,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR = (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)vkGetInstanceProcAddr(instance, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
     pAPI->vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)vkGetInstanceProcAddr(instance, "vkCmdSetDeviceMaskKHR");
     pAPI->vkCmdDispatchBaseKHR = (PFN_vkCmdDispatchBaseKHR)vkGetInstanceProcAddr(instance, "vkCmdDispatchBaseKHR");
+    pAPI->vkGetDeviceGroupSurfacePresentModes2EXT = (PFN_vkGetDeviceGroupSurfacePresentModes2EXT)vkGetInstanceProcAddr(instance, "vkGetDeviceGroupSurfacePresentModes2EXT");
     pAPI->vkTrimCommandPoolKHR = (PFN_vkTrimCommandPoolKHR)vkGetInstanceProcAddr(instance, "vkTrimCommandPoolKHR");
     pAPI->vkEnumeratePhysicalDeviceGroupsKHR = (PFN_vkEnumeratePhysicalDeviceGroupsKHR)vkGetInstanceProcAddr(instance, "vkEnumeratePhysicalDeviceGroupsKHR");
     pAPI->vkGetPhysicalDeviceExternalBufferPropertiesKHR = (PFN_vkGetPhysicalDeviceExternalBufferPropertiesKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceExternalBufferPropertiesKHR");
@@ -9948,8 +10102,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
+    pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkGetInstanceProcAddr(instance, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkGetInstanceProcAddr(instance, "vkGetBufferDeviceAddressEXT");
     pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
+    pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkGetInstanceProcAddr(instance, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -9981,6 +10137,9 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetSemaphoreWin32HandleKHR = (PFN_vkGetSemaphoreWin32HandleKHR)vkGetInstanceProcAddr(instance, "vkGetSemaphoreWin32HandleKHR");
     pAPI->vkImportFenceWin32HandleKHR = (PFN_vkImportFenceWin32HandleKHR)vkGetInstanceProcAddr(instance, "vkImportFenceWin32HandleKHR");
     pAPI->vkGetFenceWin32HandleKHR = (PFN_vkGetFenceWin32HandleKHR)vkGetInstanceProcAddr(instance, "vkGetFenceWin32HandleKHR");
+    pAPI->vkGetPhysicalDeviceSurfacePresentModes2EXT = (PFN_vkGetPhysicalDeviceSurfacePresentModes2EXT)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfacePresentModes2EXT");
+    pAPI->vkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(instance, "vkAcquireFullScreenExclusiveModeEXT");
+    pAPI->vkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(instance, "vkReleaseFullScreenExclusiveModeEXT");
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
     pAPI->vkCreateViSurfaceNN = (PFN_vkCreateViSurfaceNN)vkGetInstanceProcAddr(instance, "vkCreateViSurfaceNN");
@@ -10184,6 +10343,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR = (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
     pAPI->vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDeviceMaskKHR");
     pAPI->vkCmdDispatchBaseKHR = (PFN_vkCmdDispatchBaseKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdDispatchBaseKHR");
+    pAPI->vkGetDeviceGroupSurfacePresentModes2EXT = (PFN_vkGetDeviceGroupSurfacePresentModes2EXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceGroupSurfacePresentModes2EXT");
     pAPI->vkTrimCommandPoolKHR = (PFN_vkTrimCommandPoolKHR)pAPI->vkGetDeviceProcAddr(device, "vkTrimCommandPoolKHR");
     pAPI->vkGetMemoryFdKHR = (PFN_vkGetMemoryFdKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryFdKHR");
     pAPI->vkGetMemoryFdPropertiesKHR = (PFN_vkGetMemoryFdPropertiesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryFdPropertiesKHR");
@@ -10269,6 +10429,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferDeviceAddressEXT");
+    pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)pAPI->vkGetDeviceProcAddr(device, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -10289,6 +10450,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetSemaphoreWin32HandleKHR = (PFN_vkGetSemaphoreWin32HandleKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetSemaphoreWin32HandleKHR");
     pAPI->vkImportFenceWin32HandleKHR = (PFN_vkImportFenceWin32HandleKHR)pAPI->vkGetDeviceProcAddr(device, "vkImportFenceWin32HandleKHR");
     pAPI->vkGetFenceWin32HandleKHR = (PFN_vkGetFenceWin32HandleKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetFenceWin32HandleKHR");
+    pAPI->vkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)pAPI->vkGetDeviceProcAddr(device, "vkAcquireFullScreenExclusiveModeEXT");
+    pAPI->vkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)pAPI->vkGetDeviceProcAddr(device, "vkReleaseFullScreenExclusiveModeEXT");
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
 #endif /*VK_USE_PLATFORM_VI_NN*/
@@ -10530,6 +10693,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetDeviceGroupPeerMemoryFeaturesKHR = pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR;
     vkCmdSetDeviceMaskKHR = pAPI->vkCmdSetDeviceMaskKHR;
     vkCmdDispatchBaseKHR = pAPI->vkCmdDispatchBaseKHR;
+    vkGetDeviceGroupSurfacePresentModes2EXT = pAPI->vkGetDeviceGroupSurfacePresentModes2EXT;
     vkTrimCommandPoolKHR = pAPI->vkTrimCommandPoolKHR;
     vkEnumeratePhysicalDeviceGroupsKHR = pAPI->vkEnumeratePhysicalDeviceGroupsKHR;
     vkGetPhysicalDeviceExternalBufferPropertiesKHR = pAPI->vkGetPhysicalDeviceExternalBufferPropertiesKHR;
@@ -10632,8 +10796,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetExclusiveScissorNV = pAPI->vkCmdSetExclusiveScissorNV;
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
+    vkSetLocalDimmingAMD = pAPI->vkSetLocalDimmingAMD;
     vkGetBufferDeviceAddressEXT = pAPI->vkGetBufferDeviceAddressEXT;
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+    vkResetQueryPoolEXT = pAPI->vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -10665,6 +10831,9 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetSemaphoreWin32HandleKHR = pAPI->vkGetSemaphoreWin32HandleKHR;
     vkImportFenceWin32HandleKHR = pAPI->vkImportFenceWin32HandleKHR;
     vkGetFenceWin32HandleKHR = pAPI->vkGetFenceWin32HandleKHR;
+    vkGetPhysicalDeviceSurfacePresentModes2EXT = pAPI->vkGetPhysicalDeviceSurfacePresentModes2EXT;
+    vkAcquireFullScreenExclusiveModeEXT = pAPI->vkAcquireFullScreenExclusiveModeEXT;
+    vkReleaseFullScreenExclusiveModeEXT = pAPI->vkReleaseFullScreenExclusiveModeEXT;
 #endif /*VK_USE_PLATFORM_WIN32_KHR*/
 #ifdef VK_USE_PLATFORM_VI_NN
     vkCreateViSurfaceNN = pAPI->vkCreateViSurfaceNN;
