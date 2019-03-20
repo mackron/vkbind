@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.104.0 - 2019-03-18
+vkbind - v1.1.105.0 - 2019-03-20
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 104
+#define VK_HEADER_VERSION 105
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -384,6 +384,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT = 1000028002,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_HANDLE_INFO_NVX = 1000030000,
     VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD = 1000041000,
+    VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP = 1000049000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV = 1000050000,
     VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_NV = 1000056000,
     VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_NV = 1000056001,
@@ -531,6 +532,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_PROPERTIES_EXT = 1000190000,
     VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT = 1000190001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_DIVISOR_FEATURES_EXT = 1000190002,
+    VK_STRUCTURE_TYPE_PRESENT_FRAME_TOKEN_GGP = 1000191000,
     VK_STRUCTURE_TYPE_PIPELINE_CREATION_FEEDBACK_CREATE_INFO_EXT = 1000192000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR = 1000196000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT_CONTROLS_PROPERTIES_KHR = 1000197000,
@@ -7004,7 +7006,8 @@ typedef enum
     VK_DRIVER_ID_IMAGINATION_PROPRIETARY_KHR = 7,
     VK_DRIVER_ID_QUALCOMM_PROPRIETARY_KHR = 8,
     VK_DRIVER_ID_ARM_PROPRIETARY_KHR = 9,
-    VK_DRIVER_ID_GOOGLE_PASTEL_KHR = 10
+    VK_DRIVER_ID_GOOGLE_PASTEL_KHR = 10,
+    VK_DRIVER_ID_GGP_PROPRIETARY_KHR = 11
 } VkDriverIdKHR;
 
 
@@ -8066,6 +8069,39 @@ typedef struct VkImagePipeSurfaceCreateInfoFUCHSIA
 typedef VkResult (VKAPI_PTR *PFN_vkCreateImagePipeSurfaceFUCHSIA)(VkInstance instance, const VkImagePipeSurfaceCreateInfoFUCHSIA* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
+#ifdef VK_USE_PLATFORM_GGP
+#include <ggp_c/vulkan_types.h>
+
+#define VK_GGP_stream_descriptor_surface 1
+#define VK_GGP_STREAM_DESCRIPTOR_SURFACE_SPEC_VERSION 1
+#define VK_GGP_STREAM_DESCRIPTOR_SURFACE_EXTENSION_NAME "VK_GGP_stream_descriptor_surface"
+
+typedef VkFlags VkStreamDescriptorSurfaceCreateFlagsGGP;
+typedef struct VkStreamDescriptorSurfaceCreateInfoGGP
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkStreamDescriptorSurfaceCreateFlagsGGP flags;
+    GgpStreamDescriptor streamDescriptor;
+} VkStreamDescriptorSurfaceCreateInfoGGP;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateStreamDescriptorSurfaceGGP)(VkInstance instance, const VkStreamDescriptorSurfaceCreateInfoGGP* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#define VK_GGP_frame_token 1
+#define VK_GGP_FRAME_TOKEN_SPEC_VERSION 1
+#define VK_GGP_FRAME_TOKEN_EXTENSION_NAME "VK_GGP_frame_token"
+
+typedef struct VkPresentFrameTokenGGP
+{
+    VkStructureType sType;
+    const void* pNext;
+    GgpFrameToken frameToken;
+} VkPresentFrameTokenGGP;
+
+
+#endif /*VK_USE_PLATFORM_GGP*/
+
 
 
 PFN_vkCreateInstance vkCreateInstance;
@@ -8441,6 +8477,9 @@ PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
 #ifdef VK_USE_PLATFORM_FUCHSIA
 PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
+#endif /*VK_USE_PLATFORM_GGP*/
 
 typedef struct
 {
@@ -8817,6 +8856,9 @@ typedef struct
 #ifdef VK_USE_PLATFORM_FUCHSIA
     PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+    PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
+#endif /*VK_USE_PLATFORM_GGP*/
 } VkbAPI;
 
 
@@ -9349,6 +9391,9 @@ VkResult vkbBindGlobalAPI()
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkCreateImagePipeSurfaceFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+    vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkb_dlsym(g_vkbVulkanSO, "vkCreateStreamDescriptorSurfaceGGP");
+#endif /*VK_USE_PLATFORM_GGP*/
 
     /*
     We can only safely guarantee that vkGetInstanceProcAddr was successfully returned from dlsym(). The Vulkan specification lists some APIs
@@ -9754,6 +9799,9 @@ VkResult vkbInit(VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_FUCHSIA
         pAPI->vkCreateImagePipeSurfaceFUCHSIA = vkCreateImagePipeSurfaceFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+        pAPI->vkCreateStreamDescriptorSurfaceGGP = vkCreateStreamDescriptorSurfaceGGP;
+#endif /*VK_USE_PLATFORM_GGP*/
     }
 
     g_vkbInitCount += 1;    /* <-- Only increment the init counter on success. */
@@ -10156,6 +10204,9 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_FUCHSIA
     pAPI->vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkGetInstanceProcAddr(instance, "vkCreateImagePipeSurfaceFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+    pAPI->vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkGetInstanceProcAddr(instance, "vkCreateStreamDescriptorSurfaceGGP");
+#endif /*VK_USE_PLATFORM_GGP*/
 
     return VK_SUCCESS;
 }
@@ -10463,6 +10514,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+#endif /*VK_USE_PLATFORM_GGP*/
 
     return VK_SUCCESS;
 }
@@ -10850,6 +10903,9 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = pAPI->vkCreateImagePipeSurfaceFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
+#ifdef VK_USE_PLATFORM_GGP
+    vkCreateStreamDescriptorSurfaceGGP = pAPI->vkCreateStreamDescriptorSurfaceGGP;
+#endif /*VK_USE_PLATFORM_GGP*/
 
     return VK_SUCCESS;
 }
