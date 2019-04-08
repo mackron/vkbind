@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.105.0 - 2019-03-20
+vkbind - v1.1.106.0 - 2019-04-08
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 105
+#define VK_HEADER_VERSION 106
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -326,7 +326,7 @@ typedef enum
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO = 1000053000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES = 1000053001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES = 1000053002,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = 1000120000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES = 1000120000,
     VK_STRUCTURE_TYPE_PROTECTED_SUBMIT_INFO = 1000145000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES = 1000145001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES = 1000145002,
@@ -354,7 +354,7 @@ typedef enum
     VK_STRUCTURE_TYPE_EXTERNAL_SEMAPHORE_PROPERTIES = 1000076001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES = 1000168000,
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT = 1000168001,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = 1000063000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES = 1000063000,
     VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
     VK_STRUCTURE_TYPE_PRESENT_INFO_KHR = 1000001001,
     VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR = 1000060007,
@@ -562,7 +562,7 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT = 1000238001,
     VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR = 1000239000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEDICATED_ALLOCATION_IMAGE_ALIASING_FEATURES_NV = 1000240000,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_ADDRESS_FEATURES_EXT = 1000244000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT = 1000244000,
     VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_EXT = 1000244001,
     VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_CREATE_INFO_EXT = 1000244002,
     VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT = 1000246000,
@@ -575,6 +575,8 @@ typedef enum
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT = 1000255002,
     VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT = 1000255001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT = 1000261000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
@@ -619,6 +621,7 @@ typedef enum
     VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
     VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES,
     VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
     VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
     VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2,
@@ -635,7 +638,8 @@ typedef enum
     VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO_KHR = VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO,
     VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO_KHR = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES,
-    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT_KHR = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT_KHR = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_ADDRESS_FEATURES_EXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT
 } VkStructureType;
 
 typedef enum
@@ -3611,13 +3615,15 @@ typedef struct VkPhysicalDeviceMultiviewProperties
     uint32_t maxMultiviewInstanceIndex;
 } VkPhysicalDeviceMultiviewProperties;
 
-typedef struct VkPhysicalDeviceVariablePointerFeatures
+typedef struct VkPhysicalDeviceVariablePointersFeatures
 {
     VkStructureType sType;
     void* pNext;
     VkBool32 variablePointersStorageBuffer;
     VkBool32 variablePointers;
-} VkPhysicalDeviceVariablePointerFeatures;
+} VkPhysicalDeviceVariablePointersFeatures;
+
+typedef VkPhysicalDeviceVariablePointersFeatures VkPhysicalDeviceVariablePointerFeatures;
 
 typedef struct VkPhysicalDeviceProtectedMemoryFeatures
 {
@@ -3852,12 +3858,14 @@ typedef struct VkDescriptorSetLayoutSupport
     VkBool32 supported;
 } VkDescriptorSetLayoutSupport;
 
-typedef struct VkPhysicalDeviceShaderDrawParameterFeatures
+typedef struct VkPhysicalDeviceShaderDrawParametersFeatures
 {
     VkStructureType sType;
     void* pNext;
     VkBool32 shaderDrawParameters;
-} VkPhysicalDeviceShaderDrawParameterFeatures;
+} VkPhysicalDeviceShaderDrawParametersFeatures;
+
+typedef VkPhysicalDeviceShaderDrawParametersFeatures VkPhysicalDeviceShaderDrawParameterFeatures;
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkEnumerateInstanceVersion)(uint32_t* pApiVersion);
@@ -5722,7 +5730,9 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceSurfaceFormats2KHR)(VkPhysic
 #define VK_KHR_VARIABLE_POINTERS_SPEC_VERSION 1
 #define VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME "VK_KHR_variable_pointers"
 
-typedef VkPhysicalDeviceVariablePointerFeatures VkPhysicalDeviceVariablePointerFeaturesKHR;
+typedef VkPhysicalDeviceVariablePointersFeatures VkPhysicalDeviceVariablePointerFeaturesKHR;
+
+typedef VkPhysicalDeviceVariablePointersFeatures VkPhysicalDeviceVariablePointersFeaturesKHR;
 
 
 #define VK_KHR_get_display_properties2 1
@@ -7283,7 +7293,7 @@ typedef struct VkSwapchainDisplayNativeHdrCreateInfoAMD
 } VkSwapchainDisplayNativeHdrCreateInfoAMD;
 
 
-typedef void (VKAPI_PTR *PFN_vkSetLocalDimmingAMD)(VkSwapchainKHR swapChain, VkBool32 localDimmingEnable);
+typedef void (VKAPI_PTR *PFN_vkSetLocalDimmingAMD)(VkDevice device, VkSwapchainKHR swapChain, VkBool32 localDimmingEnable);
 
 #define VK_EXT_fragment_density_map 1
 #define VK_EXT_FRAGMENT_DENSITY_MAP_SPEC_VERSION 1
@@ -7405,14 +7415,16 @@ typedef struct VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV
 
 typedef uint64_t VkDeviceAddress;
 
-typedef struct VkPhysicalDeviceBufferAddressFeaturesEXT
+typedef struct VkPhysicalDeviceBufferDeviceAddressFeaturesEXT
 {
     VkStructureType sType;
     void* pNext;
     VkBool32 bufferDeviceAddress;
     VkBool32 bufferDeviceAddressCaptureReplay;
     VkBool32 bufferDeviceAddressMultiDevice;
-} VkPhysicalDeviceBufferAddressFeaturesEXT;
+} VkPhysicalDeviceBufferDeviceAddressFeaturesEXT;
+
+typedef VkPhysicalDeviceBufferDeviceAddressFeaturesEXT VkPhysicalDeviceBufferAddressFeaturesEXT;
 
 typedef struct VkBufferDeviceAddressInfoEXT
 {
@@ -10479,6 +10491,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
+    pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)pAPI->vkGetDeviceProcAddr(device, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferDeviceAddressEXT");
     pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)pAPI->vkGetDeviceProcAddr(device, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
