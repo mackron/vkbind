@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.106.0 - 2019-04-08
+vkbind - v1.1.107.0 - 2019-04-17
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 106
+#define VK_HEADER_VERSION 107
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -574,6 +574,7 @@ typedef enum
     VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT = 1000255000,
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT = 1000255002,
     VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT = 1000255001,
+    VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT = 1000256000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT = 1000261000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
@@ -4479,8 +4480,8 @@ typedef uint32_t (VKAPI_PTR *PFN_vkGetImageViewHandleNVX)(VkDevice device, const
 #define VK_AMD_DRAW_INDIRECT_COUNT_SPEC_VERSION 1
 #define VK_AMD_DRAW_INDIRECT_COUNT_EXTENSION_NAME "VK_AMD_draw_indirect_count"
 
-typedef void (VKAPI_PTR *PFN_vkCmdDrawIndirectCountAMD)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride);
-typedef void (VKAPI_PTR *PFN_vkCmdDrawIndexedIndirectCountAMD)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride);
+typedef PFN_vkCmdDrawIndirectCountKHR PFN_vkCmdDrawIndirectCountAMD;
+typedef PFN_vkCmdDrawIndexedIndirectCountKHR PFN_vkCmdDrawIndexedIndirectCountAMD;
 
 #define VK_AMD_negative_viewport_height 1
 #define VK_AMD_NEGATIVE_VIEWPORT_HEIGHT_SPEC_VERSION 1
@@ -4488,7 +4489,7 @@ typedef void (VKAPI_PTR *PFN_vkCmdDrawIndexedIndirectCountAMD)(VkCommandBuffer c
 
 
 #define VK_AMD_gpu_shader_half_float 1
-#define VK_AMD_GPU_SHADER_HALF_FLOAT_SPEC_VERSION 1
+#define VK_AMD_GPU_SHADER_HALF_FLOAT_SPEC_VERSION 2
 #define VK_AMD_GPU_SHADER_HALF_FLOAT_EXTENSION_NAME "VK_AMD_gpu_shader_half_float"
 
 
@@ -5933,7 +5934,7 @@ typedef struct VkPhysicalDeviceSamplerFilterMinmaxPropertiesEXT
 
 
 #define VK_AMD_gpu_shader_int16 1
-#define VK_AMD_GPU_SHADER_INT16_SPEC_VERSION 1
+#define VK_AMD_GPU_SHADER_INT16_SPEC_VERSION 2
 #define VK_AMD_GPU_SHADER_INT16_EXTENSION_NAME "VK_AMD_gpu_shader_int16"
 
 
@@ -7563,6 +7564,21 @@ typedef struct VkPhysicalDeviceYcbcrImageArraysFeaturesEXT
 
 
 
+#define VK_EXT_headless_surface 1
+#define VK_EXT_HEADLESS_SURFACE_SPEC_VERSION 0
+#define VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME "VK_EXT_headless_surface"
+
+typedef VkFlags VkHeadlessSurfaceCreateFlagsEXT;
+typedef struct VkHeadlessSurfaceCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkHeadlessSurfaceCreateFlagsEXT flags;
+} VkHeadlessSurfaceCreateInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateHeadlessSurfaceEXT)(VkInstance instance, const VkHeadlessSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
 #define VK_EXT_host_query_reset 1
 #define VK_EXT_HOST_QUERY_RESET_SPEC_VERSION 1
 #define VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME "VK_EXT_host_query_reset"
@@ -8438,6 +8454,7 @@ PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
 PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
 PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
 PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -8817,6 +8834,7 @@ typedef struct
     PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
     PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
     PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+    PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
     PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -9352,6 +9370,7 @@ VkResult vkbBindGlobalAPI()
     vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkb_dlsym(g_vkbVulkanSO, "vkSetLocalDimmingAMD");
     vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferDeviceAddressEXT");
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
+    vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateHeadlessSurfaceEXT");
     vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkb_dlsym(g_vkbVulkanSO, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
@@ -9760,6 +9779,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkSetLocalDimmingAMD = vkSetLocalDimmingAMD;
         pAPI->vkGetBufferDeviceAddressEXT = vkGetBufferDeviceAddressEXT;
         pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+        pAPI->vkCreateHeadlessSurfaceEXT = vkCreateHeadlessSurfaceEXT;
         pAPI->vkResetQueryPoolEXT = vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
@@ -10165,6 +10185,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkGetInstanceProcAddr(instance, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkGetInstanceProcAddr(instance, "vkGetBufferDeviceAddressEXT");
     pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
+    pAPI->vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkGetInstanceProcAddr(instance, "vkCreateHeadlessSurfaceEXT");
     pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkGetInstanceProcAddr(instance, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
@@ -10865,6 +10886,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkSetLocalDimmingAMD = pAPI->vkSetLocalDimmingAMD;
     vkGetBufferDeviceAddressEXT = pAPI->vkGetBufferDeviceAddressEXT;
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
+    vkCreateHeadlessSurfaceEXT = pAPI->vkCreateHeadlessSurfaceEXT;
     vkResetQueryPoolEXT = pAPI->vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
