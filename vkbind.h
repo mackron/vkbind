@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.108.0 - 2019-05-13
+vkbind - v1.1.109.0 - 2019-05-25
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 108
+#define VK_HEADER_VERSION 109
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -547,6 +547,13 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV = 1000205002,
     VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV = 1000206000,
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV = 1000206001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS2_FEATURES_INTEL = 1000209000,
+    VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO_INTEL = 1000210000,
+    VK_STRUCTURE_TYPE_INITIALIZE_PERFORMANCE_API_INFO_INTEL = 1000210001,
+    VK_STRUCTURE_TYPE_PERFORMANCE_MARKER_INFO_INTEL = 1000210002,
+    VK_STRUCTURE_TYPE_PERFORMANCE_STREAM_MARKER_INFO_INTEL = 1000210003,
+    VK_STRUCTURE_TYPE_PERFORMANCE_OVERRIDE_INFO_INTEL = 1000210004,
+    VK_STRUCTURE_TYPE_PERFORMANCE_CONFIGURATION_ACQUIRE_INFO_INTEL = 1000210005,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_MEMORY_MODEL_FEATURES_KHR = 1000211000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PCI_BUS_INFO_PROPERTIES_EXT = 1000212000,
     VK_STRUCTURE_TYPE_DISPLAY_NATIVE_HDR_SURFACE_CAPABILITIES_AMD = 1000213000,
@@ -955,7 +962,8 @@ typedef enum
     VK_QUERY_TYPE_PIPELINE_STATISTICS = 1,
     VK_QUERY_TYPE_TIMESTAMP = 2,
     VK_QUERY_TYPE_TRANSFORM_FEEDBACK_STREAM_EXT = 1000028004,
-    VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_NV = 1000165000
+    VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_NV = 1000165000,
+    VK_QUERY_TYPE_PERFORMANCE_QUERY_INTEL = 1000210000
 } VkQueryType;
 
 typedef enum
@@ -1312,6 +1320,7 @@ typedef enum
     VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT = 1000128000,
     VK_OBJECT_TYPE_VALIDATION_CACHE_EXT = 1000160000,
     VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV = 1000165000,
+    VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL = 1000210000,
     VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
     VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION
 } VkObjectType;
@@ -7247,6 +7256,127 @@ typedef struct VkCheckpointDataNV
 typedef void (VKAPI_PTR *PFN_vkCmdSetCheckpointNV)(VkCommandBuffer commandBuffer, const void* pCheckpointMarker);
 typedef void (VKAPI_PTR *PFN_vkGetQueueCheckpointDataNV)(VkQueue queue, uint32_t* pCheckpointDataCount, VkCheckpointDataNV* pCheckpointData);
 
+#define VK_INTEL_shader_integer_functions2 1
+#define VK_INTEL_SHADER_INTEGER_FUNCTIONS2_SPEC_VERSION 1
+#define VK_INTEL_SHADER_INTEGER_FUNCTIONS2_EXTENSION_NAME "VK_INTEL_shader_integer_functions2"
+
+typedef struct VkPhysicalDeviceShaderIntegerFunctions2INTEL
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderIntegerFunctions2;
+} VkPhysicalDeviceShaderIntegerFunctions2INTEL;
+
+
+
+#define VK_INTEL_performance_query 1
+#define VK_INTEL_PERFORMANCE_QUERY_SPEC_VERSION 1
+#define VK_INTEL_PERFORMANCE_QUERY_EXTENSION_NAME "VK_INTEL_performance_query"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPerformanceConfigurationINTEL)
+
+typedef enum
+{
+    VK_PERFORMANCE_CONFIGURATION_TYPE_COMMAND_QUEUE_METRICS_DISCOVERY_ACTIVATED_INTEL = 0
+} VkPerformanceConfigurationTypeINTEL;
+
+typedef enum
+{
+    VK_QUERY_POOL_SAMPLING_MODE_MANUAL_INTEL = 0
+} VkQueryPoolSamplingModeINTEL;
+
+typedef enum
+{
+    VK_PERFORMANCE_OVERRIDE_TYPE_NULL_HARDWARE_INTEL = 0,
+    VK_PERFORMANCE_OVERRIDE_TYPE_FLUSH_GPU_CACHES_INTEL = 1
+} VkPerformanceOverrideTypeINTEL;
+
+typedef enum
+{
+    VK_PERFORMANCE_PARAMETER_TYPE_HW_COUNTERS_SUPPORTED_INTEL = 0,
+    VK_PERFORMANCE_PARAMETER_TYPE_STREAM_MARKER_VALID_BITS_INTEL = 1
+} VkPerformanceParameterTypeINTEL;
+
+typedef enum
+{
+    VK_PERFORMANCE_VALUE_TYPE_UINT32_INTEL = 0,
+    VK_PERFORMANCE_VALUE_TYPE_UINT64_INTEL = 1,
+    VK_PERFORMANCE_VALUE_TYPE_FLOAT_INTEL = 2,
+    VK_PERFORMANCE_VALUE_TYPE_BOOL_INTEL = 3,
+    VK_PERFORMANCE_VALUE_TYPE_STRING_INTEL = 4
+} VkPerformanceValueTypeINTEL;
+
+
+typedef union VkPerformanceValueDataINTEL
+{
+    uint32_t value32;
+    uint64_t value64;
+    float valueFloat;
+    VkBool32 valueBool;
+    const char* valueString;
+} VkPerformanceValueDataINTEL;
+
+typedef struct VkPerformanceValueINTEL
+{
+    VkPerformanceValueTypeINTEL type;
+    VkPerformanceValueDataINTEL data;
+} VkPerformanceValueINTEL;
+
+typedef struct VkInitializePerformanceApiInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    void* pUserData;
+} VkInitializePerformanceApiInfoINTEL;
+
+typedef struct VkQueryPoolCreateInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkQueryPoolSamplingModeINTEL performanceCountersSampling;
+} VkQueryPoolCreateInfoINTEL;
+
+typedef struct VkPerformanceMarkerInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint64_t marker;
+} VkPerformanceMarkerInfoINTEL;
+
+typedef struct VkPerformanceStreamMarkerInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t marker;
+} VkPerformanceStreamMarkerInfoINTEL;
+
+typedef struct VkPerformanceOverrideInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPerformanceOverrideTypeINTEL type;
+    VkBool32 enable;
+    uint64_t parameter;
+} VkPerformanceOverrideInfoINTEL;
+
+typedef struct VkPerformanceConfigurationAcquireInfoINTEL
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPerformanceConfigurationTypeINTEL type;
+} VkPerformanceConfigurationAcquireInfoINTEL;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkInitializePerformanceApiINTEL)(VkDevice device, const VkInitializePerformanceApiInfoINTEL* pInitializeInfo);
+typedef void (VKAPI_PTR *PFN_vkUninitializePerformanceApiINTEL)(VkDevice device);
+typedef VkResult (VKAPI_PTR *PFN_vkCmdSetPerformanceMarkerINTEL)(VkCommandBuffer commandBuffer, const VkPerformanceMarkerInfoINTEL* pMarkerInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkCmdSetPerformanceStreamMarkerINTEL)(VkCommandBuffer commandBuffer, const VkPerformanceStreamMarkerInfoINTEL* pMarkerInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkCmdSetPerformanceOverrideINTEL)(VkCommandBuffer commandBuffer, const VkPerformanceOverrideInfoINTEL* pOverrideInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkAcquirePerformanceConfigurationINTEL)(VkDevice device, const VkPerformanceConfigurationAcquireInfoINTEL* pAcquireInfo, VkPerformanceConfigurationINTEL* pConfiguration);
+typedef VkResult (VKAPI_PTR *PFN_vkReleasePerformanceConfigurationINTEL)(VkDevice device, VkPerformanceConfigurationINTEL configuration);
+typedef VkResult (VKAPI_PTR *PFN_vkQueueSetPerformanceConfigurationINTEL)(VkQueue queue, VkPerformanceConfigurationINTEL configuration);
+typedef VkResult (VKAPI_PTR *PFN_vkGetPerformanceParameterINTEL)(VkDevice device, VkPerformanceParameterTypeINTEL parameter, VkPerformanceValueINTEL* pValue);
+
 #define VK_KHR_vulkan_memory_model 1
 #define VK_KHR_VULKAN_MEMORY_MODEL_SPEC_VERSION 3
 #define VK_KHR_VULKAN_MEMORY_MODEL_EXTENSION_NAME "VK_KHR_vulkan_memory_model"
@@ -8507,6 +8637,15 @@ PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
 PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+PFN_vkInitializePerformanceApiINTEL vkInitializePerformanceApiINTEL;
+PFN_vkUninitializePerformanceApiINTEL vkUninitializePerformanceApiINTEL;
+PFN_vkCmdSetPerformanceMarkerINTEL vkCmdSetPerformanceMarkerINTEL;
+PFN_vkCmdSetPerformanceStreamMarkerINTEL vkCmdSetPerformanceStreamMarkerINTEL;
+PFN_vkCmdSetPerformanceOverrideINTEL vkCmdSetPerformanceOverrideINTEL;
+PFN_vkAcquirePerformanceConfigurationINTEL vkAcquirePerformanceConfigurationINTEL;
+PFN_vkReleasePerformanceConfigurationINTEL vkReleasePerformanceConfigurationINTEL;
+PFN_vkQueueSetPerformanceConfigurationINTEL vkQueueSetPerformanceConfigurationINTEL;
+PFN_vkGetPerformanceParameterINTEL vkGetPerformanceParameterINTEL;
 PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
 PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
@@ -8888,6 +9027,15 @@ typedef struct
     PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+    PFN_vkInitializePerformanceApiINTEL vkInitializePerformanceApiINTEL;
+    PFN_vkUninitializePerformanceApiINTEL vkUninitializePerformanceApiINTEL;
+    PFN_vkCmdSetPerformanceMarkerINTEL vkCmdSetPerformanceMarkerINTEL;
+    PFN_vkCmdSetPerformanceStreamMarkerINTEL vkCmdSetPerformanceStreamMarkerINTEL;
+    PFN_vkCmdSetPerformanceOverrideINTEL vkCmdSetPerformanceOverrideINTEL;
+    PFN_vkAcquirePerformanceConfigurationINTEL vkAcquirePerformanceConfigurationINTEL;
+    PFN_vkReleasePerformanceConfigurationINTEL vkReleasePerformanceConfigurationINTEL;
+    PFN_vkQueueSetPerformanceConfigurationINTEL vkQueueSetPerformanceConfigurationINTEL;
+    PFN_vkGetPerformanceParameterINTEL vkGetPerformanceParameterINTEL;
     PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
     PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
     PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
@@ -9425,6 +9573,15 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorNV");
     vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
+    vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)vkb_dlsym(g_vkbVulkanSO, "vkInitializePerformanceApiINTEL");
+    vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)vkb_dlsym(g_vkbVulkanSO, "vkUninitializePerformanceApiINTEL");
+    vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPerformanceMarkerINTEL");
+    vkCmdSetPerformanceStreamMarkerINTEL = (PFN_vkCmdSetPerformanceStreamMarkerINTEL)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPerformanceStreamMarkerINTEL");
+    vkCmdSetPerformanceOverrideINTEL = (PFN_vkCmdSetPerformanceOverrideINTEL)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPerformanceOverrideINTEL");
+    vkAcquirePerformanceConfigurationINTEL = (PFN_vkAcquirePerformanceConfigurationINTEL)vkb_dlsym(g_vkbVulkanSO, "vkAcquirePerformanceConfigurationINTEL");
+    vkReleasePerformanceConfigurationINTEL = (PFN_vkReleasePerformanceConfigurationINTEL)vkb_dlsym(g_vkbVulkanSO, "vkReleasePerformanceConfigurationINTEL");
+    vkQueueSetPerformanceConfigurationINTEL = (PFN_vkQueueSetPerformanceConfigurationINTEL)vkb_dlsym(g_vkbVulkanSO, "vkQueueSetPerformanceConfigurationINTEL");
+    vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)vkb_dlsym(g_vkbVulkanSO, "vkGetPerformanceParameterINTEL");
     vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkb_dlsym(g_vkbVulkanSO, "vkSetLocalDimmingAMD");
     vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferDeviceAddressEXT");
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
@@ -9835,6 +9992,15 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetExclusiveScissorNV = vkCmdSetExclusiveScissorNV;
         pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
         pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
+        pAPI->vkInitializePerformanceApiINTEL = vkInitializePerformanceApiINTEL;
+        pAPI->vkUninitializePerformanceApiINTEL = vkUninitializePerformanceApiINTEL;
+        pAPI->vkCmdSetPerformanceMarkerINTEL = vkCmdSetPerformanceMarkerINTEL;
+        pAPI->vkCmdSetPerformanceStreamMarkerINTEL = vkCmdSetPerformanceStreamMarkerINTEL;
+        pAPI->vkCmdSetPerformanceOverrideINTEL = vkCmdSetPerformanceOverrideINTEL;
+        pAPI->vkAcquirePerformanceConfigurationINTEL = vkAcquirePerformanceConfigurationINTEL;
+        pAPI->vkReleasePerformanceConfigurationINTEL = vkReleasePerformanceConfigurationINTEL;
+        pAPI->vkQueueSetPerformanceConfigurationINTEL = vkQueueSetPerformanceConfigurationINTEL;
+        pAPI->vkGetPerformanceParameterINTEL = vkGetPerformanceParameterINTEL;
         pAPI->vkSetLocalDimmingAMD = vkSetLocalDimmingAMD;
         pAPI->vkGetBufferDeviceAddressEXT = vkGetBufferDeviceAddressEXT;
         pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
@@ -10242,6 +10408,15 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
+    pAPI->vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)vkGetInstanceProcAddr(instance, "vkInitializePerformanceApiINTEL");
+    pAPI->vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)vkGetInstanceProcAddr(instance, "vkUninitializePerformanceApiINTEL");
+    pAPI->vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)vkGetInstanceProcAddr(instance, "vkCmdSetPerformanceMarkerINTEL");
+    pAPI->vkCmdSetPerformanceStreamMarkerINTEL = (PFN_vkCmdSetPerformanceStreamMarkerINTEL)vkGetInstanceProcAddr(instance, "vkCmdSetPerformanceStreamMarkerINTEL");
+    pAPI->vkCmdSetPerformanceOverrideINTEL = (PFN_vkCmdSetPerformanceOverrideINTEL)vkGetInstanceProcAddr(instance, "vkCmdSetPerformanceOverrideINTEL");
+    pAPI->vkAcquirePerformanceConfigurationINTEL = (PFN_vkAcquirePerformanceConfigurationINTEL)vkGetInstanceProcAddr(instance, "vkAcquirePerformanceConfigurationINTEL");
+    pAPI->vkReleasePerformanceConfigurationINTEL = (PFN_vkReleasePerformanceConfigurationINTEL)vkGetInstanceProcAddr(instance, "vkReleasePerformanceConfigurationINTEL");
+    pAPI->vkQueueSetPerformanceConfigurationINTEL = (PFN_vkQueueSetPerformanceConfigurationINTEL)vkGetInstanceProcAddr(instance, "vkQueueSetPerformanceConfigurationINTEL");
+    pAPI->vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)vkGetInstanceProcAddr(instance, "vkGetPerformanceParameterINTEL");
     pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkGetInstanceProcAddr(instance, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)vkGetInstanceProcAddr(instance, "vkGetBufferDeviceAddressEXT");
     pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
@@ -10573,6 +10748,15 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
+    pAPI->vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)pAPI->vkGetDeviceProcAddr(device, "vkInitializePerformanceApiINTEL");
+    pAPI->vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)pAPI->vkGetDeviceProcAddr(device, "vkUninitializePerformanceApiINTEL");
+    pAPI->vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPerformanceMarkerINTEL");
+    pAPI->vkCmdSetPerformanceStreamMarkerINTEL = (PFN_vkCmdSetPerformanceStreamMarkerINTEL)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPerformanceStreamMarkerINTEL");
+    pAPI->vkCmdSetPerformanceOverrideINTEL = (PFN_vkCmdSetPerformanceOverrideINTEL)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPerformanceOverrideINTEL");
+    pAPI->vkAcquirePerformanceConfigurationINTEL = (PFN_vkAcquirePerformanceConfigurationINTEL)pAPI->vkGetDeviceProcAddr(device, "vkAcquirePerformanceConfigurationINTEL");
+    pAPI->vkReleasePerformanceConfigurationINTEL = (PFN_vkReleasePerformanceConfigurationINTEL)pAPI->vkGetDeviceProcAddr(device, "vkReleasePerformanceConfigurationINTEL");
+    pAPI->vkQueueSetPerformanceConfigurationINTEL = (PFN_vkQueueSetPerformanceConfigurationINTEL)pAPI->vkGetDeviceProcAddr(device, "vkQueueSetPerformanceConfigurationINTEL");
+    pAPI->vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)pAPI->vkGetDeviceProcAddr(device, "vkGetPerformanceParameterINTEL");
     pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)pAPI->vkGetDeviceProcAddr(device, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferDeviceAddressEXT");
     pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)pAPI->vkGetDeviceProcAddr(device, "vkResetQueryPoolEXT");
@@ -10944,6 +11128,15 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetExclusiveScissorNV = pAPI->vkCmdSetExclusiveScissorNV;
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
+    vkInitializePerformanceApiINTEL = pAPI->vkInitializePerformanceApiINTEL;
+    vkUninitializePerformanceApiINTEL = pAPI->vkUninitializePerformanceApiINTEL;
+    vkCmdSetPerformanceMarkerINTEL = pAPI->vkCmdSetPerformanceMarkerINTEL;
+    vkCmdSetPerformanceStreamMarkerINTEL = pAPI->vkCmdSetPerformanceStreamMarkerINTEL;
+    vkCmdSetPerformanceOverrideINTEL = pAPI->vkCmdSetPerformanceOverrideINTEL;
+    vkAcquirePerformanceConfigurationINTEL = pAPI->vkAcquirePerformanceConfigurationINTEL;
+    vkReleasePerformanceConfigurationINTEL = pAPI->vkReleasePerformanceConfigurationINTEL;
+    vkQueueSetPerformanceConfigurationINTEL = pAPI->vkQueueSetPerformanceConfigurationINTEL;
+    vkGetPerformanceParameterINTEL = pAPI->vkGetPerformanceParameterINTEL;
     vkSetLocalDimmingAMD = pAPI->vkSetLocalDimmingAMD;
     vkGetBufferDeviceAddressEXT = pAPI->vkGetBufferDeviceAddressEXT;
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
