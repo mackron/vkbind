@@ -1178,6 +1178,24 @@ bool vkbBuildFindCommandByName(vkbBuild &context, const char* name, size_t* pInd
     return false;
 }
 
+bool vkbBuildFindExtensionByName(vkbBuild &context, const char* name, size_t* pIndexOut)
+{
+    if (name == NULL) {
+        return false;
+    }
+
+    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+        if (context.extensions[iExtension].name == name) {
+            if (pIndexOut != NULL) {
+                *pIndexOut = iExtension;
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::string vkbBuildCleanDefineValue(const std::string &value)
 {
     std::string result = vkbTrim(value);
@@ -2022,14 +2040,47 @@ vkbResult vkbBuildGenerateCode_C_Extension(vkbBuild &context, vkbBuildCodeGenSta
     return VKB_SUCCESS;
 }
 
+vkbResult vkbBuildReorderExtensions(vkbBuild &context)
+{
+    std::vector<vkbBuildExtension> promotedExtensions;
+
+    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+        vkbBuildExtension &extension = context.extensions[iExtension];
+        if (extension.promotedto != "") {
+            promotedExtensions.push_back(extension);
+        }
+    }
+
+    // At this point we have the promoted extensions, so now we need to remove them and then reinsert them after their promoted equivalent.
+    for (size_t iPromotedExtension = 0; iPromotedExtension < promotedExtensions.size(); ++iPromotedExtension) {
+        size_t iOldIndex;
+        size_t iNewIndex;
+        if (vkbBuildFindExtensionByName(context, promotedExtensions[iPromotedExtension].name.c_str(),       &iOldIndex) &&
+            vkbBuildFindExtensionByName(context, promotedExtensions[iPromotedExtension].promotedto.c_str(), &iNewIndex)) {
+            context.extensions.erase( context.extensions.begin() + iOldIndex);
+            context.extensions.insert(context.extensions.begin() + iNewIndex, promotedExtensions[iPromotedExtension]);
+        }
+    }
+
+    return VKB_SUCCESS;
+}
+
 vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
 {
+    vkbResult result;
     vkbBuildCodeGenState codegenState;
+
+    // We need to reorder extensions so that any that have been promoted are located _after_ the promoted extension.
+    result = vkbBuildReorderExtensions(context);
+    if (result != VKB_SUCCESS) {
+        return result;
+    }
+    
 
     // The first thing to do is extract all of the dependencies for each feature and extension.
     for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
         vkbBuildCodeGenDependencies dependencies;
-        vkbResult result = dependencies.ParseFeatureDependencies(context, context.features[iFeature]);
+        result = dependencies.ParseFeatureDependencies(context, context.features[iFeature]);
         if (result != VKB_SUCCESS) {
             return result;
         }
@@ -2039,7 +2090,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
 
     for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
         vkbBuildCodeGenDependencies dependencies;
-        vkbResult result = dependencies.ParseExtensionDependencies(context, context.extensions[iExtension]);
+        result = dependencies.ParseExtensionDependencies(context, context.extensions[iExtension]);
         if (result != VKB_SUCCESS) {
             return result;
         }
@@ -2050,7 +2101,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
 
     // Features.
     for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
-        vkbResult result = vkbBuildGenerateCode_C_Feature(context, codegenState, iFeature, codeOut);
+        result = vkbBuildGenerateCode_C_Feature(context, codegenState, iFeature, codeOut);
         if (result != VKB_SUCCESS) {
             return result;
         }
@@ -2060,7 +2111,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
     for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
         vkbBuildExtension &extension = context.extensions[iExtension];
         if (extension.platform == "") {
-            vkbResult result = vkbBuildGenerateCode_C_Extension(context, codegenState, iExtension, codeOut);
+            result = vkbBuildGenerateCode_C_Extension(context, codegenState, iExtension, codeOut);
             if (result != VKB_SUCCESS) {
                 return result;
             }
@@ -2082,7 +2133,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
             // "include" parts are done slightly differently for platform-specific extensions.
             for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
                 if (context.extensions[iExtension].platform == platform.name) {
-                    vkbResult result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.extensionDependencies[iExtension], codeOut);
+                    result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.extensionDependencies[iExtension], codeOut);
                     if (result != VKB_SUCCESS) {
                         return result;
                     }
@@ -2092,7 +2143,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
             for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
                 vkbBuildExtension &extension = context.extensions[iExtension];
                 if (extension.platform == platform.name) {
-                    vkbResult result = vkbBuildGenerateCode_C_Extension(context, codegenState, iExtension, codeOut);
+                    result = vkbBuildGenerateCode_C_Extension(context, codegenState, iExtension, codeOut);
                     if (result != VKB_SUCCESS) {
                         return result;
                     }

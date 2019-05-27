@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.109.0 - 2019-05-25
+vkbind - v1.1.109.1 - 2019-05-27
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -373,9 +373,6 @@ typedef enum
     VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT = 1000011000,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_RASTERIZATION_ORDER_AMD = 1000018000,
-    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT = 1000022000,
-    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT = 1000022001,
-    VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT = 1000022002,
     VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV = 1000026000,
     VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV = 1000026001,
     VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV = 1000026002,
@@ -390,7 +387,6 @@ typedef enum
     VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_NV = 1000056001,
     VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_NV = 1000057000,
     VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_NV = 1000057001,
-    VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV = 1000058000,
     VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT = 1000061000,
     VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN = 1000062000,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT = 1000067000,
@@ -403,6 +399,7 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR = 1000074001,
     VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR = 1000074002,
     VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_KHR = 1000075000,
+    VK_STRUCTURE_TYPE_WIN32_KEYED_MUTEX_ACQUIRE_RELEASE_INFO_NV = 1000058000,
     VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR = 1000078000,
     VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR = 1000078001,
     VK_STRUCTURE_TYPE_D3D12_FENCE_SUBMIT_INFO_KHR = 1000078002,
@@ -465,6 +462,9 @@ typedef enum
     VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT = 1000128002,
     VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT = 1000128003,
     VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT = 1000128004,
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT = 1000022000,
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT = 1000022001,
+    VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT = 1000022002,
     VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_USAGE_ANDROID = 1000129000,
     VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_PROPERTIES_ANDROID = 1000129001,
     VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_ANDROID = 1000129002,
@@ -4357,45 +4357,6 @@ typedef struct VkPipelineRasterizationStateRasterizationOrderAMD
 #define VK_AMD_SHADER_EXPLICIT_VERTEX_PARAMETER_EXTENSION_NAME "VK_AMD_shader_explicit_vertex_parameter"
 
 
-#define VK_EXT_debug_marker 1
-#define VK_EXT_DEBUG_MARKER_SPEC_VERSION 4
-#define VK_EXT_DEBUG_MARKER_EXTENSION_NAME "VK_EXT_debug_marker"
-
-typedef struct VkDebugMarkerObjectNameInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkDebugReportObjectTypeEXT objectType;
-    uint64_t object;
-    const char* pObjectName;
-} VkDebugMarkerObjectNameInfoEXT;
-
-typedef struct VkDebugMarkerObjectTagInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkDebugReportObjectTypeEXT objectType;
-    uint64_t object;
-    uint64_t tagName;
-    size_t tagSize;
-    const void* pTag;
-} VkDebugMarkerObjectTagInfoEXT;
-
-typedef struct VkDebugMarkerMarkerInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    const char* pMarkerName;
-    float color[4];
-} VkDebugMarkerMarkerInfoEXT;
-
-
-typedef VkResult (VKAPI_PTR *PFN_vkDebugMarkerSetObjectTagEXT)(VkDevice device, const VkDebugMarkerObjectTagInfoEXT* pTagInfo);
-typedef VkResult (VKAPI_PTR *PFN_vkDebugMarkerSetObjectNameEXT)(VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo);
-typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerBeginEXT)(VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo);
-typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerEndEXT)(VkCommandBuffer commandBuffer);
-typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerInsertEXT)(VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo);
-
 #define VK_AMD_gcn_shader 1
 #define VK_AMD_GCN_SHADER_SPEC_VERSION 1
 #define VK_AMD_GCN_SHADER_EXTENSION_NAME "VK_AMD_gcn_shader"
@@ -4489,13 +4450,6 @@ typedef struct VkImageViewHandleInfoNVX
 
 
 typedef uint32_t (VKAPI_PTR *PFN_vkGetImageViewHandleNVX)(VkDevice device, const VkImageViewHandleInfoNVX* pInfo);
-
-#define VK_AMD_draw_indirect_count 1
-#define VK_AMD_DRAW_INDIRECT_COUNT_SPEC_VERSION 1
-#define VK_AMD_DRAW_INDIRECT_COUNT_EXTENSION_NAME "VK_AMD_draw_indirect_count"
-
-typedef PFN_vkCmdDrawIndirectCountKHR PFN_vkCmdDrawIndirectCountAMD;
-typedef PFN_vkCmdDrawIndexedIndirectCountKHR PFN_vkCmdDrawIndexedIndirectCountAMD;
 
 #define VK_AMD_negative_viewport_height 1
 #define VK_AMD_NEGATIVE_VIEWPORT_HEIGHT_SPEC_VERSION 1
@@ -5911,6 +5865,45 @@ typedef VkResult (VKAPI_PTR *PFN_vkCreateDebugUtilsMessengerEXT)(VkInstance inst
 typedef void (VKAPI_PTR *PFN_vkDestroyDebugUtilsMessengerEXT)(VkInstance instance, VkDebugUtilsMessengerEXT messenger, const VkAllocationCallbacks* pAllocator);
 typedef void (VKAPI_PTR *PFN_vkSubmitDebugUtilsMessageEXT)(VkInstance instance, VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData);
 
+#define VK_EXT_debug_marker 1
+#define VK_EXT_DEBUG_MARKER_SPEC_VERSION 4
+#define VK_EXT_DEBUG_MARKER_EXTENSION_NAME "VK_EXT_debug_marker"
+
+typedef struct VkDebugMarkerObjectNameInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDebugReportObjectTypeEXT objectType;
+    uint64_t object;
+    const char* pObjectName;
+} VkDebugMarkerObjectNameInfoEXT;
+
+typedef struct VkDebugMarkerObjectTagInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDebugReportObjectTypeEXT objectType;
+    uint64_t object;
+    uint64_t tagName;
+    size_t tagSize;
+    const void* pTag;
+} VkDebugMarkerObjectTagInfoEXT;
+
+typedef struct VkDebugMarkerMarkerInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    const char* pMarkerName;
+    float color[4];
+} VkDebugMarkerMarkerInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkDebugMarkerSetObjectTagEXT)(VkDevice device, const VkDebugMarkerObjectTagInfoEXT* pTagInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkDebugMarkerSetObjectNameEXT)(VkDevice device, const VkDebugMarkerObjectNameInfoEXT* pNameInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerBeginEXT)(VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerEndEXT)(VkCommandBuffer commandBuffer);
+typedef void (VKAPI_PTR *PFN_vkCmdDebugMarkerInsertEXT)(VkCommandBuffer commandBuffer, const VkDebugMarkerMarkerInfoEXT* pMarkerInfo);
+
 #define VK_EXT_sampler_filter_minmax 1
 #define VK_EXT_SAMPLER_FILTER_MINMAX_SPEC_VERSION 1
 #define VK_EXT_SAMPLER_FILTER_MINMAX_EXTENSION_NAME "VK_EXT_sampler_filter_minmax"
@@ -6767,6 +6760,13 @@ typedef PFN_vkGetDescriptorSetLayoutSupport PFN_vkGetDescriptorSetLayoutSupportK
 
 typedef void (VKAPI_PTR *PFN_vkCmdDrawIndirectCountKHR)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride);
 typedef void (VKAPI_PTR *PFN_vkCmdDrawIndexedIndirectCountKHR)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride);
+
+#define VK_AMD_draw_indirect_count 1
+#define VK_AMD_DRAW_INDIRECT_COUNT_SPEC_VERSION 1
+#define VK_AMD_DRAW_INDIRECT_COUNT_EXTENSION_NAME "VK_AMD_draw_indirect_count"
+
+typedef PFN_vkCmdDrawIndirectCountKHR PFN_vkCmdDrawIndirectCountAMD;
+typedef PFN_vkCmdDrawIndexedIndirectCountKHR PFN_vkCmdDrawIndexedIndirectCountAMD;
 
 #define VK_EXT_filter_cubic 1
 #define VK_EXT_FILTER_CUBIC_SPEC_VERSION 1
@@ -7980,25 +7980,6 @@ typedef struct VkExportMemoryWin32HandleInfoNV
 
 typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryWin32HandleNV)(VkDevice device, VkDeviceMemory memory, VkExternalMemoryHandleTypeFlagsNV handleType, HANDLE* pHandle);
 
-#define VK_NV_win32_keyed_mutex 1
-#define VK_NV_WIN32_KEYED_MUTEX_SPEC_VERSION 1
-#define VK_NV_WIN32_KEYED_MUTEX_EXTENSION_NAME "VK_NV_win32_keyed_mutex"
-
-typedef struct VkWin32KeyedMutexAcquireReleaseInfoNV
-{
-    VkStructureType sType;
-    const void* pNext;
-    uint32_t acquireCount;
-    const VkDeviceMemory* pAcquireSyncs;
-    const uint64_t* pAcquireKeys;
-    const uint32_t* pAcquireTimeoutMilliseconds;
-    uint32_t releaseCount;
-    const VkDeviceMemory* pReleaseSyncs;
-    const uint64_t* pReleaseKeys;
-} VkWin32KeyedMutexAcquireReleaseInfoNV;
-
-
-
 #define VK_KHR_external_memory_win32 1
 #define VK_KHR_EXTERNAL_MEMORY_WIN32_SPEC_VERSION 1
 #define VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME "VK_KHR_external_memory_win32"
@@ -8056,6 +8037,25 @@ typedef struct VkWin32KeyedMutexAcquireReleaseInfoKHR
     const VkDeviceMemory* pReleaseSyncs;
     const uint64_t* pReleaseKeys;
 } VkWin32KeyedMutexAcquireReleaseInfoKHR;
+
+
+
+#define VK_NV_win32_keyed_mutex 1
+#define VK_NV_WIN32_KEYED_MUTEX_SPEC_VERSION 1
+#define VK_NV_WIN32_KEYED_MUTEX_EXTENSION_NAME "VK_NV_win32_keyed_mutex"
+
+typedef struct VkWin32KeyedMutexAcquireReleaseInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t acquireCount;
+    const VkDeviceMemory* pAcquireSyncs;
+    const uint64_t* pAcquireKeys;
+    const uint32_t* pAcquireTimeoutMilliseconds;
+    uint32_t releaseCount;
+    const VkDeviceMemory* pReleaseSyncs;
+    const uint64_t* pReleaseKeys;
+} VkWin32KeyedMutexAcquireReleaseInfoNV;
 
 
 
@@ -8509,11 +8509,6 @@ PFN_vkCreateSharedSwapchainsKHR vkCreateSharedSwapchainsKHR;
 PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
 PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
-PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTagEXT;
-PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT;
-PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
-PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
-PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT;
 PFN_vkCmdBindTransformFeedbackBuffersEXT vkCmdBindTransformFeedbackBuffersEXT;
 PFN_vkCmdBeginTransformFeedbackEXT vkCmdBeginTransformFeedbackEXT;
 PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT;
@@ -8521,8 +8516,6 @@ PFN_vkCmdBeginQueryIndexedEXT vkCmdBeginQueryIndexedEXT;
 PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
 PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
 PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
-PFN_vkCmdDrawIndirectCountAMD vkCmdDrawIndirectCountAMD;
-PFN_vkCmdDrawIndexedIndirectCountAMD vkCmdDrawIndexedIndirectCountAMD;
 PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
 PFN_vkGetPhysicalDeviceExternalImageFormatPropertiesNV vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
 PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
@@ -8595,6 +8588,11 @@ PFN_vkCmdInsertDebugUtilsLabelEXT vkCmdInsertDebugUtilsLabelEXT;
 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 PFN_vkSubmitDebugUtilsMessageEXT vkSubmitDebugUtilsMessageEXT;
+PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTagEXT;
+PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT;
+PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
+PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
+PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT;
 PFN_vkCmdSetSampleLocationsEXT vkCmdSetSampleLocationsEXT;
 PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT vkGetPhysicalDeviceMultisamplePropertiesEXT;
 PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
@@ -8627,6 +8625,8 @@ PFN_vkCompileDeferredNV vkCompileDeferredNV;
 PFN_vkGetDescriptorSetLayoutSupportKHR vkGetDescriptorSetLayoutSupportKHR;
 PFN_vkCmdDrawIndirectCountKHR vkCmdDrawIndirectCountKHR;
 PFN_vkCmdDrawIndexedIndirectCountKHR vkCmdDrawIndexedIndirectCountKHR;
+PFN_vkCmdDrawIndirectCountAMD vkCmdDrawIndirectCountAMD;
+PFN_vkCmdDrawIndexedIndirectCountAMD vkCmdDrawIndexedIndirectCountAMD;
 PFN_vkGetMemoryHostPointerPropertiesEXT vkGetMemoryHostPointerPropertiesEXT;
 PFN_vkCmdWriteBufferMarkerAMD vkCmdWriteBufferMarkerAMD;
 PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
@@ -8899,11 +8899,6 @@ typedef struct
     PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
     PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
     PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
-    PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTagEXT;
-    PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT;
-    PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
-    PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
-    PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT;
     PFN_vkCmdBindTransformFeedbackBuffersEXT vkCmdBindTransformFeedbackBuffersEXT;
     PFN_vkCmdBeginTransformFeedbackEXT vkCmdBeginTransformFeedbackEXT;
     PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT;
@@ -8911,8 +8906,6 @@ typedef struct
     PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
     PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
     PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
-    PFN_vkCmdDrawIndirectCountAMD vkCmdDrawIndirectCountAMD;
-    PFN_vkCmdDrawIndexedIndirectCountAMD vkCmdDrawIndexedIndirectCountAMD;
     PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
     PFN_vkGetPhysicalDeviceExternalImageFormatPropertiesNV vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
     PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
@@ -8985,6 +8978,11 @@ typedef struct
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
     PFN_vkSubmitDebugUtilsMessageEXT vkSubmitDebugUtilsMessageEXT;
+    PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTagEXT;
+    PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectNameEXT;
+    PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBeginEXT;
+    PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEndEXT;
+    PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsertEXT;
     PFN_vkCmdSetSampleLocationsEXT vkCmdSetSampleLocationsEXT;
     PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT vkGetPhysicalDeviceMultisamplePropertiesEXT;
     PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
@@ -9017,6 +9015,8 @@ typedef struct
     PFN_vkGetDescriptorSetLayoutSupportKHR vkGetDescriptorSetLayoutSupportKHR;
     PFN_vkCmdDrawIndirectCountKHR vkCmdDrawIndirectCountKHR;
     PFN_vkCmdDrawIndexedIndirectCountKHR vkCmdDrawIndexedIndirectCountKHR;
+    PFN_vkCmdDrawIndirectCountAMD vkCmdDrawIndirectCountAMD;
+    PFN_vkCmdDrawIndexedIndirectCountAMD vkCmdDrawIndexedIndirectCountAMD;
     PFN_vkGetMemoryHostPointerPropertiesEXT vkGetMemoryHostPointerPropertiesEXT;
     PFN_vkCmdWriteBufferMarkerAMD vkCmdWriteBufferMarkerAMD;
     PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
@@ -9445,11 +9445,6 @@ VkResult vkbBindGlobalAPI()
     vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateDebugReportCallbackEXT");
     vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyDebugReportCallbackEXT");
     vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)vkb_dlsym(g_vkbVulkanSO, "vkDebugReportMessageEXT");
-    vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)vkb_dlsym(g_vkbVulkanSO, "vkDebugMarkerSetObjectTagEXT");
-    vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)vkb_dlsym(g_vkbVulkanSO, "vkDebugMarkerSetObjectNameEXT");
-    vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerBeginEXT");
-    vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerEndEXT");
-    vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerInsertEXT");
     vkCmdBindTransformFeedbackBuffersEXT = (PFN_vkCmdBindTransformFeedbackBuffersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindTransformFeedbackBuffersEXT");
     vkCmdBeginTransformFeedbackEXT = (PFN_vkCmdBeginTransformFeedbackEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBeginTransformFeedbackEXT");
     vkCmdEndTransformFeedbackEXT = (PFN_vkCmdEndTransformFeedbackEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdEndTransformFeedbackEXT");
@@ -9457,8 +9452,6 @@ VkResult vkbBindGlobalAPI()
     vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdEndQueryIndexedEXT");
     vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectByteCountEXT");
     vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewHandleNVX");
-    vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectCountAMD");
-    vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndexedIndirectCountAMD");
     vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkb_dlsym(g_vkbVulkanSO, "vkGetShaderInfoAMD");
     vkGetPhysicalDeviceExternalImageFormatPropertiesNV = (PFN_vkGetPhysicalDeviceExternalImageFormatPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
     vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceFeatures2KHR");
@@ -9531,6 +9524,11 @@ VkResult vkbBindGlobalAPI()
     vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateDebugUtilsMessengerEXT");
     vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyDebugUtilsMessengerEXT");
     vkSubmitDebugUtilsMessageEXT = (PFN_vkSubmitDebugUtilsMessageEXT)vkb_dlsym(g_vkbVulkanSO, "vkSubmitDebugUtilsMessageEXT");
+    vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)vkb_dlsym(g_vkbVulkanSO, "vkDebugMarkerSetObjectTagEXT");
+    vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)vkb_dlsym(g_vkbVulkanSO, "vkDebugMarkerSetObjectNameEXT");
+    vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerBeginEXT");
+    vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerEndEXT");
+    vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDebugMarkerInsertEXT");
     vkCmdSetSampleLocationsEXT = (PFN_vkCmdSetSampleLocationsEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetSampleLocationsEXT");
     vkGetPhysicalDeviceMultisamplePropertiesEXT = (PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceMultisamplePropertiesEXT");
     vkGetImageMemoryRequirements2KHR = (PFN_vkGetImageMemoryRequirements2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetImageMemoryRequirements2KHR");
@@ -9563,6 +9561,8 @@ VkResult vkbBindGlobalAPI()
     vkGetDescriptorSetLayoutSupportKHR = (PFN_vkGetDescriptorSetLayoutSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorSetLayoutSupportKHR");
     vkCmdDrawIndirectCountKHR = (PFN_vkCmdDrawIndirectCountKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectCountKHR");
     vkCmdDrawIndexedIndirectCountKHR = (PFN_vkCmdDrawIndexedIndirectCountKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndexedIndirectCountKHR");
+    vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectCountAMD");
+    vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndexedIndirectCountAMD");
     vkGetMemoryHostPointerPropertiesEXT = (PFN_vkGetMemoryHostPointerPropertiesEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetMemoryHostPointerPropertiesEXT");
     vkCmdWriteBufferMarkerAMD = (PFN_vkCmdWriteBufferMarkerAMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdWriteBufferMarkerAMD");
     vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = (PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT");
@@ -9864,11 +9864,6 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCreateDebugReportCallbackEXT = vkCreateDebugReportCallbackEXT;
         pAPI->vkDestroyDebugReportCallbackEXT = vkDestroyDebugReportCallbackEXT;
         pAPI->vkDebugReportMessageEXT = vkDebugReportMessageEXT;
-        pAPI->vkDebugMarkerSetObjectTagEXT = vkDebugMarkerSetObjectTagEXT;
-        pAPI->vkDebugMarkerSetObjectNameEXT = vkDebugMarkerSetObjectNameEXT;
-        pAPI->vkCmdDebugMarkerBeginEXT = vkCmdDebugMarkerBeginEXT;
-        pAPI->vkCmdDebugMarkerEndEXT = vkCmdDebugMarkerEndEXT;
-        pAPI->vkCmdDebugMarkerInsertEXT = vkCmdDebugMarkerInsertEXT;
         pAPI->vkCmdBindTransformFeedbackBuffersEXT = vkCmdBindTransformFeedbackBuffersEXT;
         pAPI->vkCmdBeginTransformFeedbackEXT = vkCmdBeginTransformFeedbackEXT;
         pAPI->vkCmdEndTransformFeedbackEXT = vkCmdEndTransformFeedbackEXT;
@@ -9876,8 +9871,6 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdEndQueryIndexedEXT = vkCmdEndQueryIndexedEXT;
         pAPI->vkCmdDrawIndirectByteCountEXT = vkCmdDrawIndirectByteCountEXT;
         pAPI->vkGetImageViewHandleNVX = vkGetImageViewHandleNVX;
-        pAPI->vkCmdDrawIndirectCountAMD = vkCmdDrawIndirectCountAMD;
-        pAPI->vkCmdDrawIndexedIndirectCountAMD = vkCmdDrawIndexedIndirectCountAMD;
         pAPI->vkGetShaderInfoAMD = vkGetShaderInfoAMD;
         pAPI->vkGetPhysicalDeviceExternalImageFormatPropertiesNV = vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
         pAPI->vkGetPhysicalDeviceFeatures2KHR = vkGetPhysicalDeviceFeatures2KHR;
@@ -9950,6 +9943,11 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCreateDebugUtilsMessengerEXT = vkCreateDebugUtilsMessengerEXT;
         pAPI->vkDestroyDebugUtilsMessengerEXT = vkDestroyDebugUtilsMessengerEXT;
         pAPI->vkSubmitDebugUtilsMessageEXT = vkSubmitDebugUtilsMessageEXT;
+        pAPI->vkDebugMarkerSetObjectTagEXT = vkDebugMarkerSetObjectTagEXT;
+        pAPI->vkDebugMarkerSetObjectNameEXT = vkDebugMarkerSetObjectNameEXT;
+        pAPI->vkCmdDebugMarkerBeginEXT = vkCmdDebugMarkerBeginEXT;
+        pAPI->vkCmdDebugMarkerEndEXT = vkCmdDebugMarkerEndEXT;
+        pAPI->vkCmdDebugMarkerInsertEXT = vkCmdDebugMarkerInsertEXT;
         pAPI->vkCmdSetSampleLocationsEXT = vkCmdSetSampleLocationsEXT;
         pAPI->vkGetPhysicalDeviceMultisamplePropertiesEXT = vkGetPhysicalDeviceMultisamplePropertiesEXT;
         pAPI->vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2KHR;
@@ -9982,6 +9980,8 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetDescriptorSetLayoutSupportKHR = vkGetDescriptorSetLayoutSupportKHR;
         pAPI->vkCmdDrawIndirectCountKHR = vkCmdDrawIndirectCountKHR;
         pAPI->vkCmdDrawIndexedIndirectCountKHR = vkCmdDrawIndexedIndirectCountKHR;
+        pAPI->vkCmdDrawIndirectCountAMD = vkCmdDrawIndirectCountAMD;
+        pAPI->vkCmdDrawIndexedIndirectCountAMD = vkCmdDrawIndexedIndirectCountAMD;
         pAPI->vkGetMemoryHostPointerPropertiesEXT = vkGetMemoryHostPointerPropertiesEXT;
         pAPI->vkCmdWriteBufferMarkerAMD = vkCmdWriteBufferMarkerAMD;
         pAPI->vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
@@ -10280,11 +10280,6 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
     pAPI->vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
     pAPI->vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT");
-    pAPI->vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)vkGetInstanceProcAddr(instance, "vkDebugMarkerSetObjectTagEXT");
-    pAPI->vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)vkGetInstanceProcAddr(instance, "vkDebugMarkerSetObjectNameEXT");
-    pAPI->vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT");
-    pAPI->vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT");
-    pAPI->vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT");
     pAPI->vkCmdBindTransformFeedbackBuffersEXT = (PFN_vkCmdBindTransformFeedbackBuffersEXT)vkGetInstanceProcAddr(instance, "vkCmdBindTransformFeedbackBuffersEXT");
     pAPI->vkCmdBeginTransformFeedbackEXT = (PFN_vkCmdBeginTransformFeedbackEXT)vkGetInstanceProcAddr(instance, "vkCmdBeginTransformFeedbackEXT");
     pAPI->vkCmdEndTransformFeedbackEXT = (PFN_vkCmdEndTransformFeedbackEXT)vkGetInstanceProcAddr(instance, "vkCmdEndTransformFeedbackEXT");
@@ -10292,8 +10287,6 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectByteCountEXT");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkGetInstanceProcAddr(instance, "vkGetImageViewHandleNVX");
-    pAPI->vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectCountAMD");
-    pAPI->vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)vkGetInstanceProcAddr(instance, "vkCmdDrawIndexedIndirectCountAMD");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkGetInstanceProcAddr(instance, "vkGetShaderInfoAMD");
     pAPI->vkGetPhysicalDeviceExternalImageFormatPropertiesNV = (PFN_vkGetPhysicalDeviceExternalImageFormatPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceExternalImageFormatPropertiesNV");
     pAPI->vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures2KHR");
@@ -10366,6 +10359,11 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     pAPI->vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     pAPI->vkSubmitDebugUtilsMessageEXT = (PFN_vkSubmitDebugUtilsMessageEXT)vkGetInstanceProcAddr(instance, "vkSubmitDebugUtilsMessageEXT");
+    pAPI->vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)vkGetInstanceProcAddr(instance, "vkDebugMarkerSetObjectTagEXT");
+    pAPI->vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)vkGetInstanceProcAddr(instance, "vkDebugMarkerSetObjectNameEXT");
+    pAPI->vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerBeginEXT");
+    pAPI->vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerEndEXT");
+    pAPI->vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)vkGetInstanceProcAddr(instance, "vkCmdDebugMarkerInsertEXT");
     pAPI->vkCmdSetSampleLocationsEXT = (PFN_vkCmdSetSampleLocationsEXT)vkGetInstanceProcAddr(instance, "vkCmdSetSampleLocationsEXT");
     pAPI->vkGetPhysicalDeviceMultisamplePropertiesEXT = (PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceMultisamplePropertiesEXT");
     pAPI->vkGetImageMemoryRequirements2KHR = (PFN_vkGetImageMemoryRequirements2KHR)vkGetInstanceProcAddr(instance, "vkGetImageMemoryRequirements2KHR");
@@ -10398,6 +10396,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetDescriptorSetLayoutSupportKHR = (PFN_vkGetDescriptorSetLayoutSupportKHR)vkGetInstanceProcAddr(instance, "vkGetDescriptorSetLayoutSupportKHR");
     pAPI->vkCmdDrawIndirectCountKHR = (PFN_vkCmdDrawIndirectCountKHR)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectCountKHR");
     pAPI->vkCmdDrawIndexedIndirectCountKHR = (PFN_vkCmdDrawIndexedIndirectCountKHR)vkGetInstanceProcAddr(instance, "vkCmdDrawIndexedIndirectCountKHR");
+    pAPI->vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectCountAMD");
+    pAPI->vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)vkGetInstanceProcAddr(instance, "vkCmdDrawIndexedIndirectCountAMD");
     pAPI->vkGetMemoryHostPointerPropertiesEXT = (PFN_vkGetMemoryHostPointerPropertiesEXT)vkGetInstanceProcAddr(instance, "vkGetMemoryHostPointerPropertiesEXT");
     pAPI->vkCmdWriteBufferMarkerAMD = (PFN_vkCmdWriteBufferMarkerAMD)vkGetInstanceProcAddr(instance, "vkCmdWriteBufferMarkerAMD");
     pAPI->vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = (PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT");
@@ -10646,11 +10646,6 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetDeviceGroupSurfacePresentModesKHR = (PFN_vkGetDeviceGroupSurfacePresentModesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceGroupSurfacePresentModesKHR");
     pAPI->vkAcquireNextImage2KHR = (PFN_vkAcquireNextImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkAcquireNextImage2KHR");
     pAPI->vkCreateSharedSwapchainsKHR = (PFN_vkCreateSharedSwapchainsKHR)pAPI->vkGetDeviceProcAddr(device, "vkCreateSharedSwapchainsKHR");
-    pAPI->vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)pAPI->vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectTagEXT");
-    pAPI->vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)pAPI->vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT");
-    pAPI->vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerBeginEXT");
-    pAPI->vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerEndEXT");
-    pAPI->vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerInsertEXT");
     pAPI->vkCmdBindTransformFeedbackBuffersEXT = (PFN_vkCmdBindTransformFeedbackBuffersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindTransformFeedbackBuffersEXT");
     pAPI->vkCmdBeginTransformFeedbackEXT = (PFN_vkCmdBeginTransformFeedbackEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBeginTransformFeedbackEXT");
     pAPI->vkCmdEndTransformFeedbackEXT = (PFN_vkCmdEndTransformFeedbackEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdEndTransformFeedbackEXT");
@@ -10658,8 +10653,6 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectByteCountEXT");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewHandleNVX");
-    pAPI->vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCountAMD");
-    pAPI->vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirectCountAMD");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)pAPI->vkGetDeviceProcAddr(device, "vkGetShaderInfoAMD");
     pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR = (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
     pAPI->vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDeviceMaskKHR");
@@ -10708,6 +10701,11 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBeginDebugUtilsLabelEXT");
     pAPI->vkCmdEndDebugUtilsLabelEXT = (PFN_vkCmdEndDebugUtilsLabelEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdEndDebugUtilsLabelEXT");
     pAPI->vkCmdInsertDebugUtilsLabelEXT = (PFN_vkCmdInsertDebugUtilsLabelEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdInsertDebugUtilsLabelEXT");
+    pAPI->vkDebugMarkerSetObjectTagEXT = (PFN_vkDebugMarkerSetObjectTagEXT)pAPI->vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectTagEXT");
+    pAPI->vkDebugMarkerSetObjectNameEXT = (PFN_vkDebugMarkerSetObjectNameEXT)pAPI->vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT");
+    pAPI->vkCmdDebugMarkerBeginEXT = (PFN_vkCmdDebugMarkerBeginEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerBeginEXT");
+    pAPI->vkCmdDebugMarkerEndEXT = (PFN_vkCmdDebugMarkerEndEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerEndEXT");
+    pAPI->vkCmdDebugMarkerInsertEXT = (PFN_vkCmdDebugMarkerInsertEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDebugMarkerInsertEXT");
     pAPI->vkCmdSetSampleLocationsEXT = (PFN_vkCmdSetSampleLocationsEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetSampleLocationsEXT");
     pAPI->vkGetImageMemoryRequirements2KHR = (PFN_vkGetImageMemoryRequirements2KHR)pAPI->vkGetDeviceProcAddr(device, "vkGetImageMemoryRequirements2KHR");
     pAPI->vkGetBufferMemoryRequirements2KHR = (PFN_vkGetBufferMemoryRequirements2KHR)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferMemoryRequirements2KHR");
@@ -10739,6 +10737,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetDescriptorSetLayoutSupportKHR = (PFN_vkGetDescriptorSetLayoutSupportKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutSupportKHR");
     pAPI->vkCmdDrawIndirectCountKHR = (PFN_vkCmdDrawIndirectCountKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCountKHR");
     pAPI->vkCmdDrawIndexedIndirectCountKHR = (PFN_vkCmdDrawIndexedIndirectCountKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirectCountKHR");
+    pAPI->vkCmdDrawIndirectCountAMD = (PFN_vkCmdDrawIndirectCountAMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectCountAMD");
+    pAPI->vkCmdDrawIndexedIndirectCountAMD = (PFN_vkCmdDrawIndexedIndirectCountAMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndexedIndirectCountAMD");
     pAPI->vkGetMemoryHostPointerPropertiesEXT = (PFN_vkGetMemoryHostPointerPropertiesEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryHostPointerPropertiesEXT");
     pAPI->vkCmdWriteBufferMarkerAMD = (PFN_vkCmdWriteBufferMarkerAMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdWriteBufferMarkerAMD");
     pAPI->vkGetCalibratedTimestampsEXT = (PFN_vkGetCalibratedTimestampsEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetCalibratedTimestampsEXT");
@@ -11000,11 +11000,6 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCreateDebugReportCallbackEXT = pAPI->vkCreateDebugReportCallbackEXT;
     vkDestroyDebugReportCallbackEXT = pAPI->vkDestroyDebugReportCallbackEXT;
     vkDebugReportMessageEXT = pAPI->vkDebugReportMessageEXT;
-    vkDebugMarkerSetObjectTagEXT = pAPI->vkDebugMarkerSetObjectTagEXT;
-    vkDebugMarkerSetObjectNameEXT = pAPI->vkDebugMarkerSetObjectNameEXT;
-    vkCmdDebugMarkerBeginEXT = pAPI->vkCmdDebugMarkerBeginEXT;
-    vkCmdDebugMarkerEndEXT = pAPI->vkCmdDebugMarkerEndEXT;
-    vkCmdDebugMarkerInsertEXT = pAPI->vkCmdDebugMarkerInsertEXT;
     vkCmdBindTransformFeedbackBuffersEXT = pAPI->vkCmdBindTransformFeedbackBuffersEXT;
     vkCmdBeginTransformFeedbackEXT = pAPI->vkCmdBeginTransformFeedbackEXT;
     vkCmdEndTransformFeedbackEXT = pAPI->vkCmdEndTransformFeedbackEXT;
@@ -11012,8 +11007,6 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdEndQueryIndexedEXT = pAPI->vkCmdEndQueryIndexedEXT;
     vkCmdDrawIndirectByteCountEXT = pAPI->vkCmdDrawIndirectByteCountEXT;
     vkGetImageViewHandleNVX = pAPI->vkGetImageViewHandleNVX;
-    vkCmdDrawIndirectCountAMD = pAPI->vkCmdDrawIndirectCountAMD;
-    vkCmdDrawIndexedIndirectCountAMD = pAPI->vkCmdDrawIndexedIndirectCountAMD;
     vkGetShaderInfoAMD = pAPI->vkGetShaderInfoAMD;
     vkGetPhysicalDeviceExternalImageFormatPropertiesNV = pAPI->vkGetPhysicalDeviceExternalImageFormatPropertiesNV;
     vkGetPhysicalDeviceFeatures2KHR = pAPI->vkGetPhysicalDeviceFeatures2KHR;
@@ -11086,6 +11079,11 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCreateDebugUtilsMessengerEXT = pAPI->vkCreateDebugUtilsMessengerEXT;
     vkDestroyDebugUtilsMessengerEXT = pAPI->vkDestroyDebugUtilsMessengerEXT;
     vkSubmitDebugUtilsMessageEXT = pAPI->vkSubmitDebugUtilsMessageEXT;
+    vkDebugMarkerSetObjectTagEXT = pAPI->vkDebugMarkerSetObjectTagEXT;
+    vkDebugMarkerSetObjectNameEXT = pAPI->vkDebugMarkerSetObjectNameEXT;
+    vkCmdDebugMarkerBeginEXT = pAPI->vkCmdDebugMarkerBeginEXT;
+    vkCmdDebugMarkerEndEXT = pAPI->vkCmdDebugMarkerEndEXT;
+    vkCmdDebugMarkerInsertEXT = pAPI->vkCmdDebugMarkerInsertEXT;
     vkCmdSetSampleLocationsEXT = pAPI->vkCmdSetSampleLocationsEXT;
     vkGetPhysicalDeviceMultisamplePropertiesEXT = pAPI->vkGetPhysicalDeviceMultisamplePropertiesEXT;
     vkGetImageMemoryRequirements2KHR = pAPI->vkGetImageMemoryRequirements2KHR;
@@ -11118,6 +11116,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetDescriptorSetLayoutSupportKHR = pAPI->vkGetDescriptorSetLayoutSupportKHR;
     vkCmdDrawIndirectCountKHR = pAPI->vkCmdDrawIndirectCountKHR;
     vkCmdDrawIndexedIndirectCountKHR = pAPI->vkCmdDrawIndexedIndirectCountKHR;
+    vkCmdDrawIndirectCountAMD = pAPI->vkCmdDrawIndirectCountAMD;
+    vkCmdDrawIndexedIndirectCountAMD = pAPI->vkCmdDrawIndexedIndirectCountAMD;
     vkGetMemoryHostPointerPropertiesEXT = pAPI->vkGetMemoryHostPointerPropertiesEXT;
     vkCmdWriteBufferMarkerAMD = pAPI->vkCmdWriteBufferMarkerAMD;
     vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = pAPI->vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
