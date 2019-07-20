@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.115.0 - 2019-07-15
+vkbind - v1.1.116.0 - 2019-07-20
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 115
+#define VK_HEADER_VERSION 116
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -570,6 +570,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_PROPERTIES_EXT = 1000218001,
     VK_STRUCTURE_TYPE_RENDER_PASS_FRAGMENT_DENSITY_MAP_CREATE_INFO_EXT = 1000218002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES_EXT = 1000221000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT = 1000225000,
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT = 1000225001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT = 1000237000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PRIORITY_FEATURES_EXT = 1000238000,
     VK_STRUCTURE_TYPE_MEMORY_PRIORITY_ALLOCATE_INFO_EXT = 1000238001,
@@ -1624,6 +1626,12 @@ typedef enum
     VK_PIPELINE_CREATE_DISPATCH_BASE_KHR = VK_PIPELINE_CREATE_DISPATCH_BASE
 } VkPipelineCreateFlagBits;
 typedef VkFlags VkPipelineCreateFlags;
+
+typedef enum
+{
+    VK_PIPELINE_SHADER_STAGE_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT = 0x00000001,
+    VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT = 0x00000002
+} VkPipelineShaderStageCreateFlagBits;
 typedef VkFlags VkPipelineShaderStageCreateFlags;
 typedef VkFlags VkPipelineVertexInputStateCreateFlags;
 typedef VkFlags VkPipelineInputAssemblyStateCreateFlags;
@@ -7137,15 +7145,23 @@ typedef struct VkPhysicalDeviceDriverPropertiesKHR
 
 
 #define VK_KHR_shader_float_controls 1
-#define VK_KHR_SHADER_FLOAT_CONTROLS_SPEC_VERSION 1
+#define VK_KHR_SHADER_FLOAT_CONTROLS_SPEC_VERSION 2
 #define VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME "VK_KHR_shader_float_controls"
+
+typedef enum
+{
+    VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_32_BIT_ONLY_KHR = 0,
+    VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ALL_KHR = 1,
+    VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_NONE_KHR = 2
+} VkShaderFloatControlsIndependenceKHR;
+
 
 typedef struct VkPhysicalDeviceFloatControlsPropertiesKHR
 {
     VkStructureType sType;
     void* pNext;
-    VkBool32 separateDenormSettings;
-    VkBool32 separateRoundingModeSettings;
+    VkShaderFloatControlsIndependenceKHR denormBehaviorIndependence;
+    VkShaderFloatControlsIndependenceKHR roundingModeIndependence;
     VkBool32 shaderSignedZeroInfNanPreserveFloat16;
     VkBool32 shaderSignedZeroInfNanPreserveFloat32;
     VkBool32 shaderSignedZeroInfNanPreserveFloat64;
@@ -7563,6 +7579,29 @@ typedef struct VkPhysicalDeviceScalarBlockLayoutFeaturesEXT
 #define VK_GOOGLE_decorate_string 1
 #define VK_GOOGLE_DECORATE_STRING_SPEC_VERSION 1
 #define VK_GOOGLE_DECORATE_STRING_EXTENSION_NAME "VK_GOOGLE_decorate_string"
+
+
+#define VK_EXT_subgroup_size_control 1
+#define VK_EXT_SUBGROUP_SIZE_CONTROL_SPEC_VERSION 1
+#define VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME "VK_EXT_subgroup_size_control"
+
+typedef struct VkPhysicalDeviceSubgroupSizeControlPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t minSubgroupSize;
+    uint32_t maxSubgroupSize;
+    uint32_t maxComputeWorkgroupSubgroups;
+    VkShaderStageFlags requiredSubgroupSizeStages;
+} VkPhysicalDeviceSubgroupSizeControlPropertiesEXT;
+
+typedef struct VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t requiredSubgroupSize;
+} VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT;
+
 
 
 #define VK_EXT_memory_budget 1
