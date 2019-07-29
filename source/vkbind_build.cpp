@@ -1783,7 +1783,11 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                     if (enums.enums[iEnumValue].bitpos.length() > 0) {
                                         codeOut += "    " + enums.enums[iEnumValue].name + " = " + vkbBuildBitPosToHexString(atoi(enums.enums[iEnumValue].bitpos.c_str()));
                                     } else {
-                                        codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
+                                        if (enums.enums[iEnumValue].alias != "") {
+                                            codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].alias;
+                                        } else {
+                                            codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
+                                        }
                                     }
                                     outputEnums.push_back(enums.enums[iEnumValue].name);
 

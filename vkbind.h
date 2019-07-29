@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.116.0 - 2019-07-20
+vkbind - v1.1.117.0 - 2019-07-29
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 116
+#define VK_HEADER_VERSION 117
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -389,6 +389,7 @@ typedef enum
     VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_NV = 1000057001,
     VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT = 1000061000,
     VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN = 1000062000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT = 1000066000,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT = 1000067000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT = 1000067001,
     VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR = 1000073000,
@@ -595,7 +596,11 @@ typedef enum
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT = 1000255002,
     VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT = 1000255001,
     VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT = 1000256000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT = 1000259000,
+    VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT = 1000259001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT = 1000259002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT = 1000261000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT = 1000265000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DEMOTE_TO_HELPER_INVOCATION_FEATURES_EXT = 1000276000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT = 1000281000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT = 1000281001,
@@ -910,6 +915,20 @@ typedef enum
     VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG = 1000054005,
     VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG = 1000054006,
     VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG = 1000054007,
+    VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT = 1000066000,
+    VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT = 1000066001,
+    VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT = 1000066002,
+    VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT = 1000066003,
+    VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT = 1000066004,
+    VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT = 1000066005,
+    VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT = 1000066006,
+    VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT = 1000066007,
+    VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT = 1000066008,
+    VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT = 1000066009,
+    VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT = 1000066010,
+    VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT = 1000066011,
+    VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT = 1000066012,
+    VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT = 1000066013,
     VK_FORMAT_G8B8G8R8_422_UNORM_KHR = VK_FORMAT_G8B8G8R8_422_UNORM,
     VK_FORMAT_B8G8R8G8_422_UNORM_KHR = VK_FORMAT_B8G8R8G8_422_UNORM,
     VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM_KHR = VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM,
@@ -1201,7 +1220,8 @@ typedef enum
     VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT = 1000143000,
     VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV = 1000164004,
     VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV = 1000164006,
-    VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV = 1000205001
+    VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV = 1000205001,
+    VK_DYNAMIC_STATE_LINE_STIPPLE_EXT = 1000259000
 } VkDynamicState;
 
 typedef enum
@@ -1284,7 +1304,8 @@ typedef enum
 {
     VK_INDEX_TYPE_UINT16 = 0,
     VK_INDEX_TYPE_UINT32 = 1,
-    VK_INDEX_TYPE_NONE_NV = 1000165000
+    VK_INDEX_TYPE_NONE_NV = 1000165000,
+    VK_INDEX_TYPE_UINT8_EXT = 1000265000
 } VkIndexType;
 
 typedef enum
@@ -1611,6 +1632,11 @@ typedef enum
     VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT = 0x00000001
 } VkImageViewCreateFlagBits;
 typedef VkFlags VkImageViewCreateFlags;
+
+typedef enum
+{
+
+} VkShaderModuleCreateFlagBits;
 typedef VkFlags VkShaderModuleCreateFlags;
 typedef VkFlags VkPipelineCacheCreateFlags;
 
@@ -1710,6 +1736,11 @@ typedef enum
     VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT_KHR = 0x00000001
 } VkFramebufferCreateFlagBits;
 typedef VkFlags VkFramebufferCreateFlags;
+
+typedef enum
+{
+
+} VkRenderPassCreateFlagBits;
 typedef VkFlags VkRenderPassCreateFlags;
 
 typedef enum
@@ -1806,7 +1837,8 @@ typedef enum
 {
     VK_STENCIL_FACE_FRONT_BIT = 0x00000001,
     VK_STENCIL_FACE_BACK_BIT = 0x00000002,
-    VK_STENCIL_FRONT_AND_BACK = 0x00000003
+    VK_STENCIL_FACE_FRONT_AND_BACK = 0x00000003,
+    VK_STENCIL_FRONT_AND_BACK = VK_STENCIL_FACE_FRONT_AND_BACK
 } VkStencilFaceFlagBits;
 typedef VkFlags VkStencilFaceFlags;
 
@@ -4717,6 +4749,19 @@ typedef struct VkValidationFlagsEXT
 #define VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME "VK_EXT_shader_subgroup_vote"
 
 
+#define VK_EXT_texture_compression_astc_hdr 1
+#define VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_SPEC_VERSION 1
+#define VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME "VK_EXT_texture_compression_astc_hdr"
+
+typedef struct VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 textureCompressionASTC_HDR;
+} VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT;
+
+
+
 #define VK_EXT_astc_decode_mode 1
 #define VK_EXT_ASTC_DECODE_MODE_SPEC_VERSION 1
 #define VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME "VK_EXT_astc_decode_mode"
@@ -7145,7 +7190,7 @@ typedef struct VkPhysicalDeviceDriverPropertiesKHR
 
 
 #define VK_KHR_shader_float_controls 1
-#define VK_KHR_SHADER_FLOAT_CONTROLS_SPEC_VERSION 2
+#define VK_KHR_SHADER_FLOAT_CONTROLS_SPEC_VERSION 4
 #define VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME "VK_KHR_shader_float_controls"
 
 typedef enum
@@ -7901,6 +7946,51 @@ typedef struct VkHeadlessSurfaceCreateInfoEXT
 
 typedef VkResult (VKAPI_PTR *PFN_vkCreateHeadlessSurfaceEXT)(VkInstance instance, const VkHeadlessSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 
+#define VK_EXT_line_rasterization 1
+#define VK_EXT_LINE_RASTERIZATION_SPEC_VERSION 1
+#define VK_EXT_LINE_RASTERIZATION_EXTENSION_NAME "VK_EXT_line_rasterization"
+
+typedef enum
+{
+    VK_LINE_RASTERIZATION_MODE_DEFAULT_EXT = 0,
+    VK_LINE_RASTERIZATION_MODE_RECTANGULAR_EXT = 1,
+    VK_LINE_RASTERIZATION_MODE_BRESENHAM_EXT = 2,
+    VK_LINE_RASTERIZATION_MODE_RECTANGULAR_SMOOTH_EXT = 3
+} VkLineRasterizationModeEXT;
+
+
+typedef struct VkPhysicalDeviceLineRasterizationFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 rectangularLines;
+    VkBool32 bresenhamLines;
+    VkBool32 smoothLines;
+    VkBool32 stippledRectangularLines;
+    VkBool32 stippledBresenhamLines;
+    VkBool32 stippledSmoothLines;
+} VkPhysicalDeviceLineRasterizationFeaturesEXT;
+
+typedef struct VkPhysicalDeviceLineRasterizationPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t lineSubPixelPrecisionBits;
+} VkPhysicalDeviceLineRasterizationPropertiesEXT;
+
+typedef struct VkPipelineRasterizationLineStateCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkLineRasterizationModeEXT lineRasterizationMode;
+    VkBool32 stippledLineEnable;
+    uint32_t lineStippleFactor;
+    uint16_t lineStipplePattern;
+} VkPipelineRasterizationLineStateCreateInfoEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdSetLineStippleEXT)(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern);
+
 #define VK_EXT_host_query_reset 1
 #define VK_EXT_HOST_QUERY_RESET_SPEC_VERSION 1
 #define VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME "VK_EXT_host_query_reset"
@@ -7914,6 +8004,19 @@ typedef struct VkPhysicalDeviceHostQueryResetFeaturesEXT
 
 
 typedef void (VKAPI_PTR *PFN_vkResetQueryPoolEXT)(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount);
+
+#define VK_EXT_index_type_uint8 1
+#define VK_EXT_INDEX_TYPE_UINT8_SPEC_VERSION 1
+#define VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME "VK_EXT_index_type_uint8"
+
+typedef struct VkPhysicalDeviceIndexTypeUint8FeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 indexTypeUint8;
+} VkPhysicalDeviceIndexTypeUint8FeaturesEXT;
+
+
 
 #define VK_EXT_shader_demote_to_helper_invocation 1
 #define VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_SPEC_VERSION 1
@@ -8823,6 +8926,7 @@ PFN_vkGetBufferDeviceAddressEXT vkGetBufferDeviceAddressEXT;
 PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
 PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
+PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
 PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -9213,6 +9317,7 @@ typedef struct
     PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
     PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
     PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
+    PFN_vkCmdSetLineStippleEXT vkCmdSetLineStippleEXT;
     PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -9759,6 +9864,7 @@ VkResult vkbBindGlobalAPI()
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
     vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = (PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV");
     vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateHeadlessSurfaceEXT");
+    vkCmdSetLineStippleEXT = (PFN_vkCmdSetLineStippleEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetLineStippleEXT");
     vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkb_dlsym(g_vkbVulkanSO, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
@@ -10178,6 +10284,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
         pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
         pAPI->vkCreateHeadlessSurfaceEXT = vkCreateHeadlessSurfaceEXT;
+        pAPI->vkCmdSetLineStippleEXT = vkCmdSetLineStippleEXT;
         pAPI->vkResetQueryPoolEXT = vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
@@ -10594,6 +10701,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
     pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = (PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV");
     pAPI->vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkGetInstanceProcAddr(instance, "vkCreateHeadlessSurfaceEXT");
+    pAPI->vkCmdSetLineStippleEXT = (PFN_vkCmdSetLineStippleEXT)vkGetInstanceProcAddr(instance, "vkCmdSetLineStippleEXT");
     pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)vkGetInstanceProcAddr(instance, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
@@ -10931,6 +11039,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)pAPI->vkGetDeviceProcAddr(device, "vkGetPerformanceParameterINTEL");
     pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)pAPI->vkGetDeviceProcAddr(device, "vkSetLocalDimmingAMD");
     pAPI->vkGetBufferDeviceAddressEXT = (PFN_vkGetBufferDeviceAddressEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferDeviceAddressEXT");
+    pAPI->vkCmdSetLineStippleEXT = (PFN_vkCmdSetLineStippleEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetLineStippleEXT");
     pAPI->vkResetQueryPoolEXT = (PFN_vkResetQueryPoolEXT)pAPI->vkGetDeviceProcAddr(device, "vkResetQueryPoolEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
@@ -11314,6 +11423,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
     vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
     vkCreateHeadlessSurfaceEXT = pAPI->vkCreateHeadlessSurfaceEXT;
+    vkCmdSetLineStippleEXT = pAPI->vkCmdSetLineStippleEXT;
     vkResetQueryPoolEXT = pAPI->vkResetQueryPoolEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
