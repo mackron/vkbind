@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.119.0 - 2019-08-12
+vkbind - v1.1.119.1 - 2019-08-12
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -7023,12 +7023,6 @@ typedef struct VkPhysicalDeviceShaderAtomicInt64FeaturesKHR
 #define VK_AMD_pipeline_compiler_control 1
 #define VK_AMD_PIPELINE_COMPILER_CONTROL_SPEC_VERSION 1
 #define VK_AMD_PIPELINE_COMPILER_CONTROL_EXTENSION_NAME "VK_AMD_pipeline_compiler_control"
-
-typedef enum
-{
-
-} VkPipelineCompilerControlFlagBitsAMD;
-
 
 
 typedef enum
