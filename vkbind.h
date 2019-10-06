@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.123.0 - 2019-09-16
+vkbind - v1.1.124.0 - 2019-10-07
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 123
+#define VK_HEADER_VERSION 124
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -534,6 +534,7 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_HOST_POINTER_PROPERTIES_EXT = 1000178001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT = 1000178002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_INT64_FEATURES_KHR = 1000180000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CLOCK_FEATURES_KHR = 1000181000,
     VK_STRUCTURE_TYPE_PIPELINE_COMPILER_CONTROL_CREATE_INFO_AMD = 1000183000,
     VK_STRUCTURE_TYPE_CALIBRATED_TIMESTAMP_INFO_EXT = 1000184000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD = 1000185000,
@@ -556,6 +557,12 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV = 1000205002,
     VK_STRUCTURE_TYPE_CHECKPOINT_DATA_NV = 1000206000,
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV = 1000206001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR = 1000207000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_PROPERTIES_KHR = 1000207001,
+    VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO_KHR = 1000207002,
+    VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO_KHR = 1000207003,
+    VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR = 1000207004,
+    VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO_KHR = 1000207005,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_FUNCTIONS_2_FEATURES_INTEL = 1000209000,
     VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO_INTEL = 1000210000,
     VK_STRUCTURE_TYPE_INITIALIZE_PERFORMANCE_API_INFO_INTEL = 1000210001,
@@ -7038,6 +7045,20 @@ typedef struct VkPhysicalDeviceShaderAtomicInt64FeaturesKHR
 
 
 
+#define VK_KHR_shader_clock 1
+#define VK_KHR_SHADER_CLOCK_SPEC_VERSION 1
+#define VK_KHR_SHADER_CLOCK_EXTENSION_NAME "VK_KHR_shader_clock"
+
+typedef struct VkPhysicalDeviceShaderClockFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderSubgroupClock;
+    VkBool32 shaderDeviceClock;
+} VkPhysicalDeviceShaderClockFeaturesKHR;
+
+
+
 #define VK_AMD_pipeline_compiler_control 1
 #define VK_AMD_PIPELINE_COMPILER_CONTROL_SPEC_VERSION 1
 #define VK_AMD_PIPELINE_COMPILER_CONTROL_EXTENSION_NAME "VK_AMD_pipeline_compiler_control"
@@ -7447,6 +7468,79 @@ typedef struct VkCheckpointDataNV
 
 typedef void (VKAPI_PTR *PFN_vkCmdSetCheckpointNV)(VkCommandBuffer commandBuffer, const void* pCheckpointMarker);
 typedef void (VKAPI_PTR *PFN_vkGetQueueCheckpointDataNV)(VkQueue queue, uint32_t* pCheckpointDataCount, VkCheckpointDataNV* pCheckpointData);
+
+#define VK_KHR_timeline_semaphore 1
+#define VK_KHR_TIMELINE_SEMAPHORE_SPEC_VERSION 2
+#define VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME "VK_KHR_timeline_semaphore"
+
+typedef enum
+{
+    VK_SEMAPHORE_TYPE_BINARY_KHR = 0,
+    VK_SEMAPHORE_TYPE_TIMELINE_KHR = 1
+} VkSemaphoreTypeKHR;
+
+
+
+typedef enum
+{
+    VK_SEMAPHORE_WAIT_ANY_BIT_KHR = 0x00000001
+} VkSemaphoreWaitFlagBitsKHR;
+typedef VkFlags VkSemaphoreWaitFlagsKHR;
+
+typedef struct VkPhysicalDeviceTimelineSemaphoreFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 timelineSemaphore;
+} VkPhysicalDeviceTimelineSemaphoreFeaturesKHR;
+
+typedef struct VkPhysicalDeviceTimelineSemaphorePropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    uint64_t maxTimelineSemaphoreValueDifference;
+} VkPhysicalDeviceTimelineSemaphorePropertiesKHR;
+
+typedef struct VkSemaphoreTypeCreateInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphoreTypeKHR semaphoreType;
+    uint64_t initialValue;
+} VkSemaphoreTypeCreateInfoKHR;
+
+typedef struct VkTimelineSemaphoreSubmitInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t waitSemaphoreValueCount;
+    const uint64_t* pWaitSemaphoreValues;
+    uint32_t signalSemaphoreValueCount;
+    const uint64_t* pSignalSemaphoreValues;
+} VkTimelineSemaphoreSubmitInfoKHR;
+
+typedef struct VkSemaphoreWaitInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphoreWaitFlagsKHR flags;
+    uint32_t semaphoreCount;
+    const VkSemaphore* pSemaphores;
+    const uint64_t* pValues;
+} VkSemaphoreWaitInfoKHR;
+
+typedef struct VkSemaphoreSignalInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    uint64_t value;
+} VkSemaphoreSignalInfoKHR;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreCounterValueKHR)(VkDevice device, VkSemaphore semaphore, uint64_t* pValue);
+typedef VkResult (VKAPI_PTR *PFN_vkWaitSemaphoresKHR)(VkDevice device, const VkSemaphoreWaitInfoKHR* pWaitInfo, uint64_t timeout);
+typedef VkResult (VKAPI_PTR *PFN_vkSignalSemaphoreKHR)(VkDevice device, const VkSemaphoreSignalInfoKHR* pSignalInfo);
 
 #define VK_INTEL_shader_integer_functions2 1
 #define VK_INTEL_SHADER_INTEGER_FUNCTIONS_2_SPEC_VERSION 1
@@ -9088,6 +9182,9 @@ PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
 PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR;
+PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR;
+PFN_vkSignalSemaphoreKHR vkSignalSemaphoreKHR;
 PFN_vkInitializePerformanceApiINTEL vkInitializePerformanceApiINTEL;
 PFN_vkUninitializePerformanceApiINTEL vkUninitializePerformanceApiINTEL;
 PFN_vkCmdSetPerformanceMarkerINTEL vkCmdSetPerformanceMarkerINTEL;
@@ -9482,6 +9579,9 @@ typedef struct
     PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
+    PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR;
+    PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR;
+    PFN_vkSignalSemaphoreKHR vkSignalSemaphoreKHR;
     PFN_vkInitializePerformanceApiINTEL vkInitializePerformanceApiINTEL;
     PFN_vkUninitializePerformanceApiINTEL vkUninitializePerformanceApiINTEL;
     PFN_vkCmdSetPerformanceMarkerINTEL vkCmdSetPerformanceMarkerINTEL;
@@ -10032,6 +10132,9 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorNV");
     vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
+    vkGetSemaphoreCounterValueKHR = (PFN_vkGetSemaphoreCounterValueKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetSemaphoreCounterValueKHR");
+    vkWaitSemaphoresKHR = (PFN_vkWaitSemaphoresKHR)vkb_dlsym(g_vkbVulkanSO, "vkWaitSemaphoresKHR");
+    vkSignalSemaphoreKHR = (PFN_vkSignalSemaphoreKHR)vkb_dlsym(g_vkbVulkanSO, "vkSignalSemaphoreKHR");
     vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)vkb_dlsym(g_vkbVulkanSO, "vkInitializePerformanceApiINTEL");
     vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)vkb_dlsym(g_vkbVulkanSO, "vkUninitializePerformanceApiINTEL");
     vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPerformanceMarkerINTEL");
@@ -10455,6 +10558,9 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetExclusiveScissorNV = vkCmdSetExclusiveScissorNV;
         pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
         pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
+        pAPI->vkGetSemaphoreCounterValueKHR = vkGetSemaphoreCounterValueKHR;
+        pAPI->vkWaitSemaphoresKHR = vkWaitSemaphoresKHR;
+        pAPI->vkSignalSemaphoreKHR = vkSignalSemaphoreKHR;
         pAPI->vkInitializePerformanceApiINTEL = vkInitializePerformanceApiINTEL;
         pAPI->vkUninitializePerformanceApiINTEL = vkUninitializePerformanceApiINTEL;
         pAPI->vkCmdSetPerformanceMarkerINTEL = vkCmdSetPerformanceMarkerINTEL;
@@ -10875,6 +10981,9 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
+    pAPI->vkGetSemaphoreCounterValueKHR = (PFN_vkGetSemaphoreCounterValueKHR)vkGetInstanceProcAddr(instance, "vkGetSemaphoreCounterValueKHR");
+    pAPI->vkWaitSemaphoresKHR = (PFN_vkWaitSemaphoresKHR)vkGetInstanceProcAddr(instance, "vkWaitSemaphoresKHR");
+    pAPI->vkSignalSemaphoreKHR = (PFN_vkSignalSemaphoreKHR)vkGetInstanceProcAddr(instance, "vkSignalSemaphoreKHR");
     pAPI->vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)vkGetInstanceProcAddr(instance, "vkInitializePerformanceApiINTEL");
     pAPI->vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)vkGetInstanceProcAddr(instance, "vkUninitializePerformanceApiINTEL");
     pAPI->vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)vkGetInstanceProcAddr(instance, "vkCmdSetPerformanceMarkerINTEL");
@@ -11219,6 +11328,9 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
+    pAPI->vkGetSemaphoreCounterValueKHR = (PFN_vkGetSemaphoreCounterValueKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetSemaphoreCounterValueKHR");
+    pAPI->vkWaitSemaphoresKHR = (PFN_vkWaitSemaphoresKHR)pAPI->vkGetDeviceProcAddr(device, "vkWaitSemaphoresKHR");
+    pAPI->vkSignalSemaphoreKHR = (PFN_vkSignalSemaphoreKHR)pAPI->vkGetDeviceProcAddr(device, "vkSignalSemaphoreKHR");
     pAPI->vkInitializePerformanceApiINTEL = (PFN_vkInitializePerformanceApiINTEL)pAPI->vkGetDeviceProcAddr(device, "vkInitializePerformanceApiINTEL");
     pAPI->vkUninitializePerformanceApiINTEL = (PFN_vkUninitializePerformanceApiINTEL)pAPI->vkGetDeviceProcAddr(device, "vkUninitializePerformanceApiINTEL");
     pAPI->vkCmdSetPerformanceMarkerINTEL = (PFN_vkCmdSetPerformanceMarkerINTEL)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPerformanceMarkerINTEL");
@@ -11603,6 +11715,9 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetExclusiveScissorNV = pAPI->vkCmdSetExclusiveScissorNV;
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
+    vkGetSemaphoreCounterValueKHR = pAPI->vkGetSemaphoreCounterValueKHR;
+    vkWaitSemaphoresKHR = pAPI->vkWaitSemaphoresKHR;
+    vkSignalSemaphoreKHR = pAPI->vkSignalSemaphoreKHR;
     vkInitializePerformanceApiINTEL = pAPI->vkInitializePerformanceApiINTEL;
     vkUninitializePerformanceApiINTEL = pAPI->vkUninitializePerformanceApiINTEL;
     vkCmdSetPerformanceMarkerINTEL = pAPI->vkCmdSetPerformanceMarkerINTEL;
