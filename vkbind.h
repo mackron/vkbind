@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.127.0 - 2019-11-04
+vkbind - v1.1.128.0 - 2019-11-19
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 127
+#define VK_HEADER_VERSION 128
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -452,6 +452,13 @@ typedef enum
     VK_STRUCTURE_TYPE_FENCE_GET_WIN32_HANDLE_INFO_KHR = 1000114002,
     VK_STRUCTURE_TYPE_IMPORT_FENCE_FD_INFO_KHR = 1000115000,
     VK_STRUCTURE_TYPE_FENCE_GET_FD_INFO_KHR = 1000115001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR = 1000116000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR = 1000116001,
+    VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR = 1000116002,
+    VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_SUBMIT_INFO_KHR = 1000116003,
+    VK_STRUCTURE_TYPE_ACQUIRE_PROFILING_LOCK_INFO_KHR = 1000116004,
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR = 1000116005,
+    VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR = 1000116006,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR = 1000119000,
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR = 1000119001,
     VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR = 1000119002,
@@ -1015,6 +1022,7 @@ typedef enum
     VK_QUERY_TYPE_PIPELINE_STATISTICS = 1,
     VK_QUERY_TYPE_TIMESTAMP = 2,
     VK_QUERY_TYPE_TRANSFORM_FEEDBACK_STREAM_EXT = 1000028004,
+    VK_QUERY_TYPE_PERFORMANCE_QUERY_KHR = 1000116000,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_NV = 1000165000,
     VK_QUERY_TYPE_PERFORMANCE_QUERY_INTEL = 1000210000
 } VkQueryType;
@@ -1674,10 +1682,11 @@ typedef enum
     VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT = 0x00000002,
     VK_PIPELINE_CREATE_DERIVATIVE_BIT = 0x00000004,
     VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT = 0x00000008,
-    VK_PIPELINE_CREATE_DISPATCH_BASE = 0x00000010,
+    VK_PIPELINE_CREATE_DISPATCH_BASE_BIT = 0x00000010,
     VK_PIPELINE_CREATE_DEFER_COMPILE_BIT_NV = 0x00000020,
     VK_PIPELINE_CREATE_CAPTURE_STATISTICS_BIT_KHR = 0x00000040,
     VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR = 0x00000080,
+    VK_PIPELINE_CREATE_DISPATCH_BASE = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT,
     VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT,
     VK_PIPELINE_CREATE_DISPATCH_BASE_KHR = VK_PIPELINE_CREATE_DISPATCH_BASE
 } VkPipelineCreateFlagBits;
@@ -4786,7 +4795,7 @@ typedef struct VkValidationFlagsEXT
 typedef struct VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkBool32 textureCompressionASTC_HDR;
 } VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT;
 
@@ -5789,6 +5798,132 @@ typedef struct VkFenceGetFdInfoKHR
 
 typedef VkResult (VKAPI_PTR *PFN_vkImportFenceFdKHR)(VkDevice device, const VkImportFenceFdInfoKHR* pImportFenceFdInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkGetFenceFdKHR)(VkDevice device, const VkFenceGetFdInfoKHR* pGetFdInfo, int* pFd);
+
+#define VK_KHR_performance_query 1
+#define VK_KHR_PERFORMANCE_QUERY_SPEC_VERSION 1
+#define VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME "VK_KHR_performance_query"
+
+typedef enum
+{
+    VK_PERFORMANCE_COUNTER_UNIT_GENERIC_KHR = 0,
+    VK_PERFORMANCE_COUNTER_UNIT_PERCENTAGE_KHR = 1,
+    VK_PERFORMANCE_COUNTER_UNIT_NANOSECONDS_KHR = 2,
+    VK_PERFORMANCE_COUNTER_UNIT_BYTES_KHR = 3,
+    VK_PERFORMANCE_COUNTER_UNIT_BYTES_PER_SECOND_KHR = 4,
+    VK_PERFORMANCE_COUNTER_UNIT_KELVIN_KHR = 5,
+    VK_PERFORMANCE_COUNTER_UNIT_WATTS_KHR = 6,
+    VK_PERFORMANCE_COUNTER_UNIT_VOLTS_KHR = 7,
+    VK_PERFORMANCE_COUNTER_UNIT_AMPS_KHR = 8,
+    VK_PERFORMANCE_COUNTER_UNIT_HERTZ_KHR = 9,
+    VK_PERFORMANCE_COUNTER_UNIT_CYCLES_KHR = 10
+} VkPerformanceCounterUnitKHR;
+
+typedef enum
+{
+    VK_QUERY_SCOPE_COMMAND_BUFFER_KHR = 0,
+    VK_QUERY_SCOPE_RENDER_PASS_KHR = 1,
+    VK_QUERY_SCOPE_COMMAND_KHR = 2
+} VkPerformanceCounterScopeKHR;
+
+typedef enum
+{
+    VK_PERFORMANCE_COUNTER_STORAGE_INT32_KHR = 0,
+    VK_PERFORMANCE_COUNTER_STORAGE_INT64_KHR = 1,
+    VK_PERFORMANCE_COUNTER_STORAGE_UINT32_KHR = 2,
+    VK_PERFORMANCE_COUNTER_STORAGE_UINT64_KHR = 3,
+    VK_PERFORMANCE_COUNTER_STORAGE_FLOAT32_KHR = 4,
+    VK_PERFORMANCE_COUNTER_STORAGE_FLOAT64_KHR = 5
+} VkPerformanceCounterStorageKHR;
+
+
+
+typedef enum
+{
+    VK_PERFORMANCE_COUNTER_DESCRIPTION_PERFORMANCE_IMPACTING_KHR = 0x00000001,
+    VK_PERFORMANCE_COUNTER_DESCRIPTION_CONCURRENTLY_IMPACTED_KHR = 0x00000002
+} VkPerformanceCounterDescriptionFlagBitsKHR;
+typedef VkFlags VkPerformanceCounterDescriptionFlagsKHR;
+
+typedef enum
+{
+
+} VkAcquireProfilingLockFlagBitsKHR;
+typedef VkFlags VkAcquireProfilingLockFlagsKHR;
+
+typedef struct VkPhysicalDevicePerformanceQueryFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 performanceCounterQueryPools;
+    VkBool32 performanceCounterMultipleQueryPools;
+} VkPhysicalDevicePerformanceQueryFeaturesKHR;
+
+typedef struct VkPhysicalDevicePerformanceQueryPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 allowCommandBufferQueryCopies;
+} VkPhysicalDevicePerformanceQueryPropertiesKHR;
+
+typedef struct VkPerformanceCounterKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPerformanceCounterUnitKHR unit;
+    VkPerformanceCounterScopeKHR scope;
+    VkPerformanceCounterStorageKHR storage;
+    uint8_t uuid[VK_UUID_SIZE];
+} VkPerformanceCounterKHR;
+
+typedef struct VkPerformanceCounterDescriptionKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPerformanceCounterDescriptionFlagsKHR flags;
+    char name[VK_MAX_DESCRIPTION_SIZE];
+    char category[VK_MAX_DESCRIPTION_SIZE];
+    char description[VK_MAX_DESCRIPTION_SIZE];
+} VkPerformanceCounterDescriptionKHR;
+
+typedef struct VkQueryPoolPerformanceCreateInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t queueFamilyIndex;
+    uint32_t counterIndexCount;
+    const uint32_t* pCounterIndices;
+} VkQueryPoolPerformanceCreateInfoKHR;
+
+typedef union VkPerformanceCounterResultKHR
+{
+    int32_t int32;
+    int64_t int64;
+    uint32_t uint32;
+    uint64_t uint64;
+    float float32;
+    double float64;
+} VkPerformanceCounterResultKHR;
+
+typedef struct VkAcquireProfilingLockInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkAcquireProfilingLockFlagsKHR flags;
+    uint64_t timeout;
+} VkAcquireProfilingLockInfoKHR;
+
+typedef struct VkPerformanceQuerySubmitInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t counterPassIndex;
+} VkPerformanceQuerySubmitInfoKHR;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, uint32_t* pCounterCount, VkPerformanceCounterKHR* pCounters, VkPerformanceCounterDescriptionKHR* pCounterDescriptions);
+typedef void (VKAPI_PTR *PFN_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR)(VkPhysicalDevice physicalDevice, const VkQueryPoolPerformanceCreateInfoKHR* pPerformanceQueryCreateInfo, uint32_t* pNumPasses);
+typedef VkResult (VKAPI_PTR *PFN_vkAcquireProfilingLockKHR)(VkDevice device, const VkAcquireProfilingLockInfoKHR* pInfo);
+typedef void (VKAPI_PTR *PFN_vkReleaseProfilingLockKHR)(VkDevice device);
 
 #define VK_KHR_maintenance2 1
 #define VK_KHR_MAINTENANCE2_SPEC_VERSION 1
@@ -9156,6 +9291,10 @@ PFN_vkGetSwapchainStatusKHR vkGetSwapchainStatusKHR;
 PFN_vkGetPhysicalDeviceExternalFencePropertiesKHR vkGetPhysicalDeviceExternalFencePropertiesKHR;
 PFN_vkImportFenceFdKHR vkImportFenceFdKHR;
 PFN_vkGetFenceFdKHR vkGetFenceFdKHR;
+PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
+PFN_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
+PFN_vkAcquireProfilingLockKHR vkAcquireProfilingLockKHR;
+PFN_vkReleaseProfilingLockKHR vkReleaseProfilingLockKHR;
 PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR vkGetPhysicalDeviceSurfaceCapabilities2KHR;
 PFN_vkGetPhysicalDeviceSurfaceFormats2KHR vkGetPhysicalDeviceSurfaceFormats2KHR;
 PFN_vkGetPhysicalDeviceDisplayProperties2KHR vkGetPhysicalDeviceDisplayProperties2KHR;
@@ -9553,6 +9692,10 @@ typedef struct
     PFN_vkGetPhysicalDeviceExternalFencePropertiesKHR vkGetPhysicalDeviceExternalFencePropertiesKHR;
     PFN_vkImportFenceFdKHR vkImportFenceFdKHR;
     PFN_vkGetFenceFdKHR vkGetFenceFdKHR;
+    PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
+    PFN_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
+    PFN_vkAcquireProfilingLockKHR vkAcquireProfilingLockKHR;
+    PFN_vkReleaseProfilingLockKHR vkReleaseProfilingLockKHR;
     PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR vkGetPhysicalDeviceSurfaceCapabilities2KHR;
     PFN_vkGetPhysicalDeviceSurfaceFormats2KHR vkGetPhysicalDeviceSurfaceFormats2KHR;
     PFN_vkGetPhysicalDeviceDisplayProperties2KHR vkGetPhysicalDeviceDisplayProperties2KHR;
@@ -10106,6 +10249,10 @@ VkResult vkbBindGlobalAPI()
     vkGetPhysicalDeviceExternalFencePropertiesKHR = (PFN_vkGetPhysicalDeviceExternalFencePropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceExternalFencePropertiesKHR");
     vkImportFenceFdKHR = (PFN_vkImportFenceFdKHR)vkb_dlsym(g_vkbVulkanSO, "vkImportFenceFdKHR");
     vkGetFenceFdKHR = (PFN_vkGetFenceFdKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetFenceFdKHR");
+    vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR = (PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR)vkb_dlsym(g_vkbVulkanSO, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR");
+    vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR = (PFN_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR");
+    vkAcquireProfilingLockKHR = (PFN_vkAcquireProfilingLockKHR)vkb_dlsym(g_vkbVulkanSO, "vkAcquireProfilingLockKHR");
+    vkReleaseProfilingLockKHR = (PFN_vkReleaseProfilingLockKHR)vkb_dlsym(g_vkbVulkanSO, "vkReleaseProfilingLockKHR");
     vkGetPhysicalDeviceSurfaceCapabilities2KHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
     vkGetPhysicalDeviceSurfaceFormats2KHR = (PFN_vkGetPhysicalDeviceSurfaceFormats2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSurfaceFormats2KHR");
     vkGetPhysicalDeviceDisplayProperties2KHR = (PFN_vkGetPhysicalDeviceDisplayProperties2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceDisplayProperties2KHR");
@@ -10532,6 +10679,10 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetPhysicalDeviceExternalFencePropertiesKHR = vkGetPhysicalDeviceExternalFencePropertiesKHR;
         pAPI->vkImportFenceFdKHR = vkImportFenceFdKHR;
         pAPI->vkGetFenceFdKHR = vkGetFenceFdKHR;
+        pAPI->vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR = vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
+        pAPI->vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR = vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
+        pAPI->vkAcquireProfilingLockKHR = vkAcquireProfilingLockKHR;
+        pAPI->vkReleaseProfilingLockKHR = vkReleaseProfilingLockKHR;
         pAPI->vkGetPhysicalDeviceSurfaceCapabilities2KHR = vkGetPhysicalDeviceSurfaceCapabilities2KHR;
         pAPI->vkGetPhysicalDeviceSurfaceFormats2KHR = vkGetPhysicalDeviceSurfaceFormats2KHR;
         pAPI->vkGetPhysicalDeviceDisplayProperties2KHR = vkGetPhysicalDeviceDisplayProperties2KHR;
@@ -10955,6 +11106,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetPhysicalDeviceExternalFencePropertiesKHR = (PFN_vkGetPhysicalDeviceExternalFencePropertiesKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceExternalFencePropertiesKHR");
     pAPI->vkImportFenceFdKHR = (PFN_vkImportFenceFdKHR)vkGetInstanceProcAddr(instance, "vkImportFenceFdKHR");
     pAPI->vkGetFenceFdKHR = (PFN_vkGetFenceFdKHR)vkGetInstanceProcAddr(instance, "vkGetFenceFdKHR");
+    pAPI->vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR = (PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR)vkGetInstanceProcAddr(instance, "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR");
+    pAPI->vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR = (PFN_vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR");
+    pAPI->vkAcquireProfilingLockKHR = (PFN_vkAcquireProfilingLockKHR)vkGetInstanceProcAddr(instance, "vkAcquireProfilingLockKHR");
+    pAPI->vkReleaseProfilingLockKHR = (PFN_vkReleaseProfilingLockKHR)vkGetInstanceProcAddr(instance, "vkReleaseProfilingLockKHR");
     pAPI->vkGetPhysicalDeviceSurfaceCapabilities2KHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
     pAPI->vkGetPhysicalDeviceSurfaceFormats2KHR = (PFN_vkGetPhysicalDeviceSurfaceFormats2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceFormats2KHR");
     pAPI->vkGetPhysicalDeviceDisplayProperties2KHR = (PFN_vkGetPhysicalDeviceDisplayProperties2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceDisplayProperties2KHR");
@@ -11313,6 +11468,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetSwapchainStatusKHR = (PFN_vkGetSwapchainStatusKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetSwapchainStatusKHR");
     pAPI->vkImportFenceFdKHR = (PFN_vkImportFenceFdKHR)pAPI->vkGetDeviceProcAddr(device, "vkImportFenceFdKHR");
     pAPI->vkGetFenceFdKHR = (PFN_vkGetFenceFdKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetFenceFdKHR");
+    pAPI->vkAcquireProfilingLockKHR = (PFN_vkAcquireProfilingLockKHR)pAPI->vkGetDeviceProcAddr(device, "vkAcquireProfilingLockKHR");
+    pAPI->vkReleaseProfilingLockKHR = (PFN_vkReleaseProfilingLockKHR)pAPI->vkGetDeviceProcAddr(device, "vkReleaseProfilingLockKHR");
     pAPI->vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetDebugUtilsObjectNameEXT");
     pAPI->vkSetDebugUtilsObjectTagEXT = (PFN_vkSetDebugUtilsObjectTagEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetDebugUtilsObjectTagEXT");
     pAPI->vkQueueBeginDebugUtilsLabelEXT = (PFN_vkQueueBeginDebugUtilsLabelEXT)pAPI->vkGetDeviceProcAddr(device, "vkQueueBeginDebugUtilsLabelEXT");
@@ -11689,6 +11846,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetPhysicalDeviceExternalFencePropertiesKHR = pAPI->vkGetPhysicalDeviceExternalFencePropertiesKHR;
     vkImportFenceFdKHR = pAPI->vkImportFenceFdKHR;
     vkGetFenceFdKHR = pAPI->vkGetFenceFdKHR;
+    vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR = pAPI->vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR;
+    vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR = pAPI->vkGetPhysicalDeviceQueueFamilyPerformanceQueryPassesKHR;
+    vkAcquireProfilingLockKHR = pAPI->vkAcquireProfilingLockKHR;
+    vkReleaseProfilingLockKHR = pAPI->vkReleaseProfilingLockKHR;
     vkGetPhysicalDeviceSurfaceCapabilities2KHR = pAPI->vkGetPhysicalDeviceSurfaceCapabilities2KHR;
     vkGetPhysicalDeviceSurfaceFormats2KHR = pAPI->vkGetPhysicalDeviceSurfaceFormats2KHR;
     vkGetPhysicalDeviceDisplayProperties2KHR = pAPI->vkGetPhysicalDeviceDisplayProperties2KHR;
