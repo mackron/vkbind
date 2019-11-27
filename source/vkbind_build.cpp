@@ -1102,6 +1102,18 @@ vkbResult vkbBuildParseExtension(vkbBuild &context, tinyxml2::XMLElement* pExten
     }
 
     context.extensions.push_back(extension);
+
+    // At this point the extension is sitting at the end, but we need to check if any of the already-added extensions are deprecated by this one. If so,
+    // we need to move it to the end so it's sitting after it. The reason we need to do this is to ensure any aliases are output beforehand so that
+    // typedef's and whatnot work as expected. A better way to do this is to analyze the list of extensions and re-arrange them based on the dependant types.
+    for (size_t i = 0; i < context.extensions.size(); i += 1) {
+        if (context.extensions[i].deprecatedby == extension.name) {
+            context.extensions.push_back(context.extensions[i]);
+            context.extensions.erase(context.extensions.begin() + i);
+            break;
+        }
+    }
+
     return VKB_SUCCESS;
 }
 
