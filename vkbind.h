@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.1.129.0 - 2019-11-27
+vkbind - v1.1.130.0 - 2019-12-09
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 129
+#define VK_HEADER_VERSION 130
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -600,6 +600,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SEPARATE_DEPTH_STENCIL_LAYOUTS_FEATURES_KHR = 1000241000,
     VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_STENCIL_LAYOUT_KHR = 1000241001,
     VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_STENCIL_LAYOUT_KHR = 1000241002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TOOL_PROPERTIES_EXT = 1000245000,
     VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT = 1000246000,
     VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT = 1000247000,
     VK_STRUCTURE_TYPE_VALIDATION_FLAGS_EXT = 1000061000,
@@ -8058,6 +8059,37 @@ typedef struct VkAttachmentDescriptionStencilLayoutKHR
 
 
 
+#define VK_EXT_tooling_info 1
+#define VK_EXT_TOOLING_INFO_SPEC_VERSION 1
+#define VK_EXT_TOOLING_INFO_EXTENSION_NAME "VK_EXT_tooling_info"
+
+
+typedef enum
+{
+    VK_TOOL_PURPOSE_VALIDATION_BIT_EXT = 0x00000001,
+    VK_TOOL_PURPOSE_PROFILING_BIT_EXT = 0x00000002,
+    VK_TOOL_PURPOSE_TRACING_BIT_EXT = 0x00000004,
+    VK_TOOL_PURPOSE_ADDITIONAL_FEATURES_BIT_EXT = 0x00000008,
+    VK_TOOL_PURPOSE_MODIFYING_FEATURES_BIT_EXT = 0x00000010,
+    VK_TOOL_PURPOSE_DEBUG_REPORTING_BIT_EXT = 0x00000020,
+    VK_TOOL_PURPOSE_DEBUG_MARKERS_BIT_EXT = 0x00000040
+} VkToolPurposeFlagBitsEXT;
+typedef VkFlags VkToolPurposeFlagsEXT;
+
+typedef struct VkPhysicalDeviceToolPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    char name[VK_MAX_EXTENSION_NAME_SIZE];
+    char version[VK_MAX_EXTENSION_NAME_SIZE];
+    VkToolPurposeFlagsEXT purposes;
+    char description[VK_MAX_DESCRIPTION_SIZE];
+    char layer[VK_MAX_EXTENSION_NAME_SIZE];
+} VkPhysicalDeviceToolPropertiesEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceToolPropertiesEXT)(VkPhysicalDevice physicalDevice, uint32_t* pToolCount, VkPhysicalDeviceToolPropertiesEXT* pToolProperties);
+
 #define VK_EXT_separate_stencil_usage 1
 #define VK_EXT_SEPARATE_STENCIL_USAGE_SPEC_VERSION 1
 #define VK_EXT_SEPARATE_STENCIL_USAGE_EXTENSION_NAME "VK_EXT_separate_stencil_usage"
@@ -9425,6 +9457,7 @@ PFN_vkReleasePerformanceConfigurationINTEL vkReleasePerformanceConfigurationINTE
 PFN_vkQueueSetPerformanceConfigurationINTEL vkQueueSetPerformanceConfigurationINTEL;
 PFN_vkGetPerformanceParameterINTEL vkGetPerformanceParameterINTEL;
 PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
+PFN_vkGetPhysicalDeviceToolPropertiesEXT vkGetPhysicalDeviceToolPropertiesEXT;
 PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
 PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
 PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
@@ -9829,6 +9862,7 @@ typedef struct
     PFN_vkQueueSetPerformanceConfigurationINTEL vkQueueSetPerformanceConfigurationINTEL;
     PFN_vkGetPerformanceParameterINTEL vkGetPerformanceParameterINTEL;
     PFN_vkSetLocalDimmingAMD vkSetLocalDimmingAMD;
+    PFN_vkGetPhysicalDeviceToolPropertiesEXT vkGetPhysicalDeviceToolPropertiesEXT;
     PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
     PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
     PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
@@ -10389,6 +10423,7 @@ VkResult vkbBindGlobalAPI()
     vkQueueSetPerformanceConfigurationINTEL = (PFN_vkQueueSetPerformanceConfigurationINTEL)vkb_dlsym(g_vkbVulkanSO, "vkQueueSetPerformanceConfigurationINTEL");
     vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)vkb_dlsym(g_vkbVulkanSO, "vkGetPerformanceParameterINTEL");
     vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkb_dlsym(g_vkbVulkanSO, "vkSetLocalDimmingAMD");
+    vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceToolPropertiesEXT");
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
     vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = (PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV");
     vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateHeadlessSurfaceEXT");
@@ -10822,6 +10857,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkQueueSetPerformanceConfigurationINTEL = vkQueueSetPerformanceConfigurationINTEL;
         pAPI->vkGetPerformanceParameterINTEL = vkGetPerformanceParameterINTEL;
         pAPI->vkSetLocalDimmingAMD = vkSetLocalDimmingAMD;
+        pAPI->vkGetPhysicalDeviceToolPropertiesEXT = vkGetPhysicalDeviceToolPropertiesEXT;
         pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
         pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
         pAPI->vkCreateHeadlessSurfaceEXT = vkCreateHeadlessSurfaceEXT;
@@ -11252,6 +11288,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkQueueSetPerformanceConfigurationINTEL = (PFN_vkQueueSetPerformanceConfigurationINTEL)vkGetInstanceProcAddr(instance, "vkQueueSetPerformanceConfigurationINTEL");
     pAPI->vkGetPerformanceParameterINTEL = (PFN_vkGetPerformanceParameterINTEL)vkGetInstanceProcAddr(instance, "vkGetPerformanceParameterINTEL");
     pAPI->vkSetLocalDimmingAMD = (PFN_vkSetLocalDimmingAMD)vkGetInstanceProcAddr(instance, "vkSetLocalDimmingAMD");
+    pAPI->vkGetPhysicalDeviceToolPropertiesEXT = (PFN_vkGetPhysicalDeviceToolPropertiesEXT)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceToolPropertiesEXT");
     pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesNV");
     pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = (PFN_vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV");
     pAPI->vkCreateHeadlessSurfaceEXT = (PFN_vkCreateHeadlessSurfaceEXT)vkGetInstanceProcAddr(instance, "vkCreateHeadlessSurfaceEXT");
@@ -11998,6 +12035,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkQueueSetPerformanceConfigurationINTEL = pAPI->vkQueueSetPerformanceConfigurationINTEL;
     vkGetPerformanceParameterINTEL = pAPI->vkGetPerformanceParameterINTEL;
     vkSetLocalDimmingAMD = pAPI->vkSetLocalDimmingAMD;
+    vkGetPhysicalDeviceToolPropertiesEXT = pAPI->vkGetPhysicalDeviceToolPropertiesEXT;
     vkGetPhysicalDeviceCooperativeMatrixPropertiesNV = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesNV;
     vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV = pAPI->vkGetPhysicalDeviceSupportedFramebufferMixedSamplesCombinationsNV;
     vkCreateHeadlessSurfaceEXT = pAPI->vkCreateHeadlessSurfaceEXT;
