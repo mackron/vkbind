@@ -1038,6 +1038,10 @@ vkbResult vkbBuildParseFeature(vkbBuild &context, tinyxml2::XMLElement* pFeature
 
     for (tinyxml2::XMLNode* pChild = pFeatureElement->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
+        if (pChildElement == NULL) {
+            continue;   /* May hit this if the element is a comment. */
+        }
+
         assert(pChildElement != NULL);
 
         if (strcmp(pChildElement->Name(), "require") == 0) {

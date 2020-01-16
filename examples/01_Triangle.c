@@ -110,7 +110,7 @@ static const unsigned char g_FragmentShaderData[] = {
 
 
 #ifdef _WIN32
-static const char* g_WndClassName = "drvkWindowClass";
+static const char* g_WndClassName = "vkbWindowClass";
 
 static LRESULT DefaultWindowProcWin32(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
     VkPhysicalDeviceFeatures physicalDeviceFeatures;
     vkGetPhysicalDeviceFeatures(vkPhysicalDevices[iPhysicalDevice], &physicalDeviceFeatures);
 
-    const char* ppEnabledDeviceExtensionNames[] =  {
+    const char* ppEnabledDeviceExtensionNames[] = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
@@ -409,7 +409,7 @@ int main(int argc, char** argv)
     }
 
     // Create a semaphore for synchronizing swap chain image swaps. The idea is to pass this to vkAcquireNextImageKHR(), then wait for it to get signaled before
-    // drawing anything to it. You can do this by specifying the semaphore in pWaitSemaphore 
+    // drawing anything to it. You can do this by specifying the semaphore in pWaitSemaphore.
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = 0;
@@ -424,7 +424,7 @@ int main(int argc, char** argv)
     VkAttachmentDescription colorAttachmentDesc[1];
     colorAttachmentDesc[0].flags = 0;
     colorAttachmentDesc[0].format = supportedFormats[iFormat].format;
-    colorAttachmentDesc[0].samples = 1;
+    colorAttachmentDesc[0].samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachmentDesc[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachmentDesc[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachmentDesc[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
