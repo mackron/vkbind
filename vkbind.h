@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.131.0 - 2020-01-16
+vkbind - v1.2.133.0 - 2020-02-16
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 131
+#define VK_HEADER_VERSION 133
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
@@ -1461,7 +1461,8 @@ typedef enum
 {
     VK_VENDOR_ID_VIV = 0x10001,
     VK_VENDOR_ID_VSI = 0x10002,
-    VK_VENDOR_ID_KAZAN = 0x10003
+    VK_VENDOR_ID_KAZAN = 0x10003,
+    VK_VENDOR_ID_CODEPLAY = 0x10004
 } VkVendorId;
 
 
@@ -7639,7 +7640,7 @@ typedef PFN_vkCmdDrawIndexedIndirectCount PFN_vkCmdDrawIndexedIndirectCountKHR;
 #define VK_AMD_DRAW_INDIRECT_COUNT_EXTENSION_NAME "VK_AMD_draw_indirect_count"
 
 typedef PFN_vkCmdDrawIndirectCount PFN_vkCmdDrawIndirectCountAMD;
-typedef PFN_vkCmdDrawIndexedIndirectCountKHR PFN_vkCmdDrawIndexedIndirectCountAMD;
+typedef PFN_vkCmdDrawIndexedIndirectCount PFN_vkCmdDrawIndexedIndirectCountAMD;
 
 #define VK_EXT_filter_cubic 1
 #define VK_EXT_FILTER_CUBIC_SPEC_VERSION 3
@@ -8929,6 +8930,11 @@ typedef struct VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT
 #define VK_GOOGLE_user_type 1
 #define VK_GOOGLE_USER_TYPE_SPEC_VERSION 1
 #define VK_GOOGLE_USER_TYPE_EXTENSION_NAME "VK_GOOGLE_user_type"
+
+
+#define VK_KHR_shader_non_semantic_info 1
+#define VK_KHR_SHADER_NON_SEMANTIC_INFO_SPEC_VERSION 1
+#define VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME "VK_KHR_shader_non_semantic_info"
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
