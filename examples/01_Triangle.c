@@ -236,7 +236,7 @@ int main(int argc, char** argv)
     vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevices[iPhysicalDevice], &queueFamilyCount, queueFamilyProperties);
 
     uint32_t queueFamilyIndex_Graphics = (uint32_t)-1;
-    for (size_t iQueueFamily = 0; iQueueFamily < queueFamilyCount; ++iQueueFamily) {
+    for (uint32_t iQueueFamily = 0; iQueueFamily < queueFamilyCount; ++iQueueFamily) {
         if ((queueFamilyProperties[iQueueFamily].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
             queueFamilyIndex_Graphics = iQueueFamily;
             break;
@@ -289,13 +289,13 @@ int main(int argc, char** argv)
 
 
     /* Surface and Swapchain */
-    VkDisplayKHR vkSurface;
+    VkSurfaceKHR vkSurface;
 #ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR surfaceInfo;
     surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     surfaceInfo.pNext = NULL;
     surfaceInfo.flags = 0;
-    surfaceInfo.hinstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
+    surfaceInfo.hinstance = (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
     surfaceInfo.hwnd = hWnd;
     VkResult vkResult = vkCreateWin32SurfaceKHR(vkInstance, &surfaceInfo, NULL, &vkSurface);
     if (vkResult != VK_SUCCESS) {
