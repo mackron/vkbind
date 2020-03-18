@@ -783,6 +783,10 @@ vkbResult vkbBuildParseEnums(vkbBuild &context, tinyxml2::XMLElement* pEnumsElem
 
     for (tinyxml2::XMLNode* pChild = pEnumsElement->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
+        if (pChildElement == NULL) {
+            continue;   /* Skip over non-element items such as comments. */
+        }
+
         assert(pChildElement != NULL);
 
         if (strcmp(pChildElement->Name(), "enum") == 0) {
@@ -1309,12 +1313,6 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
         return VKB_INVALID_ARGS;    // Couldn't find the base type
     }
 
-    // Getting here means we found the base type. We need to recursively add the dependencies of each referenced type. If
-    // the base type is already in the list, it means it's already been handled and we should skip it.
-    if (vkbContains(typeIndicesOut, typeIndex)) {
-        return VKB_SUCCESS; // This type has already been handled.
-    }
-
     vkbBuildType &type = context.types[typeIndex];
 
     // If the type has an alias, make sure that's added first.
@@ -1322,7 +1320,7 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
         vkbBuildAddTypeDependencies(context, type.alias.c_str(), typeIndicesOut, enumIndicesOut);
     }
 
-    if (type.category == "define" || type.category == "basetype" || type.category == "bitmask" || type.category == "handle") {
+    if (type.category == "define" || type.category == "basetype" || type.category == "bitmask" || type.category == "handle" || type.category == "enum") {
         if (type.type.length() > 0) {
             vkbBuildAddTypeDependencies(context, type.type.c_str(), typeIndicesOut, enumIndicesOut);
         }
@@ -1352,6 +1350,11 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
         vkbBuildAddTypeDependencies(context, type.requires.c_str(), typeIndicesOut, enumIndicesOut);
     }
 
+    // Getting here means we found the base type. We need to recursively add the dependencies of each referenced type. If
+    // the base type is already in the list, it means it's already been handled and we should skip it.
+    if (vkbContains(typeIndicesOut, typeIndex)) {
+        return VKB_SUCCESS; // This type has already been handled.
+    }
 
     // We add the base type to the list last.
     typeIndicesOut.push_back(typeIndex);
@@ -1548,6 +1551,40 @@ vkbResult vkbBuildGenerateCode_C_RequireDefineEnums(vkbBuild &context, vkbBuildC
     return VKB_SUCCESS;
 }
 
+vkbResult vkbBuildGenerateCode_C_Function(const std::string &returnTypeC, const std::string &name, const std::vector<vkbBuildFunctionParameter> &parameters, std::string &codeOut)
+{
+    /* We want to prefix the name with "PFN_", but sometimes it already is, in which case we don't need to add a prefix explicitly. */
+    std::string namePrefix;
+    if (name.find("PFN_") == std::string::npos) {
+        namePrefix += "PFN_";
+    }
+
+    codeOut += "typedef " + returnTypeC + " (VKAPI_PTR *" + namePrefix + name + ")(";
+    if (parameters.size() > 0) {
+        for (size_t iParam = 0; iParam < parameters.size(); ++iParam) {
+            if (iParam > 0) {
+                codeOut += ", ";
+            }
+            codeOut += parameters[iParam].typeC + " " + parameters[iParam].nameC;
+        }
+    } else {
+        codeOut += "void";
+    }
+    codeOut += ");\n";
+
+    return VKB_SUCCESS;
+}
+
+vkbResult vkbBuildGenerateCode_C_Command(vkbBuildCommand &command, const std::string &name, std::string &codeOut)
+{
+    return vkbBuildGenerateCode_C_Function(command.returnType, name, command.parameters, codeOut);
+}
+
+vkbResult vkbBuildGenerateCode_C_FuncPointer(vkbBuildFunctionPointer &funcpointer, const std::string &name, std::string &codeOut)
+{
+    return vkbBuildGenerateCode_C_Function(funcpointer.returnType, name, funcpointer.params, codeOut);
+}
+
 vkbResult vkbBuildGenerateCode_C_RequireCommands(vkbBuild &context, vkbBuildCodeGenState &codegenState, const std::vector<vkbBuildRequireCommand> &commands, std::string &codeOut)
 {
     for (size_t iRequireCommand = 0; iRequireCommand < commands.size(); ++iRequireCommand) {
@@ -1558,16 +1595,16 @@ vkbResult vkbBuildGenerateCode_C_RequireCommands(vkbBuild &context, vkbBuildCode
             vkbBuildCommand &command = context.commands[iCommand];
             if (!codegenState.HasOutputCommand(command.name)) {
                 if (command.alias != "") {
-                    codeOut += "typedef PFN_" + command.alias + " PFN_" + command.name + ";\n";
-                } else {
-                    codeOut += "typedef " + command.returnTypeC + " (VKAPI_PTR *PFN_" + command.name + ")(";
-                    for (size_t iParam = 0; iParam < command.parameters.size(); ++iParam) {
-                        if (iParam > 0) {
-                            codeOut += ", ";
-                        }
-                        codeOut += command.parameters[iParam].typeC + " " + command.parameters[iParam].nameC;
+                    /*
+                    It'd be nice to just use a typedef here, but we can't because I've had cases some of them are aliased with a version that's contained in VK_ENABLE_BETA_EXTENSIONS. We need to just output
+                    the entire declaration.
+                    */
+                    size_t iBaseCommand;
+                    if (vkbBuildFindCommandByName(context, command.alias.c_str(), &iBaseCommand)) {
+                        vkbBuildGenerateCode_C_Command(context.commands[iBaseCommand], command.name, codeOut);
                     }
-                    codeOut += ");\n";
+                } else {
+                    vkbBuildGenerateCode_C_Command(command, command.name, codeOut);
                 }
                 codegenState.MarkCommandAsOutput(command.name);
             }
@@ -1655,260 +1692,249 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
         if (count > 0) { codeOut += "\n"; }
     }
 
-    // enums
+
+    // NOTE: bitmask and enum types must be done in the same iteration because there's been times where an aliased bitmask or enum is typed differently to it's aliased type.
+
+    // bitmask and enum.
     {
         uint32_t count = 0;
         for (size_t iType = 0; iType < typeIndices.size(); ++iType) {
             vkbBuildType &type = context.types[typeIndices[iType]];
             if (!codegenState.HasOutputType(type.name)) {
-                if (type.category == "enum") {
+                if (type.category == "bitmask" || type.category == "enum") {
                     if (type.alias != "") {
                         codeOut += "typedef " + type.alias + " " + type.name + ";\n";
                     } else {
-                        size_t iEnums;
-                        if (vkbBuildFindEnumByName(context, type.name.c_str(), &iEnums)) {
-                            vkbBuildEnums &enums = context.enums[iEnums];
-                            if (enums.type == "enum") {
-                                std::vector<std::string> outputEnums;
+                        if (type.category == "bitmask") {
+                            if (type.requires.length() > 0) {
+                                size_t iEnums;
+                                if (vkbBuildFindEnumByName(context, type.requires.c_str(), &iEnums)) {
+                                    vkbBuildEnums &enums = context.enums[iEnums];
+                                    uint32_t enumValueCount = 0;
+                                    std::vector<std::string> outputEnums;
 
-                                codeOut += "typedef enum\n";
-                                codeOut += "{\n";
-                                for (size_t iEnumValue = 0; iEnumValue < enums.enums.size(); ++iEnumValue) {
-                                    if (iEnumValue > 0) {
-                                        codeOut += ",\n";
+                                    codeOut += '\n';
+                                    codeOut += "typedef enum\n";
+                                    codeOut += "{\n";
+                                    for (size_t iEnumValue = 0; iEnumValue < enums.enums.size(); ++iEnumValue) {
+                                        if (iEnumValue > 0) {
+                                            codeOut += ",\n";
+                                        }
+                                        if (enums.enums[iEnumValue].bitpos.length() > 0) {
+                                            codeOut += "    " + enums.enums[iEnumValue].name + " = " + vkbBuildBitPosToHexString(atoi(enums.enums[iEnumValue].bitpos.c_str()));
+                                        } else {
+                                            if (enums.enums[iEnumValue].alias != "") {
+                                                codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].alias;
+                                            } else {
+                                                codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
+                                            }
+                                        }
+                                        outputEnums.push_back(enums.enums[iEnumValue].name);
+
+                                        enumValueCount += 1;
                                     }
-                                    if (enums.enums[iEnumValue].alias != "") {
-                                        codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].alias;
-                                    } else {
-                                        codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
-                                    }
-                                    outputEnums.push_back(enums.enums[iEnumValue].name);
-                                }
 
-                                // For cleanliness, this is done in two passes so that aliased types are at the bottom of the enum.
-
-                                // We need to check other features and extensions in case we need to extend this enum.
-                                for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
-                                    vkbBuildFeature &otherFeature = context.features[iOtherFeature];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    codeOut += ",\n";
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum);
-                                                    outputEnums.push_back(otherRequireEnum.name);
+                                    // Check if any features extend the enum.
+                                    for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
+                                        vkbBuildFeature &otherFeature = context.features[iOtherFeature];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
+                                                        if (enumValueCount > 0) {
+                                                            codeOut += ",\n";
+                                                        }
+                                                        if (otherRequireEnum.bitpos.length() > 0) {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
+                                                        } else {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        }
+                                                        outputEnums.push_back(otherRequireEnum.name);
+                                                    
+                                                        enumValueCount += 1;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                // Same thing for extensions.
-                                for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
-                                    vkbBuildExtension &extension = context.extensions[iExtension];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    codeOut += ",\n";
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum, (otherRequireEnum.extnumber != "") ? otherRequireEnum.extnumber : extension.number);
-                                                    outputEnums.push_back(otherRequireEnum.name);
+                                    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+                                        vkbBuildExtension &extension = context.extensions[iExtension];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
+                                                        if (enumValueCount > 0) {
+                                                            codeOut += ",\n";
+                                                        }
+                                                        if (otherRequireEnum.bitpos.length() > 0) {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
+                                                        } else {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        }
+                                                        outputEnums.push_back(otherRequireEnum.name);
+
+                                                        enumValueCount += 1;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
 
-                                // Aliased enum values.
-                                for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
-                                    vkbBuildFeature &otherFeature = context.features[iOtherFeature];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    codeOut += ",\n";
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
-                                                    outputEnums.push_back(otherRequireEnum.name);
+                                    // Aliased enums.
+                                    for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
+                                        vkbBuildFeature &otherFeature = context.features[iOtherFeature];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
+                                                        if (enumValueCount > 0) {
+                                                            codeOut += ",\n";
+                                                        }
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        outputEnums.push_back(otherRequireEnum.name);
+                                                        enumValueCount += 1;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
-                                    vkbBuildExtension &extension = context.extensions[iExtension];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    codeOut += ",\n";
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
-                                                    outputEnums.push_back(otherRequireEnum.name);
+                                    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+                                        vkbBuildExtension &extension = context.extensions[iExtension];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
+                                                        if (enumValueCount > 0) {
+                                                            codeOut += ",\n";
+                                                        }
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        outputEnums.push_back(otherRequireEnum.name);
+                                                        enumValueCount += 1;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                codeOut += "\n} " + enums.name + ";\n\n";
-                                count += 1;
+                                    codeOut += "\n} " + enums.name + ";\n";
+                                    count += 1;
+                                }
                             }
-                        }
-                    }
 
-                    codegenState.MarkTypeAsOutput(type.name);
-                }
-            }
-        }
-        if (count > 0) { codeOut += "\n"; }
-    }
+                            codeOut += "typedef " + type.type + " " + type.name + ";\n";
+                        } /* bitmask */
 
-    // bitmask
-    {
-        uint32_t count = 0;
-        for (size_t iType = 0; iType < typeIndices.size(); ++iType) {
-            vkbBuildType &type = context.types[typeIndices[iType]];
-            if (!codegenState.HasOutputType(type.name)) {
-                if (type.category == "bitmask") {
-                    if (type.alias != "") {
-                        codeOut += "typedef " + type.alias + " " + type.name + ";\n";
-                    } else {
-                        if (type.requires.length() > 0) {
+                        if (type.category == "enum") {
                             size_t iEnums;
-                            if (vkbBuildFindEnumByName(context, type.requires.c_str(), &iEnums)) {
+                            if (vkbBuildFindEnumByName(context, type.name.c_str(), &iEnums)) {
                                 vkbBuildEnums &enums = context.enums[iEnums];
-                                uint32_t enumValueCount = 0;
-                                std::vector<std::string> outputEnums;
+                                if (enums.type == "enum") {
+                                    std::vector<std::string> outputEnums;
 
-                                codeOut += '\n';
-                                codeOut += "typedef enum\n";
-                                codeOut += "{\n";
-                                for (size_t iEnumValue = 0; iEnumValue < enums.enums.size(); ++iEnumValue) {
-                                    if (iEnumValue > 0) {
-                                        codeOut += ",\n";
-                                    }
-                                    if (enums.enums[iEnumValue].bitpos.length() > 0) {
-                                        codeOut += "    " + enums.enums[iEnumValue].name + " = " + vkbBuildBitPosToHexString(atoi(enums.enums[iEnumValue].bitpos.c_str()));
-                                    } else {
+                                    codeOut += "typedef enum\n";
+                                    codeOut += "{\n";
+                                    for (size_t iEnumValue = 0; iEnumValue < enums.enums.size(); ++iEnumValue) {
+                                        if (iEnumValue > 0) {
+                                            codeOut += ",\n";
+                                        }
                                         if (enums.enums[iEnumValue].alias != "") {
                                             codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].alias;
                                         } else {
                                             codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
                                         }
+                                        outputEnums.push_back(enums.enums[iEnumValue].name);
                                     }
-                                    outputEnums.push_back(enums.enums[iEnumValue].name);
 
-                                    enumValueCount += 1;
-                                }
+                                    // For cleanliness, this is done in two passes so that aliased types are at the bottom of the enum.
 
-                                // Check if any features extend the enum.
-                                for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
-                                    vkbBuildFeature &otherFeature = context.features[iOtherFeature];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    if (enumValueCount > 0) {
+                                    // We need to check other features and extensions in case we need to extend this enum.
+                                    for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
+                                        vkbBuildFeature &otherFeature = context.features[iOtherFeature];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum);
+                                                        outputEnums.push_back(otherRequireEnum.name);
                                                     }
-                                                    if (otherRequireEnum.bitpos.length() > 0) {
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
-                                                    } else {
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
-                                                    }
-                                                    outputEnums.push_back(otherRequireEnum.name);
-                                                    
-                                                    enumValueCount += 1;
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
-                                    vkbBuildExtension &extension = context.extensions[iExtension];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    if (enumValueCount > 0) {
+                                    // Same thing for extensions.
+                                    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+                                        vkbBuildExtension &extension = context.extensions[iExtension];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum, (otherRequireEnum.extnumber != "") ? otherRequireEnum.extnumber : extension.number);
+                                                        outputEnums.push_back(otherRequireEnum.name);
                                                     }
-                                                    if (otherRequireEnum.bitpos.length() > 0) {
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
-                                                    } else {
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
-                                                    }
-                                                    outputEnums.push_back(otherRequireEnum.name);
-
-                                                    enumValueCount += 1;
                                                 }
                                             }
                                         }
                                     }
-                                }
 
 
-                                // Aliased enums.
-                                for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
-                                    vkbBuildFeature &otherFeature = context.features[iOtherFeature];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    if (enumValueCount > 0) {
+                                    // Aliased enum values.
+                                    for (size_t iOtherFeature = 0; iOtherFeature < context.features.size(); ++iOtherFeature) {
+                                        vkbBuildFeature &otherFeature = context.features[iOtherFeature];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < otherFeature.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = otherFeature.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        outputEnums.push_back(otherRequireEnum.name);
                                                     }
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
-                                                    outputEnums.push_back(otherRequireEnum.name);
-                                                    enumValueCount += 1;
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
-                                    vkbBuildExtension &extension = context.extensions[iExtension];
-                                    for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
-                                        vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
-                                        for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
-                                            vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
-                                            if (otherRequireEnum.extends == enums.name) {
-                                                if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                    if (enumValueCount > 0) {
+                                    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+                                        vkbBuildExtension &extension = context.extensions[iExtension];
+                                        for (size_t iOtherRequire = 0; iOtherRequire < extension.requires.size(); ++iOtherRequire) {
+                                            vkbBuildRequire &otherRequire = extension.requires[iOtherRequire];
+                                            for (size_t iOtherEnum = 0; iOtherEnum < otherRequire.enums.size(); ++iOtherEnum) {
+                                                vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
+                                                if (otherRequireEnum.extends == enums.name) {
+                                                    if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
+                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        outputEnums.push_back(otherRequireEnum.name);
                                                     }
-                                                    codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
-                                                    outputEnums.push_back(otherRequireEnum.name);
-                                                    enumValueCount += 1;
                                                 }
                                             }
                                         }
                                     }
-                                }
 
-                                codeOut += "\n} " + enums.name + ";\n";
-                                count += 1;
+                                    codeOut += "\n} " + enums.name + ";\n\n";
+                                    count += 1;
+                                }
                             }
                         }
-
-                        codeOut += "typedef " + type.type + " " + type.name + ";\n";
                     }
 
                     codegenState.MarkTypeAsOutput(type.name);
@@ -1917,6 +1943,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
         }
         if (count > 0) { codeOut += "\n"; }
     }
+
 
     // struct, unions and and funcpointer. There's an unfortunate complication in that some function pointers may depend on structures,
     // and some structures may depend on function pointers. All we do is make sure we group the output of each of these types into the
@@ -1948,20 +1975,17 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
 
                 if (type.category == "funcpointer") {
                     if (type.alias != "") {
-                        codeOut += "typedef " + type.alias + " " + type.name + ";\n";
-                    } else {
-                        codeOut += "typedef " + type.funcpointer.returnType + " (VKAPI_PTR *" + type.funcpointer.name + ")(";
-                        if (type.funcpointer.params.size() > 0) {
-                            for (size_t iParam = 0; iParam < type.funcpointer.params.size(); ++iParam) {
-                                if (iParam > 0) {
-                                    codeOut += ", ";
-                                }
-                                codeOut += type.funcpointer.params[iParam].typeC + " " + type.funcpointer.params[iParam].nameC;
-                            }
-                        } else {
-                            codeOut += "void";
+                        /*
+                        It'd be nice to just use a typedef here, but we can't because I've had cases some of them are aliased with a version that's contained in VK_ENABLE_BETA_EXTENSIONS. We need to just output
+                        the entire declaration.
+                        */
+                        uint32_t iBaseType;
+                        if (vkbBuildFindTypeByName(context, type.alias.c_str(), &iBaseType)) {
+                            vkbBuildGenerateCode_C_FuncPointer(context.types[iBaseType].funcpointer, type.name, codeOut);
+                            count += 1;
                         }
-                        codeOut += ");\n";
+                    } else {
+                        vkbBuildGenerateCode_C_FuncPointer(type.funcpointer, type.name, codeOut);
                         count += 1;
                     }
                     codegenState.MarkTypeAsOutput(type.name);
