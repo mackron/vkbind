@@ -1,7 +1,7 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define VKBIND_IMPLEMENTATION
-#include "../vkbind.h"
+#include "../../vkbind.h"
 
 #include <stdio.h>
 
