@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.136.0 - 2020-03-25
+vkbind - v1.2.137.0 - 2020-04-08
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 136
+#define VK_HEADER_VERSION 137
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
@@ -438,6 +438,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT = 1000028001,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT = 1000028002,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_HANDLE_INFO_NVX = 1000030000,
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_ADDRESS_PROPERTIES_NVX = 1000030001,
     VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD = 1000041000,
     VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP = 1000049000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV = 1000050000,
@@ -548,7 +549,6 @@ typedef enum
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR = 1000150004,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR = 1000150005,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR = 1000150006,
-    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_INFO_KHR = 1000150007,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_KHR = 1000150008,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_VERSION_KHR = 1000150009,
     VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR = 1000150010,
@@ -1843,7 +1843,8 @@ typedef enum
 typedef enum
 {
     VK_ATTACHMENT_STORE_OP_STORE = 0,
-    VK_ATTACHMENT_STORE_OP_DONT_CARE = 1
+    VK_ATTACHMENT_STORE_OP_DONT_CARE = 1,
+    VK_ATTACHMENT_STORE_OP_NONE_QCOM = 1000301000
 } VkAttachmentStoreOp;
 
 
@@ -5294,7 +5295,7 @@ typedef void (VKAPI_PTR *PFN_vkCmdEndQueryIndexedEXT)(VkCommandBuffer commandBuf
 typedef void (VKAPI_PTR *PFN_vkCmdDrawIndirectByteCountEXT)(VkCommandBuffer commandBuffer, uint32_t instanceCount, uint32_t firstInstance, VkBuffer counterBuffer, VkDeviceSize counterBufferOffset, uint32_t counterOffset, uint32_t vertexStride);
 
 #define VK_NVX_image_view_handle 1
-#define VK_NVX_IMAGE_VIEW_HANDLE_SPEC_VERSION 1
+#define VK_NVX_IMAGE_VIEW_HANDLE_SPEC_VERSION 2
 #define VK_NVX_IMAGE_VIEW_HANDLE_EXTENSION_NAME "VK_NVX_image_view_handle"
 
 typedef struct VkImageViewHandleInfoNVX
@@ -5306,8 +5307,17 @@ typedef struct VkImageViewHandleInfoNVX
     VkSampler sampler;
 } VkImageViewHandleInfoNVX;
 
+typedef struct VkImageViewAddressPropertiesNVX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceAddress deviceAddress;
+    VkDeviceSize size;
+} VkImageViewAddressPropertiesNVX;
+
 
 typedef uint32_t (VKAPI_PTR *PFN_vkGetImageViewHandleNVX)(VkDevice device, const VkImageViewHandleInfoNVX* pInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkGetImageViewAddressNVX)(VkDevice device, VkImageView imageView, VkImageViewAddressPropertiesNVX* pProperties);
 
 #define VK_AMD_negative_viewport_height 1
 #define VK_AMD_NEGATIVE_VIEWPORT_HEIGHT_SPEC_VERSION 1
@@ -6530,7 +6540,7 @@ typedef struct VkDedicatedAllocationMemoryAllocateInfoNV
 
 
 #define VK_EXT_debug_utils 1
-#define VK_EXT_DEBUG_UTILS_SPEC_VERSION 1
+#define VK_EXT_DEBUG_UTILS_SPEC_VERSION 2
 #define VK_EXT_DEBUG_UTILS_EXTENSION_NAME "VK_EXT_debug_utils"
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugUtilsMessengerEXT)
@@ -9129,6 +9139,11 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 } VkDeviceDiagnosticsConfigCreateInfoNV;
 
 
+
+#define VK_QCOM_render_pass_store_ops 1
+#define VK_QCOM_render_pass_store_ops_SPEC_VERSION 2
+#define VK_QCOM_render_pass_store_ops_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
+
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -10187,6 +10202,7 @@ PFN_vkCmdBeginQueryIndexedEXT vkCmdBeginQueryIndexedEXT;
 PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
 PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
 PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
+PFN_vkGetImageViewAddressNVX vkGetImageViewAddressNVX;
 PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
 PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
 PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
@@ -10631,6 +10647,7 @@ typedef struct
     PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
     PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
     PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
+    PFN_vkGetImageViewAddressNVX vkGetImageViewAddressNVX;
     PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
     PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
     PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
@@ -11233,6 +11250,7 @@ VkResult vkbBindGlobalAPI()
     vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdEndQueryIndexedEXT");
     vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectByteCountEXT");
     vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewHandleNVX");
+    vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewAddressNVX");
     vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkb_dlsym(g_vkbVulkanSO, "vkGetShaderInfoAMD");
     vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceFeatures2KHR");
     vkGetPhysicalDeviceProperties2KHR = (PFN_vkGetPhysicalDeviceProperties2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceProperties2KHR");
@@ -11706,6 +11724,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdEndQueryIndexedEXT = vkCmdEndQueryIndexedEXT;
         pAPI->vkCmdDrawIndirectByteCountEXT = vkCmdDrawIndirectByteCountEXT;
         pAPI->vkGetImageViewHandleNVX = vkGetImageViewHandleNVX;
+        pAPI->vkGetImageViewAddressNVX = vkGetImageViewAddressNVX;
         pAPI->vkGetShaderInfoAMD = vkGetShaderInfoAMD;
         pAPI->vkGetPhysicalDeviceFeatures2KHR = vkGetPhysicalDeviceFeatures2KHR;
         pAPI->vkGetPhysicalDeviceProperties2KHR = vkGetPhysicalDeviceProperties2KHR;
@@ -12176,6 +12195,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectByteCountEXT");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkGetInstanceProcAddr(instance, "vkGetImageViewHandleNVX");
+    pAPI->vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)vkGetInstanceProcAddr(instance, "vkGetImageViewAddressNVX");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkGetInstanceProcAddr(instance, "vkGetShaderInfoAMD");
     pAPI->vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures2KHR");
     pAPI->vkGetPhysicalDeviceProperties2KHR = (PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR");
@@ -12599,6 +12619,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectByteCountEXT");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewHandleNVX");
+    pAPI->vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewAddressNVX");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)pAPI->vkGetDeviceProcAddr(device, "vkGetShaderInfoAMD");
     pAPI->vkGetDeviceGroupPeerMemoryFeaturesKHR = (PFN_vkGetDeviceGroupPeerMemoryFeaturesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceGroupPeerMemoryFeaturesKHR");
     pAPI->vkCmdSetDeviceMaskKHR = (PFN_vkCmdSetDeviceMaskKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDeviceMaskKHR");
@@ -13002,6 +13023,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdEndQueryIndexedEXT = pAPI->vkCmdEndQueryIndexedEXT;
     vkCmdDrawIndirectByteCountEXT = pAPI->vkCmdDrawIndirectByteCountEXT;
     vkGetImageViewHandleNVX = pAPI->vkGetImageViewHandleNVX;
+    vkGetImageViewAddressNVX = pAPI->vkGetImageViewAddressNVX;
     vkGetShaderInfoAMD = pAPI->vkGetShaderInfoAMD;
     vkGetPhysicalDeviceFeatures2KHR = pAPI->vkGetPhysicalDeviceFeatures2KHR;
     vkGetPhysicalDeviceProperties2KHR = pAPI->vkGetPhysicalDeviceProperties2KHR;
