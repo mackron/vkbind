@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.139.0 - 2020-04-27
+vkbind - v1.2.140.0 - 2020-05-04
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 139
+#define VK_HEADER_VERSION 140
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
@@ -679,7 +679,13 @@ typedef enum
     VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM = 1000282001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT = 1000286000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT = 1000286001,
+    VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT = 1000287000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_PROPERTIES_EXT = 1000287001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT = 1000287002,
     VK_STRUCTURE_TYPE_PIPELINE_LIBRARY_CREATE_INFO_KHR = 1000290000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIVATE_DATA_FEATURES_EXT = 1000295000,
+    VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT = 1000295001,
+    VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO_EXT = 1000295002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT = 1000297000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
@@ -740,8 +746,8 @@ typedef enum
     VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
     VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_DOMAIN_ORIGIN_STATE_CREATE_INFO,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES_KHR,
     VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
     VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO_KHR = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
     VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
@@ -1778,7 +1784,9 @@ typedef enum
     VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
     VK_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
     VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
-    VK_BORDER_COLOR_INT_OPAQUE_WHITE = 5
+    VK_BORDER_COLOR_INT_OPAQUE_WHITE = 5,
+    VK_BORDER_COLOR_FLOAT_CUSTOM_EXT = 1000287003,
+    VK_BORDER_COLOR_INT_CUSTOM_EXT = 1000287004
 } VkBorderColor;
 
 
@@ -2016,6 +2024,7 @@ typedef enum
     VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL = 1000210000,
     VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR = 1000268000,
     VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV = 1000277000,
+    VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT = 1000295000,
     VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
     VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION,
     VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV = VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR
@@ -4888,6 +4897,38 @@ typedef uint64_t (VKAPI_PTR *PFN_vkGetDeviceMemoryOpaqueCaptureAddress)(VkDevice
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
 
+typedef enum
+{
+    VK_PRESENT_MODE_IMMEDIATE_KHR = 0,
+    VK_PRESENT_MODE_MAILBOX_KHR = 1,
+    VK_PRESENT_MODE_FIFO_KHR = 2,
+    VK_PRESENT_MODE_FIFO_RELAXED_KHR = 3,
+    VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR = 1000111000,
+    VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR = 1000111001
+} VkPresentModeKHR;
+
+typedef enum
+{
+    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
+    VK_COLORSPACE_SRGB_NONLINEAR_KHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT = 1000104001,
+    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT = 1000104002,
+    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT = 1000104003,
+    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT = 1000104004,
+    VK_COLOR_SPACE_BT709_LINEAR_EXT = 1000104005,
+    VK_COLOR_SPACE_BT709_NONLINEAR_EXT = 1000104006,
+    VK_COLOR_SPACE_BT2020_LINEAR_EXT = 1000104007,
+    VK_COLOR_SPACE_HDR10_ST2084_EXT = 1000104008,
+    VK_COLOR_SPACE_DOLBYVISION_EXT = 1000104009,
+    VK_COLOR_SPACE_HDR10_HLG_EXT = 1000104010,
+    VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
+    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT = 1000104012,
+    VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
+    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
+    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000,
+    VK_COLOR_SPACE_DCI_P3_LINEAR_EXT = VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT
+} VkColorSpaceKHR;
+
 
 typedef enum
 {
@@ -4911,38 +4952,6 @@ typedef enum
     VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR = 0x00000008
 } VkCompositeAlphaFlagBitsKHR;
 typedef VkFlags VkCompositeAlphaFlagsKHR;
-typedef enum
-{
-    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
-    VK_COLORSPACE_SRGB_NONLINEAR_KHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-    VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT = 1000104001,
-    VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT = 1000104002,
-    VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT = 1000104003,
-    VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT = 1000104004,
-    VK_COLOR_SPACE_BT709_LINEAR_EXT = 1000104005,
-    VK_COLOR_SPACE_BT709_NONLINEAR_EXT = 1000104006,
-    VK_COLOR_SPACE_BT2020_LINEAR_EXT = 1000104007,
-    VK_COLOR_SPACE_HDR10_ST2084_EXT = 1000104008,
-    VK_COLOR_SPACE_DOLBYVISION_EXT = 1000104009,
-    VK_COLOR_SPACE_HDR10_HLG_EXT = 1000104010,
-    VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT = 1000104011,
-    VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT = 1000104012,
-    VK_COLOR_SPACE_PASS_THROUGH_EXT = 1000104013,
-    VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT = 1000104014,
-    VK_COLOR_SPACE_DISPLAY_NATIVE_AMD = 1000213000,
-    VK_COLOR_SPACE_DCI_P3_LINEAR_EXT = VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT
-} VkColorSpaceKHR;
-
-typedef enum
-{
-    VK_PRESENT_MODE_IMMEDIATE_KHR = 0,
-    VK_PRESENT_MODE_MAILBOX_KHR = 1,
-    VK_PRESENT_MODE_FIFO_KHR = 2,
-    VK_PRESENT_MODE_FIFO_RELAXED_KHR = 3,
-    VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR = 1000111000,
-    VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR = 1000111001
-} VkPresentModeKHR;
-
 
 typedef struct VkSurfaceCapabilitiesKHR
 {
@@ -6549,6 +6558,14 @@ typedef struct VkDedicatedAllocationMemoryAllocateInfoNV
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkDebugUtilsMessengerEXT)
 
+
+typedef enum
+{
+    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT = 0x00000001,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT = 0x00000002,
+    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT = 0x00000004
+} VkDebugUtilsMessageTypeFlagBitsEXT;
+typedef VkFlags VkDebugUtilsMessageTypeFlagsEXT;
 typedef VkFlags VkDebugUtilsMessengerCallbackDataFlagsEXT;
 typedef VkFlags VkDebugUtilsMessengerCreateFlagsEXT;
 
@@ -6561,13 +6578,13 @@ typedef enum
 } VkDebugUtilsMessageSeverityFlagBitsEXT;
 typedef VkFlags VkDebugUtilsMessageSeverityFlagsEXT;
 
-typedef enum
+typedef struct VkDebugUtilsLabelEXT
 {
-    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT = 0x00000001,
-    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT = 0x00000002,
-    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT = 0x00000004
-} VkDebugUtilsMessageTypeFlagBitsEXT;
-typedef VkFlags VkDebugUtilsMessageTypeFlagsEXT;
+    VkStructureType sType;
+    const void* pNext;
+    const char* pLabelName;
+    float color[4];
+} VkDebugUtilsLabelEXT;
 
 typedef struct VkDebugUtilsObjectNameInfoEXT
 {
@@ -6577,25 +6594,6 @@ typedef struct VkDebugUtilsObjectNameInfoEXT
     uint64_t objectHandle;
     const char* pObjectName;
 } VkDebugUtilsObjectNameInfoEXT;
-
-typedef struct VkDebugUtilsObjectTagInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkObjectType objectType;
-    uint64_t objectHandle;
-    uint64_t tagName;
-    size_t tagSize;
-    const void* pTag;
-} VkDebugUtilsObjectTagInfoEXT;
-
-typedef struct VkDebugUtilsLabelEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    const char* pLabelName;
-    float color[4];
-} VkDebugUtilsLabelEXT;
 
 typedef struct VkDebugUtilsMessengerCallbackDataEXT
 {
@@ -6614,6 +6612,17 @@ typedef struct VkDebugUtilsMessengerCallbackDataEXT
 } VkDebugUtilsMessengerCallbackDataEXT;
 
 typedef VkBool32 (VKAPI_PTR *PFN_vkDebugUtilsMessengerCallbackEXT)(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+
+typedef struct VkDebugUtilsObjectTagInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkObjectType objectType;
+    uint64_t objectHandle;
+    uint64_t tagName;
+    size_t tagSize;
+    const void* pTag;
+} VkDebugUtilsObjectTagInfoEXT;
 
 typedef struct VkDebugUtilsMessengerCreateInfoEXT
 {
@@ -9120,6 +9129,35 @@ typedef struct VkPhysicalDeviceRobustness2PropertiesEXT
 
 
 
+#define VK_EXT_custom_border_color 1
+#define VK_EXT_CUSTOM_BORDER_COLOR_SPEC_VERSION 12
+#define VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME "VK_EXT_custom_border_color"
+
+typedef struct VkSamplerCustomBorderColorCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkClearColorValue customBorderColor;
+    VkFormat format;
+} VkSamplerCustomBorderColorCreateInfoEXT;
+
+typedef struct VkPhysicalDeviceCustomBorderColorPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxCustomBorderColorSamplers;
+} VkPhysicalDeviceCustomBorderColorPropertiesEXT;
+
+typedef struct VkPhysicalDeviceCustomBorderColorFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 customBorderColors;
+    VkBool32 customBorderColorWithoutFormat;
+} VkPhysicalDeviceCustomBorderColorFeaturesEXT;
+
+
+
 #define VK_GOOGLE_user_type 1
 #define VK_GOOGLE_USER_TYPE_SPEC_VERSION 1
 #define VK_GOOGLE_USER_TYPE_EXTENSION_NAME "VK_GOOGLE_user_type"
@@ -9129,6 +9167,46 @@ typedef struct VkPhysicalDeviceRobustness2PropertiesEXT
 #define VK_KHR_SHADER_NON_SEMANTIC_INFO_SPEC_VERSION 1
 #define VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME "VK_KHR_shader_non_semantic_info"
 
+
+#define VK_EXT_private_data 1
+#define VK_EXT_PRIVATE_DATA_SPEC_VERSION 1
+#define VK_EXT_PRIVATE_DATA_EXTENSION_NAME "VK_EXT_private_data"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkPrivateDataSlotEXT)
+
+
+typedef enum
+{
+
+} VkPrivateDataSlotCreateFlagBitsEXT;
+typedef VkFlags VkPrivateDataSlotCreateFlagsEXT;
+
+typedef struct VkPhysicalDevicePrivateDataFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 privateData;
+} VkPhysicalDevicePrivateDataFeaturesEXT;
+
+typedef struct VkDevicePrivateDataCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t privateDataSlotRequestCount;
+} VkDevicePrivateDataCreateInfoEXT;
+
+typedef struct VkPrivateDataSlotCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPrivateDataSlotCreateFlagsEXT flags;
+} VkPrivateDataSlotCreateInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreatePrivateDataSlotEXT)(VkDevice device, const VkPrivateDataSlotCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPrivateDataSlotEXT* pPrivateDataSlot);
+typedef void (VKAPI_PTR *PFN_vkDestroyPrivateDataSlotEXT)(VkDevice device, VkPrivateDataSlotEXT privateDataSlot, const VkAllocationCallbacks* pAllocator);
+typedef VkResult (VKAPI_PTR *PFN_vkSetPrivateDataEXT)(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlotEXT privateDataSlot, uint64_t data);
+typedef void (VKAPI_PTR *PFN_vkGetPrivateDataEXT)(VkDevice device, VkObjectType objectType, uint64_t objectHandle, VkPrivateDataSlotEXT privateDataSlot, uint64_t* pData);
 
 #define VK_EXT_pipeline_creation_cache_control 1
 #define VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_SPEC_VERSION 3
@@ -9642,6 +9720,7 @@ typedef VkResult (VKAPI_PTR *PFN_vkCreateMacOSSurfaceMVK)(VkInstance instance, c
 #define VK_EXT_metal_surface 1
 #define VK_EXT_METAL_SURFACE_SPEC_VERSION 1
 #define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
+
 
 #ifdef __OBJC__
 @class CAMetalLayer;
@@ -10386,6 +10465,10 @@ PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
 PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
 PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
 PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
+PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
+PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
+PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -10831,6 +10914,10 @@ typedef struct
     PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
     PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
     PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+    PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
+    PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
+    PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
+    PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -11434,6 +11521,10 @@ VkResult vkbBindGlobalAPI()
     vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindPipelineShaderGroupNV");
     vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateIndirectCommandsLayoutNV");
     vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyIndirectCommandsLayoutNV");
+    vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreatePrivateDataSlotEXT");
+    vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
+    vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
+    vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -11908,6 +11999,10 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdBindPipelineShaderGroupNV = vkCmdBindPipelineShaderGroupNV;
         pAPI->vkCreateIndirectCommandsLayoutNV = vkCreateIndirectCommandsLayoutNV;
         pAPI->vkDestroyIndirectCommandsLayoutNV = vkDestroyIndirectCommandsLayoutNV;
+        pAPI->vkCreatePrivateDataSlotEXT = vkCreatePrivateDataSlotEXT;
+        pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
+        pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
+        pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -12379,6 +12474,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)vkGetInstanceProcAddr(instance, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)vkGetInstanceProcAddr(instance, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)vkGetInstanceProcAddr(instance, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkCreatePrivateDataSlotEXT");
+    pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
+    pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
+    pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -12769,6 +12868,10 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkCreatePrivateDataSlotEXT");
+    pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
+    pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
+    pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -13207,6 +13310,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBindPipelineShaderGroupNV = pAPI->vkCmdBindPipelineShaderGroupNV;
     vkCreateIndirectCommandsLayoutNV = pAPI->vkCreateIndirectCommandsLayoutNV;
     vkDestroyIndirectCommandsLayoutNV = pAPI->vkDestroyIndirectCommandsLayoutNV;
+    vkCreatePrivateDataSlotEXT = pAPI->vkCreatePrivateDataSlotEXT;
+    vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
+    vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
+    vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;

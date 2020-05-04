@@ -278,7 +278,7 @@ struct vkbBuildType
     // Type-specific data.
     vkbBuildFunctionPointer funcpointer;
     vkbBuildStruct structData;
-    std::string defineValue;    // A string containing verbatim C code to output.
+    std::string verbatimValue;    // A string containing verbatim C code to output.
 };
 
 struct vkbBuildEnum
@@ -676,39 +676,6 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
                     }
 
                     vkbBuildParseFuncPointerParams(context, paramString, type);
-
-#if 0
-                    tinyxml2::XMLNode* pNodeBeforeNextParam = pSecondChild->NextSibling();
-                    if (pNodeBeforeNextParam != NULL) {
-                        for (;;) {
-                            tinyxml2::XMLNode* pParamTypeNode = pNodeBeforeNextParam->NextSibling();
-                            if (pParamTypeNode == NULL) {
-                                break;
-                            }
-
-                            tinyxml2::XMLNode* pParamNameNode = pParamTypeNode->NextSibling();
-                            if (pParamNameNode == NULL) {
-                                break;
-                            }
-
-                            std::string paramType = vkbTrim(pParamTypeNode->FirstChild()->Value());
-                            std::string paramName = vkbTrim(pParamNameNode->Value());
-
-                            if (paramName[0] == '*') {
-                                paramName = paramName.substr(1);
-                                paramType += "*";
-                            }
-
-                            paramName = vkbTrim(paramName);
-                            paramName.replace(std::find(paramName.begin(), paramName.end(), ','), paramName.end(), ""); // "," case
-                            paramName.replace(std::find(paramName.begin(), paramName.end(), ')'), paramName.end(), ""); // ");" case
-
-
-
-                            pNodeBeforeNextParam = pParamNameNode;
-                        }
-                    }
-#endif
                 }
             }
         }
@@ -728,7 +695,7 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
             }
         }
 
-        if (strcmp(type.category.c_str(), "define") == 0) {
+        if (strcmp(type.category.c_str(), "define") == 0 || strcmp(type.category.c_str(), "basetype") == 0) {
             for (tinyxml2::XMLNode* pMemberNode = pChildElement->FirstChild(); pMemberNode != NULL; pMemberNode = pMemberNode->NextSibling()) {
                 if (pMemberNode->FirstChild() != NULL) {
                     if (strcmp(pMemberNode->Value(), "name") == 0) {
@@ -739,17 +706,17 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
                     }
 
                     // Always make sure there's a space between the previous content and the new content.
-                    if (type.defineValue.length() > 0 && type.defineValue[type.defineValue.length()-1] != ' ') {
-                        type.defineValue += " ";
+                    if (type.verbatimValue.length() > 0 && type.verbatimValue[type.verbatimValue.length()-1] != ' ') {
+                        type.verbatimValue += " ";
                     }
-                    type.defineValue += pMemberNode->FirstChild()->Value();
+                    type.verbatimValue += pMemberNode->FirstChild()->Value();
                 } else {
-                    type.defineValue += pMemberNode->Value();
+                    type.verbatimValue += pMemberNode->Value();
                 }
             }
         }
 
-        if (strcmp(type.category.c_str(), "basetype") == 0 || strcmp(type.category.c_str(), "bitmask") == 0 || strcmp(type.category.c_str(), "handle") == 0) {
+        if (strcmp(type.category.c_str(), "bitmask") == 0 || strcmp(type.category.c_str(), "handle") == 0) {
             for (tinyxml2::XMLNode* pMemberNode = pChildElement->FirstChild(); pMemberNode != NULL; pMemberNode = pMemberNode->NextSibling()) {
                 if (pMemberNode->FirstChild() != NULL) {
                     if (strcmp(pMemberNode->Value(), "type") == 0) {
@@ -1626,7 +1593,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
             vkbBuildType &type = context.types[typeIndices[iType]];
             if (!codegenState.HasOutputDefine(type.name)) {
                 if (type.category == "define") {
-                    std::string defineValue = vkbBuildCleanDefineValue(type.defineValue);
+                    std::string defineValue = vkbBuildCleanDefineValue(type.verbatimValue);
                     if (defineValue.size() > 0) {
                         codeOut += defineValue + "\n";
                         count += 1;
@@ -1663,7 +1630,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
             vkbBuildType &type = context.types[typeIndices[iType]];
             if (!codegenState.HasOutputType(type.name)) {
                 if (type.category == "basetype") {
-                    codeOut += "typedef " + type.type + " " + type.name + ";\n";
+                    codeOut += type.verbatimValue + "\n";
                     count += 1;
                     codegenState.MarkTypeAsOutput(type.name);
                 }
@@ -2925,7 +2892,7 @@ vkbResult vkbBuildGetVulkanVersion(vkbBuild &context, std::string &versionOut)
     for (auto type : context.types) {
         if (type.category == "define") {
             if (type.name == "VK_HEADER_VERSION") {
-                std::string defineValue = vkbBuildCleanDefineValue(type.defineValue);
+                std::string defineValue = vkbBuildCleanDefineValue(type.verbatimValue);
                 const char* src = defineValue.c_str();
                 const char* beg = strstr(src, type.name.c_str()) + type.name.length();
 
