@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.140.0 - 2020-05-04
+vkbind - v1.2.141.0 - 2020-05-17
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -138,7 +138,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
-#define VK_HEADER_VERSION 140
+#define VK_HEADER_VERSION 141
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_NULL_HANDLE 0
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
@@ -2035,7 +2035,8 @@ typedef enum
     VK_VENDOR_ID_VIV = 0x10001,
     VK_VENDOR_ID_VSI = 0x10002,
     VK_VENDOR_ID_KAZAN = 0x10003,
-    VK_VENDOR_ID_CODEPLAY = 0x10004
+    VK_VENDOR_ID_CODEPLAY = 0x10004,
+    VK_VENDOR_ID_MESA = 0x10005
 } VkVendorId;
 
 
@@ -4190,6 +4191,7 @@ typedef enum
     VK_DRIVER_ID_GOOGLE_SWIFTSHADER = 10,
     VK_DRIVER_ID_GGP_PROPRIETARY = 11,
     VK_DRIVER_ID_BROADCOM_PROPRIETARY = 12,
+    VK_DRIVER_ID_MESA_LLVMPIPE = 13,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
