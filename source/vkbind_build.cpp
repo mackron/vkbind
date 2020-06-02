@@ -1294,7 +1294,7 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
         if (type.requires.length() > 0) {
             vkbBuildAddTypeDependencies(context, type.requires.c_str(), typeIndicesOut, enumIndicesOut);
         }
-    } else if (type.category == "struct") {
+    } else if (type.category == "struct" || type.category == "union") {
         for (size_t iMember = 0; iMember < type.structData.members.size(); ++iMember) {
             if (type.structData.members[iMember].type == typeName) {
                 continue;   // It's the same type name. Prevent an infinite recursion loop.
