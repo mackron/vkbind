@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.145.0 - 2020-06-22
+vkbind - v1.2.146.0 - 2020-07-04
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 145
+#define VK_HEADER_VERSION 146
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -686,6 +686,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT = 1000297000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT = 1000332000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT = 1000332001,
+    VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
@@ -1548,7 +1551,8 @@ typedef enum
 
 typedef enum
 {
-    VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT = 0x00000001
+    VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT = 0x00000001,
+    VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DEFERRED_BIT_EXT = 0x00000002
 } VkImageViewCreateFlagBits;
 typedef VkFlags VkImageViewCreateFlags;
 typedef enum
@@ -9292,6 +9296,29 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 #define VK_QCOM_render_pass_store_ops_SPEC_VERSION 2
 #define VK_QCOM_render_pass_store_ops_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
 
+
+#define VK_EXT_fragment_density_map2 1
+#define VK_EXT_FRAGMENT_DENSITY_MAP_2_SPEC_VERSION 1
+#define VK_EXT_FRAGMENT_DENSITY_MAP_2_EXTENSION_NAME "VK_EXT_fragment_density_map2"
+
+typedef struct VkPhysicalDeviceFragmentDensityMap2FeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 fragmentDensityMapDeferred;
+} VkPhysicalDeviceFragmentDensityMap2FeaturesEXT;
+
+typedef struct VkPhysicalDeviceFragmentDensityMap2PropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 subsampledLoads;
+    VkBool32 subsampledCoarseReconstructionEarlyAccess;
+    uint32_t maxSubsampledArrayLayers;
+    uint32_t maxDescriptorSetSubsampledSamplers;
+} VkPhysicalDeviceFragmentDensityMap2PropertiesEXT;
+
+
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -9368,6 +9395,28 @@ typedef struct VkWaylandSurfaceCreateInfoKHR
 typedef VkResult (VKAPI_PTR *PFN_vkCreateWaylandSurfaceKHR)(VkInstance instance, const VkWaylandSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, struct wl_display* display);
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+#include <directfb.h>
+
+#define VK_EXT_directfb_surface 1
+#define VK_EXT_DIRECTFB_SURFACE_SPEC_VERSION 1
+#define VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME "VK_EXT_directfb_surface"
+
+typedef VkFlags VkDirectFBSurfaceCreateFlagsEXT;
+typedef struct VkDirectFBSurfaceCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDirectFBSurfaceCreateFlagsEXT flags;
+    IDirectFB* dfb;
+    IDirectFBSurface* surface;
+} VkDirectFBSurfaceCreateInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateDirectFBSurfaceEXT)(VkInstance instance, const VkDirectFBSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceDirectFBPresentationSupportEXT)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, IDirectFB* dfb);
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 
@@ -10535,6 +10584,10 @@ PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR vkGetPhysicalDeviceXcbPresentat
 PFN_vkCreateWaylandSurfaceKHR vkCreateWaylandSurfaceKHR;
 PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR vkGetPhysicalDeviceWaylandPresentationSupportKHR;
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+PFN_vkCreateDirectFBSurfaceEXT vkCreateDirectFBSurfaceEXT;
+PFN_vkGetPhysicalDeviceDirectFBPresentationSupportEXT vkGetPhysicalDeviceDirectFBPresentationSupportEXT;
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
 PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
 PFN_vkGetAndroidHardwareBufferPropertiesANDROID vkGetAndroidHardwareBufferPropertiesANDROID;
@@ -10996,6 +11049,10 @@ typedef struct
     PFN_vkCreateWaylandSurfaceKHR vkCreateWaylandSurfaceKHR;
     PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR vkGetPhysicalDeviceWaylandPresentationSupportKHR;
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+    PFN_vkCreateDirectFBSurfaceEXT vkCreateDirectFBSurfaceEXT;
+    PFN_vkGetPhysicalDeviceDirectFBPresentationSupportEXT vkGetPhysicalDeviceDirectFBPresentationSupportEXT;
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
     PFN_vkGetAndroidHardwareBufferPropertiesANDROID vkGetAndroidHardwareBufferPropertiesANDROID;
@@ -11615,6 +11672,10 @@ VkResult vkbBindGlobalAPI()
     vkCreateWaylandSurfaceKHR = (PFN_vkCreateWaylandSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateWaylandSurfaceKHR");
     vkGetPhysicalDeviceWaylandPresentationSupportKHR = (PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceWaylandPresentationSupportKHR");
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+    vkCreateDirectFBSurfaceEXT = (PFN_vkCreateDirectFBSurfaceEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateDirectFBSurfaceEXT");
+    vkGetPhysicalDeviceDirectFBPresentationSupportEXT = (PFN_vkGetPhysicalDeviceDirectFBPresentationSupportEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT");
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     vkCreateAndroidSurfaceKHR = (PFN_vkCreateAndroidSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateAndroidSurfaceKHR");
     vkGetAndroidHardwareBufferPropertiesANDROID = (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)vkb_dlsym(g_vkbVulkanSO, "vkGetAndroidHardwareBufferPropertiesANDROID");
@@ -12105,6 +12166,10 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCreateWaylandSurfaceKHR = vkCreateWaylandSurfaceKHR;
         pAPI->vkGetPhysicalDeviceWaylandPresentationSupportKHR = vkGetPhysicalDeviceWaylandPresentationSupportKHR;
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+        pAPI->vkCreateDirectFBSurfaceEXT = vkCreateDirectFBSurfaceEXT;
+        pAPI->vkGetPhysicalDeviceDirectFBPresentationSupportEXT = vkGetPhysicalDeviceDirectFBPresentationSupportEXT;
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
         pAPI->vkCreateAndroidSurfaceKHR = vkCreateAndroidSurfaceKHR;
         pAPI->vkGetAndroidHardwareBufferPropertiesANDROID = vkGetAndroidHardwareBufferPropertiesANDROID;
@@ -12592,6 +12657,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCreateWaylandSurfaceKHR = (PFN_vkCreateWaylandSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateWaylandSurfaceKHR");
     pAPI->vkGetPhysicalDeviceWaylandPresentationSupportKHR = (PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceWaylandPresentationSupportKHR");
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+    pAPI->vkCreateDirectFBSurfaceEXT = (PFN_vkCreateDirectFBSurfaceEXT)vkGetInstanceProcAddr(instance, "vkCreateDirectFBSurfaceEXT");
+    pAPI->vkGetPhysicalDeviceDirectFBPresentationSupportEXT = (PFN_vkGetPhysicalDeviceDirectFBPresentationSupportEXT)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceDirectFBPresentationSupportEXT");
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     pAPI->vkCreateAndroidSurfaceKHR = (PFN_vkCreateAndroidSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateAndroidSurfaceKHR");
     pAPI->vkGetAndroidHardwareBufferPropertiesANDROID = (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)vkGetInstanceProcAddr(instance, "vkGetAndroidHardwareBufferPropertiesANDROID");
@@ -12990,6 +13059,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_XCB_KHR*/
 #ifdef VK_USE_PLATFORM_WAYLAND_KHR
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     pAPI->vkGetAndroidHardwareBufferPropertiesANDROID = (PFN_vkGetAndroidHardwareBufferPropertiesANDROID)pAPI->vkGetDeviceProcAddr(device, "vkGetAndroidHardwareBufferPropertiesANDROID");
     pAPI->vkGetMemoryAndroidHardwareBufferANDROID = (PFN_vkGetMemoryAndroidHardwareBufferANDROID)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryAndroidHardwareBufferANDROID");
@@ -13452,6 +13523,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCreateWaylandSurfaceKHR = pAPI->vkCreateWaylandSurfaceKHR;
     vkGetPhysicalDeviceWaylandPresentationSupportKHR = pAPI->vkGetPhysicalDeviceWaylandPresentationSupportKHR;
 #endif /*VK_USE_PLATFORM_WAYLAND_KHR*/
+#ifdef VK_USE_PLATFORM_DIRECTFB_EXT
+    vkCreateDirectFBSurfaceEXT = pAPI->vkCreateDirectFBSurfaceEXT;
+    vkGetPhysicalDeviceDirectFBPresentationSupportEXT = pAPI->vkGetPhysicalDeviceDirectFBPresentationSupportEXT;
+#endif /*VK_USE_PLATFORM_DIRECTFB_EXT*/
 #ifdef VK_USE_PLATFORM_ANDROID_KHR
     vkCreateAndroidSurfaceKHR = pAPI->vkCreateAndroidSurfaceKHR;
     vkGetAndroidHardwareBufferPropertiesANDROID = pAPI->vkGetAndroidHardwareBufferPropertiesANDROID;
