@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.147.0 - 2020-07-13
+vkbind - v1.2.148.0 - 2020-07-20
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 147
+#define VK_HEADER_VERSION 148
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -652,6 +652,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_EXT = 1000259000,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_LINE_STATE_CREATE_INFO_EXT = 1000259001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_PROPERTIES_EXT = 1000259002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_FEATURES_EXT = 1000260000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT = 1000265000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT = 1000267000,
     VK_STRUCTURE_TYPE_DEFERRED_OPERATION_INFO_KHR = 1000268000,
@@ -688,6 +689,7 @@ typedef enum
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT = 1000332000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT = 1000332001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT = 1000335000,
     VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
@@ -3579,6 +3581,7 @@ typedef enum
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT = 0x00000002,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT = 0x00000004,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT = 0x00000008,
+    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_FENCE_BIT = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT = 0x00000010,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
@@ -4205,6 +4208,7 @@ typedef enum
     VK_DRIVER_ID_GGP_PROPRIETARY = 11,
     VK_DRIVER_ID_BROADCOM_PROPRIETARY = 12,
     VK_DRIVER_ID_MESA_LLVMPIPE = 13,
+    VK_DRIVER_ID_MOLTENVK = 14,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -8793,6 +8797,30 @@ typedef struct VkPipelineRasterizationLineStateCreateInfoEXT
 
 typedef void (VKAPI_PTR *PFN_vkCmdSetLineStippleEXT)(VkCommandBuffer commandBuffer, uint32_t lineStippleFactor, uint16_t lineStipplePattern);
 
+#define VK_EXT_shader_atomic_float 1
+#define VK_EXT_SHADER_ATOMIC_FLOAT_SPEC_VERSION 1
+#define VK_EXT_SHADER_ATOMIC_FLOAT_EXTENSION_NAME "VK_EXT_shader_atomic_float"
+
+typedef struct VkPhysicalDeviceShaderAtomicFloatFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderBufferFloat32Atomics;
+    VkBool32 shaderBufferFloat32AtomicAdd;
+    VkBool32 shaderBufferFloat64Atomics;
+    VkBool32 shaderBufferFloat64AtomicAdd;
+    VkBool32 shaderSharedFloat32Atomics;
+    VkBool32 shaderSharedFloat32AtomicAdd;
+    VkBool32 shaderSharedFloat64Atomics;
+    VkBool32 shaderSharedFloat64AtomicAdd;
+    VkBool32 shaderImageFloat32Atomics;
+    VkBool32 shaderImageFloat32AtomicAdd;
+    VkBool32 sparseImageFloat32Atomics;
+    VkBool32 sparseImageFloat32AtomicAdd;
+} VkPhysicalDeviceShaderAtomicFloatFeaturesEXT;
+
+
+
 #define VK_EXT_host_query_reset 1
 #define VK_EXT_HOST_QUERY_RESET_SPEC_VERSION 1
 #define VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME "VK_EXT_host_query_reset"
@@ -9317,6 +9345,19 @@ typedef struct VkPhysicalDeviceFragmentDensityMap2PropertiesEXT
     uint32_t maxSubsampledArrayLayers;
     uint32_t maxDescriptorSetSubsampledSamplers;
 } VkPhysicalDeviceFragmentDensityMap2PropertiesEXT;
+
+
+
+#define VK_EXT_image_robustness 1
+#define VK_EXT_IMAGE_ROBUSTNESS_SPEC_VERSION 1
+#define VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME "VK_EXT_image_robustness"
+
+typedef struct VkPhysicalDeviceImageRobustnessFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 robustImageAccess;
+} VkPhysicalDeviceImageRobustnessFeaturesEXT;
 
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
