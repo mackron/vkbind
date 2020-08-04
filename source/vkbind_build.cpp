@@ -1946,7 +1946,7 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                         It'd be nice to just use a typedef here, but we can't because I've had cases some of them are aliased with a version that's contained in VK_ENABLE_BETA_EXTENSIONS. We need to just output
                         the entire declaration.
                         */
-                        uint32_t iBaseType;
+                        size_t iBaseType;
                         if (vkbBuildFindTypeByName(context, type.alias.c_str(), &iBaseType)) {
                             vkbBuildGenerateCode_C_FuncPointer(context.types[iBaseType].funcpointer, type.name, codeOut);
                             count += 1;
