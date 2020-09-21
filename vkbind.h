@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.152.0 - 2020-08-27
+vkbind - v1.2.154.0 - 2020-09-21
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 152
+#define VK_HEADER_VERSION 154
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -566,6 +566,8 @@ typedef enum
     VK_STRUCTURE_TYPE_IMAGE_DRM_FORMAT_MODIFIER_PROPERTIES_EXT = 1000158005,
     VK_STRUCTURE_TYPE_VALIDATION_CACHE_CREATE_INFO_EXT = 1000160000,
     VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT = 1000160001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_FEATURES_KHR = 1000163000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PORTABILITY_SUBSET_PROPERTIES_KHR = 1000163001,
     VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SHADING_RATE_IMAGE_STATE_CREATE_INFO_NV = 1000164000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_FEATURES_NV = 1000164001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADING_RATE_IMAGE_PROPERTIES_NV = 1000164002,
@@ -690,6 +692,17 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT = 1000332000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT = 1000332001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT = 1000335000,
+    VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2_KHR = 1000337000,
+    VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2_KHR = 1000337001,
+    VK_STRUCTURE_TYPE_COPY_BUFFER_TO_IMAGE_INFO_2_KHR = 1000337002,
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_BUFFER_INFO_2_KHR = 1000337003,
+    VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2_KHR = 1000337004,
+    VK_STRUCTURE_TYPE_RESOLVE_IMAGE_INFO_2_KHR = 1000337005,
+    VK_STRUCTURE_TYPE_BUFFER_COPY_2_KHR = 1000337006,
+    VK_STRUCTURE_TYPE_IMAGE_COPY_2_KHR = 1000337007,
+    VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR = 1000337008,
+    VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR = 1000337009,
+    VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR = 1000337010,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT = 1000340000,
     VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
@@ -9365,6 +9378,140 @@ typedef struct VkPhysicalDeviceImageRobustnessFeaturesEXT
 
 
 
+#define VK_KHR_copy_commands2 1
+#define VK_KHR_COPY_COMMANDS_2_SPEC_VERSION 1
+#define VK_KHR_COPY_COMMANDS_2_EXTENSION_NAME "VK_KHR_copy_commands2"
+
+typedef struct VkBufferCopy2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceSize srcOffset;
+    VkDeviceSize dstOffset;
+    VkDeviceSize size;
+} VkBufferCopy2KHR;
+
+typedef struct VkCopyBufferInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBuffer srcBuffer;
+    VkBuffer dstBuffer;
+    uint32_t regionCount;
+    const VkBufferCopy2KHR* pRegions;
+} VkCopyBufferInfo2KHR;
+
+typedef struct VkImageCopy2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageSubresourceLayers srcSubresource;
+    VkOffset3D srcOffset;
+    VkImageSubresourceLayers dstSubresource;
+    VkOffset3D dstOffset;
+    VkExtent3D extent;
+} VkImageCopy2KHR;
+
+typedef struct VkCopyImageInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkImageCopy2KHR* pRegions;
+} VkCopyImageInfo2KHR;
+
+typedef struct VkBufferImageCopy2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceSize bufferOffset;
+    uint32_t bufferRowLength;
+    uint32_t bufferImageHeight;
+    VkImageSubresourceLayers imageSubresource;
+    VkOffset3D imageOffset;
+    VkExtent3D imageExtent;
+} VkBufferImageCopy2KHR;
+
+typedef struct VkCopyBufferToImageInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBuffer srcBuffer;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkBufferImageCopy2KHR* pRegions;
+} VkCopyBufferToImageInfo2KHR;
+
+typedef struct VkCopyImageToBufferInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkBuffer dstBuffer;
+    uint32_t regionCount;
+    const VkBufferImageCopy2KHR* pRegions;
+} VkCopyImageToBufferInfo2KHR;
+
+typedef struct VkImageBlit2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageSubresourceLayers srcSubresource;
+    VkOffset3D srcOffsets[2];
+    VkImageSubresourceLayers dstSubresource;
+    VkOffset3D dstOffsets[2];
+} VkImageBlit2KHR;
+
+typedef struct VkBlitImageInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkImageBlit2KHR* pRegions;
+    VkFilter filter;
+} VkBlitImageInfo2KHR;
+
+typedef struct VkImageResolve2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageSubresourceLayers srcSubresource;
+    VkOffset3D srcOffset;
+    VkImageSubresourceLayers dstSubresource;
+    VkOffset3D dstOffset;
+    VkExtent3D extent;
+} VkImageResolve2KHR;
+
+typedef struct VkResolveImageInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkImageResolve2KHR* pRegions;
+} VkResolveImageInfo2KHR;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdCopyBuffer2KHR)(VkCommandBuffer commandBuffer, const VkCopyBufferInfo2KHR* pCopyBufferInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdCopyImage2KHR)(VkCommandBuffer commandBuffer, const VkCopyImageInfo2KHR* pCopyImageInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdCopyBufferToImage2KHR)(VkCommandBuffer commandBuffer, const VkCopyBufferToImageInfo2KHR* pCopyBufferToImageInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdCopyImageToBuffer2KHR)(VkCommandBuffer commandBuffer, const VkCopyImageToBufferInfo2KHR* pCopyImageToBufferInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdBlitImage2KHR)(VkCommandBuffer commandBuffer, const VkBlitImageInfo2KHR* pBlitImageInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdResolveImage2KHR)(VkCommandBuffer commandBuffer, const VkResolveImageInfo2KHR* pResolveImageInfo);
+
 #define VK_EXT_4444_formats 1
 #define VK_EXT_4444_FORMATS_SPEC_VERSION 1
 #define VK_EXT_4444_FORMATS_EXTENSION_NAME "VK_EXT_4444_formats"
@@ -10224,6 +10371,40 @@ typedef void (VKAPI_PTR *PFN_vkCmdWriteAccelerationStructuresPropertiesKHR)(VkCo
 typedef void (VKAPI_PTR *PFN_vkCmdTraceRaysIndirectKHR)(VkCommandBuffer commandBuffer, const VkStridedBufferRegionKHR* pRaygenShaderBindingTable, const VkStridedBufferRegionKHR* pMissShaderBindingTable, const VkStridedBufferRegionKHR* pHitShaderBindingTable, const VkStridedBufferRegionKHR* pCallableShaderBindingTable, VkBuffer buffer, VkDeviceSize offset);
 typedef VkResult (VKAPI_PTR *PFN_vkGetDeviceAccelerationStructureCompatibilityKHR)(VkDevice device, const VkAccelerationStructureVersionKHR* version);
 
+#define VK_KHR_portability_subset 1
+#define VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION 1
+#define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"
+
+typedef struct VkPhysicalDevicePortabilitySubsetFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 constantAlphaColorBlendFactors;
+    VkBool32 events;
+    VkBool32 imageViewFormatReinterpretation;
+    VkBool32 imageViewFormatSwizzle;
+    VkBool32 imageView2DOn3DImage;
+    VkBool32 multisampleArrayImage;
+    VkBool32 mutableComparisonSamplers;
+    VkBool32 pointPolygons;
+    VkBool32 samplerMipLodBias;
+    VkBool32 separateStencilMaskRef;
+    VkBool32 shaderSampleRateInterpolationFunctions;
+    VkBool32 tessellationIsolines;
+    VkBool32 tessellationPointMode;
+    VkBool32 triangleFans;
+    VkBool32 vertexAttributeAccessBeyondStride;
+} VkPhysicalDevicePortabilitySubsetFeaturesKHR;
+
+typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t minVertexInputBindingStrideAlignment;
+} VkPhysicalDevicePortabilitySubsetPropertiesKHR;
+
+
+
 #define VK_KHR_deferred_host_operations 1
 #define VK_KHR_DEFERRED_HOST_OPERATIONS_SPEC_VERSION 3
 #define VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME "VK_KHR_deferred_host_operations"
@@ -10627,6 +10808,12 @@ PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
+PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
+PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
+PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
+PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
+PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -11092,6 +11279,12 @@ typedef struct
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
     PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+    PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
+    PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
+    PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
+    PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
+    PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
+    PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -11715,6 +11908,12 @@ VkResult vkbBindGlobalAPI()
     vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
     vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
+    vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyBuffer2KHR");
+    vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyImage2KHR");
+    vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyBufferToImage2KHR");
+    vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyImageToBuffer2KHR");
+    vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBlitImage2KHR");
+    vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResolveImage2KHR");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -12209,6 +12408,12 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
         pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
         pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
+        pAPI->vkCmdCopyBuffer2KHR = vkCmdCopyBuffer2KHR;
+        pAPI->vkCmdCopyImage2KHR = vkCmdCopyImage2KHR;
+        pAPI->vkCmdCopyBufferToImage2KHR = vkCmdCopyBufferToImage2KHR;
+        pAPI->vkCmdCopyImageToBuffer2KHR = vkCmdCopyImageToBuffer2KHR;
+        pAPI->vkCmdBlitImage2KHR = vkCmdBlitImage2KHR;
+        pAPI->vkCmdResolveImage2KHR = vkCmdResolveImage2KHR;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -12700,6 +12905,12 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
+    pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyBuffer2KHR");
+    pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyImage2KHR");
+    pAPI->vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyBufferToImage2KHR");
+    pAPI->vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyImageToBuffer2KHR");
+    pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdBlitImage2KHR");
+    pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdResolveImage2KHR");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -13110,6 +13321,12 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+    pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyBuffer2KHR");
+    pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyImage2KHR");
+    pAPI->vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage2KHR");
+    pAPI->vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer2KHR");
+    pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBlitImage2KHR");
+    pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResolveImage2KHR");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -13566,6 +13783,12 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
     vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
+    vkCmdCopyBuffer2KHR = pAPI->vkCmdCopyBuffer2KHR;
+    vkCmdCopyImage2KHR = pAPI->vkCmdCopyImage2KHR;
+    vkCmdCopyBufferToImage2KHR = pAPI->vkCmdCopyBufferToImage2KHR;
+    vkCmdCopyImageToBuffer2KHR = pAPI->vkCmdCopyImageToBuffer2KHR;
+    vkCmdBlitImage2KHR = pAPI->vkCmdBlitImage2KHR;
+    vkCmdResolveImage2KHR = pAPI->vkCmdResolveImage2KHR;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
