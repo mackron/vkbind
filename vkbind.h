@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.155.0 - 2020-09-28
+vkbind - v1.2.156.0 - 2020-10-05
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 155
+#define VK_HEADER_VERSION 156
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -678,6 +678,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT = 1000281001,
     VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM = 1000282000,
     VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM = 1000282001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT = 1000284000,
+    VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT = 1000284001,
+    VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT = 1000284002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT = 1000286000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT = 1000286001,
     VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT = 1000287000,
@@ -9205,6 +9208,54 @@ typedef struct VkCommandBufferInheritanceRenderPassTransformInfoQCOM
     VkSurfaceTransformFlagBitsKHR transform;
     VkRect2D renderArea;
 } VkCommandBufferInheritanceRenderPassTransformInfoQCOM;
+
+
+
+#define VK_EXT_device_memory_report 1
+#define VK_EXT_DEVICE_MEMORY_REPORT_SPEC_VERSION 1
+#define VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME "VK_EXT_device_memory_report"
+
+typedef VkFlags VkDeviceMemoryReportFlagsEXT;
+typedef enum
+{
+    VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATE_EXT = 0,
+    VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_FREE_EXT = 1,
+    VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_IMPORT_EXT = 2,
+    VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_UNIMPORT_EXT = 3,
+    VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ALLOCATION_FAILED_EXT = 4
+} VkDeviceMemoryReportEventTypeEXT;
+
+
+typedef struct VkPhysicalDeviceDeviceMemoryReportFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 deviceMemoryReport;
+} VkPhysicalDeviceDeviceMemoryReportFeaturesEXT;
+
+typedef struct VkDeviceMemoryReportCallbackDataEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemoryReportFlagsEXT flags;
+    VkDeviceMemoryReportEventTypeEXT type;
+    uint64_t memoryObjectId;
+    VkDeviceSize size;
+    VkObjectType objectType;
+    uint64_t objectHandle;
+    uint32_t heapIndex;
+} VkDeviceMemoryReportCallbackDataEXT;
+
+typedef void (VKAPI_PTR *PFN_vkDeviceMemoryReportCallbackEXT)(const VkDeviceMemoryReportCallbackDataEXT* pCallbackData, void* pUserData);
+
+typedef struct VkDeviceDeviceMemoryReportCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemoryReportFlagsEXT flags;
+    PFN_vkDeviceMemoryReportCallbackEXT pfnUserCallback;
+    void* pUserData;
+} VkDeviceDeviceMemoryReportCreateInfoEXT;
 
 
 
