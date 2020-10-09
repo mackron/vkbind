@@ -738,9 +738,9 @@ int main(int argc, char** argv)
 #endif
      
         uint32_t imageIndex;
-        VkResult vkResult = vkAcquireNextImageKHR(vkDevice, vkSwapchain, UINT64_MAX, semaphore, VK_NULL_HANDLE, &imageIndex);
+        vkResult = vkAcquireNextImageKHR(vkDevice, vkSwapchain, UINT64_MAX, semaphore, VK_NULL_HANDLE, &imageIndex);
         if (vkResult != VK_SUCCESS && vkResult != VK_SUBOPTIMAL_KHR) {
-            return;
+            return -1;
         }
 
         if (vkResult == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -842,5 +842,6 @@ int main(int argc, char** argv)
         vkQueuePresentKHR(vkQueue, &info);
     }
 
-    return 0;
+    /* Unreachable. */
+    /*return 0;*/
 }
