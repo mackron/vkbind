@@ -226,6 +226,7 @@ struct vkbBuildTag
 {
     std::string name;
     std::string author;
+    std::string contact;
 };
 
 struct vkbBuildFunctionParameter
@@ -416,6 +417,7 @@ vkbResult vkbBuildParseTags(vkbBuild &context, tinyxml2::XMLElement* pTagsElemen
         vkbBuildTag tag;
         tag.name = pChildElement->Attribute("name");
         tag.author = pChildElement->Attribute("author");
+        tag.contact = pChildElement->Attribute("contact");
         context.tags.push_back(tag);
     }
 
@@ -1581,6 +1583,56 @@ vkbResult vkbBuildGenerateCode_C_RequireCommands(vkbBuild &context, vkbBuildCode
     return VKB_SUCCESS;
 }
 
+std::string vkbNameToUpperCaseStyle(const std::string &name)
+{
+    std::string result = "VK"; // The final result will always start with "VK".
+
+    // Slow, but simple. We're just going to find all occurance of a capital letter and then insert an underscore. Otherwise we just convert to upper case.
+    for (size_t i = 2; i < name.length(); i += 1) { // Start at 2 since it'll always start with "Vk".
+        if (std::isupper(name[i])) {
+            result += "_";
+            result += name[i];
+        } else {
+            result += (char)std::toupper(name[i]);
+        }
+    }
+
+    return result;
+}
+
+std::string vkbExtractTagFromName(vkbBuild &context, const std::string &name)
+{
+    for (auto tag : context.tags) {
+        if (name.length() > tag.name.length()) {
+            if (name.substr(name.length() - tag.name.length()) == tag.name) {
+                return tag.name;
+            }
+        }
+    }
+
+    // It's not tagged.
+    return "";
+}
+
+std::string vkbGenerateMaxEnumToken(vkbBuild &context, const std::string &enumName)
+{
+    // First thing to do is extract the tag, if any. We need to determine thi
+    std::string tag = vkbExtractTagFromName(context, enumName);
+
+    // Convert to upper case style, minus the vendor tag. The vender tag needs to be added after the _MAX_ENUM part.
+    std::string result = vkbNameToUpperCaseStyle(std::string(enumName.begin(), enumName.end() - tag.length()));
+
+    // _MAX_ENUM needs to be added. The vendor tag, if any, comes after this.
+    result += "_MAX_ENUM";
+
+    // If we have a tag we need to append it to the end.
+    if (tag.length() > 0) {
+        result += "_" + tag;
+    }
+
+    return result;
+}
+
 vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
 {
     const std::vector<size_t> &typeIndices = dependencies.typeIndexes;
@@ -1794,6 +1846,12 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                         }
                                     }
 
+                                    /* We need to do the _ENUM_MAX[_VENDOR] part. */
+                                    if (enumValueCount > 0) {
+                                        codeOut += ",\n";
+                                    }
+                                    codeOut += "    " + vkbGenerateMaxEnumToken(context, enums.name) + " = 0x7FFFFFFF";
+
                                     codeOut += "\n} " + enums.name + ";\n";
                                     count += 1;
                                 }
@@ -1896,6 +1954,10 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                             }
                                         }
                                     }
+
+                                    /* We need to do the _ENUM_MAX[_VENDOR] part. */
+                                    codeOut += ",\n";
+                                    codeOut += "    " + vkbGenerateMaxEnumToken(context, enums.name) + " = 0x7FFFFFFF";
 
                                     codeOut += "\n} " + enums.name + ";\n\n";
                                     count += 1;
