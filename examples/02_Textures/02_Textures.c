@@ -1,4 +1,9 @@
 /*
+TODO:
+    - Uniform variables with per-frame updating.
+*/
+
+/*
 Demonstrates how to draw a textured quad in Vulkan.
 
 This example is completely flat. The only library it uses is vkbind which is just a Vulkan API loader. The vkbind.h
@@ -8,10 +13,14 @@ to keeping them all separate which is just unnecessary.
 
 In a real-world program you would not want to write Vulkan code as it's written in this example. This example is void
 of abstractions and functions in order to make it easier to see what's actually going on with Vulkan. The idea is to
-show how to use Vulkan, not how to architecture your program.
+show how to use Vulkan, not how to architecture your program. Also, resource cleanup is intentionally left out when
+cleaning up after errors just to keep things clean. A real program would probably want to clean everything up properly.
 
 Currently, only Windows is supported. This example will show you how to connect Vulkan to the Win32 windowing system
 which is something almost all programs will want to do, so including that here is something I think is valuable.
+
+This is example is focused on how to use the Vulkan API, not how to achieve specific graphics effects. If you're
+looking for an example for lighting, PBR, etc. you'll want to look elsewhere.
 */
 
 /*
@@ -513,6 +522,33 @@ int main(int argc, char** argv)
 
 
     /*
+    We're going to need these memory properties for when we allocate memory. The way it works is there's basically
+    different types of memory, the main ones being "host visible" and "device local". Host visible basically system RAM
+    whereas device local is GPU memory. There's other flags to consider, but they aren't important while you're just
+    getting started. These memory flags are grouped into a memory type, which are referenced by an index. When you
+    allocate memory, you need to specify the index of an appropriate memory type which you select by iterating over the
+    available memory types and checking if they have the appropriate flags. The memory types are retrieved by calling
+    the vkGetPhysicalDeviceMemoryProperties() function.
+
+    You'll see an example on how to iterate over these memory types later on. Since we're going to be doing this
+    multiple times, I'm just going to retrieve the memory types once at the top right here rather than retrieving them
+    multiple times. This process of iterating over memory types to find an appropriate index will probably be one of
+    the first things you'll want to wrap in a helper function. We're not doing that in this example, however, because
+    the point is to keep this completely flat.
+
+    When you allocate memory, you first get the memory requirements (VkMemoryRequirements) of the relevant object which
+    will be a buffer or an image. In the returned object, there will be a memoryTypesBits variable. The index of each
+    set bit, starting from the least significant bit, defines which memory type in the VkPhysicalDeviceMemoryProperties
+    object can be used for the memory allocation. From there, you inspect the memory type's property flags which will
+    define whether or not the memory type is host visible and/or device local (among others). This will provide you
+    with enough information to determine the memory type index. When we allocate memory later on for vertex buffers and
+    textures you'll see more clearly how to choose an appropriate memory type.
+    */
+    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProps;
+    vkGetPhysicalDeviceMemoryProperties(pPhysicalDevices[selectedPhysicalDeviceIndex], &physicalDeviceMemoryProps);
+
+
+    /*
     Now that we have our list of physical devices we can create a logical device. The logical device is the what's used
     for interfacing with almost all Vulkan APIs. To create the device we need to specify the queues (and their families)
     that we need.
@@ -590,183 +626,29 @@ int main(int argc, char** argv)
     }
 
 
+    
     /*
-    At this point we finally have our device initialized. What we just did was the easy part and before we'll see
-    anything on the screen there's still a *lot* more needing to be done. The next concept to introduce is that of the
-    swapchain. The swapchain is closely related to the surface. Indeed, you need a surface before you can create a
-    swapchain. A swapchain is made up of a number of images which, as the name suggests, are swapped with each other
-    when displaying a series of images onto the surface.
+    Pipelines. To put it simply, a pipeline object defines the settings to use when drawing something, such as the
+    structure of the vertex buffer, which shaders to use, shader inputs, whether or not depth testing is enabled, etc.
+    Most programs will have many pipeline objects - you'll likely want to wrap this in a function for anything real-
+    world.
 
-    In a double buffered environment, there will be two images in the swapchain. At any given moment, one of those
-    images will be displayed on the window, while the other one, which is off-screen, is being drawn to by the graphics
-    driver. When the off-screen image is ready to be displayed, the two images are swapped and their roles reversed.
-
-    To create a swapchain, you'll first need a surface which we've already created. You'll also need to determine how
-    many images you need in the swap chain. If you're using double buffering you'll need two which is what we'll be
-    using in this example.
+    The creation of a pipeline object has a lot of dependencies. I'm not going to explain it all here, but will explain
+    it as we go. The order in which I do things below is unimportant and you can do it in whatever order you'd like,
+    but the way I do it here is intuitive to me.
     */
-    VkSurfaceCapabilitiesKHR surfaceCaps;
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pPhysicalDevices[selectedPhysicalDeviceIndex], surface, &surfaceCaps);
-    if (result != VK_SUCCESS) {
-        vkDestroyDevice(device, NULL);
-        vkDestroySurfaceKHR(instance, surface, NULL);
-        vkDestroyInstance(instance, NULL);
-        printf("Failed to retrieve surface capabilities.");
-        return -1;
-    }
 
-    VkSurfaceFormatKHR supportedFormats[256];
-    uint32_t supportedFormatsCount = sizeof(supportedFormats) / sizeof(supportedFormats[0]);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(pPhysicalDevices[selectedPhysicalDeviceIndex], surface, &supportedFormatsCount, supportedFormats);
-    if (result != VK_SUCCESS) {
-        vkDestroyDevice(device, NULL);
-        vkDestroySurfaceKHR(instance, surface, NULL);
-        vkDestroyInstance(instance, NULL);
-        printf("Failed to retrieve physical device surface formats.");
-        return -1;
-    }
+    /*
+    Shaders. The first thing we'll define are the necessary shaders. We're just displaying a simple textured quad so
+    all well need is a vertex and fragment shader. There are additional types of shaders for different stages of the
+    pipeline, but that's an excersise for later. All real-world graphics projects will need a vertex and fragment
+    shader, however.
 
-    uint32_t iFormat = 0;
-    for (uint32_t i = 0; i < supportedFormatsCount; ++i) {
-        if (supportedFormats[i].format == VK_FORMAT_R8G8B8A8_UNORM || supportedFormats[i].format == VK_FORMAT_B8G8R8A8_UNORM) {   /* <-- Can also use VK_FORMAT_*_SRGB */
-            iFormat = i;
-            break;
-        }
-    }
-
-    VkSwapchainCreateInfoKHR swapchainInfo;
-    swapchainInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainInfo.pNext                 = NULL;
-    swapchainInfo.flags                 = 0;
-    swapchainInfo.surface               = surface;
-    swapchainInfo.minImageCount         = 2;                            /* <-- Set this to 2 for double buffering. Triple buffering would be 3, etc. */
-    swapchainInfo.imageFormat           = supportedFormats[iFormat].format;
-    swapchainInfo.imageColorSpace       = supportedFormats[iFormat].colorSpace;
-    swapchainInfo.imageExtent           = surfaceCaps.currentExtent;    /* <-- The size of the images of the swapchain. */
-    swapchainInfo.imageArrayLayers      = 1;                            /* <-- I'm not sure in what situation you would ever want to set this to anything other than 1. */
-    swapchainInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchainInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-    swapchainInfo.queueFamilyIndexCount = 0;                            /* <-- Only used when imageSharingMode is VK_SHARING_MODE_CONCURRENT. */
-    swapchainInfo.pQueueFamilyIndices   = NULL;                         /* <-- Only used when imageSharingMode is VK_SHARING_MODE_CONCURRENT. */
-    swapchainInfo.preTransform          = surfaceCaps.currentTransform;
-    swapchainInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchainInfo.presentMode           = VK_PRESENT_MODE_FIFO_KHR;     /* <-- This is what controls vsync. FIFO must always be supported, so use it by default. */
-    swapchainInfo.clipped               = VK_TRUE;                      /* <-- Set this to true if you're only displaying to a window. */
-    swapchainInfo.oldSwapchain          = VK_NULL_HANDLE;               /* <-- You would set this if you're creating a new swapchain to replace an old one, such as when resizing a window. */
-
-    VkSwapchainKHR vkSwapchain;
-    result = vkCreateSwapchainKHR(device, &swapchainInfo, NULL, &vkSwapchain);
-    if (result != VK_SUCCESS) {
-        vkDestroyDevice(device, NULL);
-        vkDestroySurfaceKHR(instance, surface, NULL);
-        vkDestroyInstance(instance, NULL);
-        printf("Failed to create swapchain.");
-        return -2;
-    }
-
-
-
-    /* Clearing the Swapchain and Presenting */
-
-    // Grab each swapchain image.
-    VkImage images[2];
-    uint32_t imageCount = sizeof(images) / sizeof(images[0]);
-    result = vkGetSwapchainImagesKHR(device, vkSwapchain, &imageCount, images);
-    if (result != VK_SUCCESS) {
-        printf("Failed to retrieve swapchain images.");
-        return -2;
-    }
-
-    // Each of the swapchain images needs a view associated with it for use with the framebuffer.
-    VkImageView imageViews[2];
-    for (int i = 0; i < 2; ++i) {
-        VkImageViewCreateInfo imageViewInfo;
-        imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewInfo.pNext = NULL;
-        imageViewInfo.flags = 0;
-        imageViewInfo.image = images[i];
-        imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewInfo.format = supportedFormats[iFormat].format;
-        imageViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-        imageViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-        imageViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-        imageViewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-        imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageViewInfo.subresourceRange.baseMipLevel = 0;
-        imageViewInfo.subresourceRange.levelCount = 1;
-        imageViewInfo.subresourceRange.baseArrayLayer = 0;
-        imageViewInfo.subresourceRange.layerCount = 1;
-        result = vkCreateImageView(device, &imageViewInfo, NULL, &imageViews[i]);
-        if (result != VK_SUCCESS) {
-            printf("Failed to create image views for swapchain images.");
-            return -2;
-        }
-    }
-
-    // Create a semaphore for synchronizing swap chain image swaps. The idea is to pass this to vkAcquireNextImageKHR(), then wait for it to get signaled before
-    // drawing anything to it. You can do this by specifying the semaphore in pWaitSemaphore.
-    VkSemaphoreCreateInfo semaphoreInfo;
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreInfo.pNext = 0;
-    semaphoreInfo.flags = 0;
-    VkSemaphore semaphore;
-    vkCreateSemaphore(device, &semaphoreInfo, NULL, &semaphore);
-
-
-
-
-    // Renderpass.
-    VkAttachmentDescription colorAttachmentDesc[1];
-    colorAttachmentDesc[0].flags = 0;
-    colorAttachmentDesc[0].format = supportedFormats[iFormat].format;
-    colorAttachmentDesc[0].samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachmentDesc[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachmentDesc[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentDesc[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachmentDesc[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachmentDesc[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachmentDesc[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference attachment;
-    attachment.attachment = 0;
-    attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    uint32_t preservedAttachments[1];
-    preservedAttachments[0] = 0;
-
-    VkSubpassDescription subpassDesc;
-    subpassDesc.flags = 0;
-    subpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpassDesc.inputAttachmentCount = 0;
-    subpassDesc.pInputAttachments = NULL;
-    subpassDesc.colorAttachmentCount = 1;
-    subpassDesc.pColorAttachments = &attachment;
-    subpassDesc.pResolveAttachments = NULL;
-    subpassDesc.pDepthStencilAttachment = NULL;
-    subpassDesc.preserveAttachmentCount = sizeof(preservedAttachments) / sizeof(preservedAttachments[0]);
-    subpassDesc.pPreserveAttachments = preservedAttachments;
-
-    VkRenderPassCreateInfo renderpassInfo;
-    renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderpassInfo.pNext = NULL;
-    renderpassInfo.flags = 0;
-    renderpassInfo.attachmentCount = sizeof(colorAttachmentDesc) / sizeof(colorAttachmentDesc[0]);
-    renderpassInfo.pAttachments = colorAttachmentDesc;
-    renderpassInfo.subpassCount = 1;
-    renderpassInfo.pSubpasses = &subpassDesc;
-    renderpassInfo.dependencyCount = 0;
-    renderpassInfo.pDependencies = NULL;
-
-    VkRenderPass renderpass;
-    result = vkCreateRenderPass(device, &renderpassInfo, NULL, &renderpass);
-    if (result != VK_SUCCESS) {
-        printf("Failed to create render pass.");
-        return -2;
-    }
-
-
-
-    // Pipeline.
+    Shaders are specified in a binary format called SPIR-V. In this example we compile shaders from GLSL to SPIR-V
+    using an offline tool called glslangValidator. The vfs_map_file() function is just some auto-generated code used by
+    this example so we can embed the SPIR-V data directly into the program and avoid the need to load files and worry
+    about startup paths and all that.
+    */
     VkShaderModuleCreateInfo vertexShaderInfo;
     vertexShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertexShaderInfo.pNext = NULL;
@@ -794,180 +676,309 @@ int main(int argc, char** argv)
     }
 
     VkPipelineShaderStageCreateInfo pipelineStages[2];
-    pipelineStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    pipelineStages[0].pNext = NULL;
-    pipelineStages[0].flags = 0;
-    pipelineStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    pipelineStages[0].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineStages[0].pNext  = NULL;
+    pipelineStages[0].flags  = 0;
+    pipelineStages[0].stage  = VK_SHADER_STAGE_VERTEX_BIT;
     pipelineStages[0].module = vertexShaderModule;
-    pipelineStages[0].pName = "main";
+    pipelineStages[0].pName  = "main";
     pipelineStages[0].pSpecializationInfo = NULL;
-    pipelineStages[1] = pipelineStages[0];
-    pipelineStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    pipelineStages[1].module = fragmentShaderModule;
 
-    // In this example we are using an interleaved vertex buffer which means we use the same binding, but a different offset. If we
-    // were to use separate buffers we would use a different binding, and leave the offset at 0.
-    VkVertexInputBindingDescription vertexInputBindingDescriptions[1];
+    pipelineStages[1].sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineStages[1].pNext  = NULL;
+    pipelineStages[1].flags  = 0;
+    pipelineStages[1].stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pipelineStages[1].module = fragmentShaderModule;
+    pipelineStages[1].pName  = "main";
+    pipelineStages[1].pSpecializationInfo = NULL;
+    
+
+    /*
+    Vertex formats. Here is where we define the format of the data as passed to the vertex shader.
+
+    There's two concepts to consider - bindings and attributes. Think of a binding as a grouping of related vertex
+    attributes inside a single, interleaved buffer. A common example is interleaved vertex data. With this setup, which
+    we're using in this example, the position, color, texture coordinate and whatever else you want to group together
+    are part of a single binding. The position will be one attribute, the color will be another, etc. If, however, you
+    were wanting to keep your individual vertex attributes (position, color, etc.) in separate buffers, you would have
+    one binding for each buffer. So to summarize, binding = vertex buffer; attributes = individual elements (position,
+    color, etc.) within a vertex buffer.
+
+    Attributes are associated with a location which is just a number. This is an important concept to understand
+    because it's how Vulkan is able to map vertex attribute to inputs into the vertex shader. It's important that
+    locations map properly with how they're specified in the shader. In the vertex shader, you'll have vertex input
+    declarations that look like this:
+
+        layout(location = 0) in vec3 VERT_Position;
+        layout(location = 1) in vec3 VERT_Color;
+        layout(location = 2) in vec2 VERT_TexCoord;
+
+    The locations you see specified in the vertex shader are specified in the code segment below. The "location" member
+    of VkVertexInputAttributeDescription needs to map with how you've defined it in the shader. You'll note that you
+    don't need to specify the binding in the shader. Instead, the binding is specified when we bind the vertex buffer
+    with vkCmdBindVertexBuffers() which we do before issuing a draw command.
+    */
+
+    /*
+    This is where we define our bindings. Remember: a binding is a vertex buffer. When interleaving vertex attributes
+    such as position and color, we just have a single buffer. If we were *not* interleaving, we'd have a separate
+    buffer, and therefore separate bindings, for each attribute.
+    */
+    VkVertexInputBindingDescription vertexInputBindingDescriptions[1];  /* <-- Just one binding since we're using a single, interleaved buffer. */
     vertexInputBindingDescriptions[0].binding   = 0;
     vertexInputBindingDescriptions[0].stride    = sizeof(float)*3 + sizeof(float)*3 + sizeof(float)*2;
     vertexInputBindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
+    /*
+    This is where we specify the individual vertex attributes (position, color, etc.), and it's here where the location
+    will be specified. In addition to the location, a binding is also required. The binding is an index into the array
+    we just declared above (vertexInputBindingDescriptions[]). Since we're only using a single binding, we set this to
+    0 for all of our vertex attributes.
+
+    The format of the vertex attribute is also required. In this example, everything uses floating point. The position
+    is defined in 3 dimensions. So as an example, the position attribute will be set to VK_FORMAT_R32G32B32_SFLOAT
+    which should be simple enough to understand, albeit a little unintuitive due to it looking more like a texture
+    format rather than a vertex format. The "SFLOAT" part means signed floating point. The "R", "G" and "B" parts
+    represent "X", "Y" and "Z" respectively. The "32" means 32-bit.
+
+    The last thing you need to specify is the offset in bytes of the start of the data for that attribute within the
+    buffer. In the example below, the position is the first element which means it'll have no offset. The color comes
+    immediately after the position, so therefore the offset needs to be set to the size of a single position element
+    which is 3 floating point numbers, or sizeof(float)*3. Texture coordinates come immediately after color, so that
+    will need to be set to sizeof(float)*3 (position) plus sizeof(float)*3 (color).
+    */
     VkVertexInputAttributeDescription vertexInputAttributeDescriptions[3];
-    vertexInputAttributeDescriptions[0].location = 0;   // Position
-    vertexInputAttributeDescriptions[0].binding  = 0;
+
+    /*
+    Position.
+    
+    Shader Declaration: layout(location = 0) in vec3 VERT_Position;
+    */
+    vertexInputAttributeDescriptions[0].location = 0;   /* layout(location = 0) in the vertex shader. */
+    vertexInputAttributeDescriptions[0].binding  = 0;   /* Maps to a binding in vertexInputBindingDescriptions[]. Referenced in vkCmdBindVertexBuffers() */
     vertexInputAttributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
     vertexInputAttributeDescriptions[0].offset   = 0;
-    vertexInputAttributeDescriptions[1].location = 1;   // Color
-    vertexInputAttributeDescriptions[1].binding  = 0;
+
+    /*
+    Color.
+
+    Shader Declaration: layout(location = 1) in vec3 VERT_Color;
+    */
+    vertexInputAttributeDescriptions[1].location = 1;   /* layout(location = 1) in the vertex shader.*/
+    vertexInputAttributeDescriptions[1].binding  = 0;   /* Maps to a binding in vertexInputBindingDescriptions[]. Referenced in vkCmdBindVertexBuffers() */
     vertexInputAttributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
     vertexInputAttributeDescriptions[1].offset   = sizeof(float)*3;
-    vertexInputAttributeDescriptions[2].location = 2;   // Texture Coordinates
-    vertexInputAttributeDescriptions[2].binding  = 0;
+
+    /*
+    Texture Coordinates.
+
+    Shader Declaration: layout(location = 2) in vec3 VERT_TexCoord;
+    */
+    vertexInputAttributeDescriptions[2].location = 2;   /* layout(location = 2) in the vertex shader. */
+    vertexInputAttributeDescriptions[2].binding  = 0;   /* Maps to a binding in vertexInputBindingDescriptions[]. Referenced in vkCmdBindVertexBuffers() */
     vertexInputAttributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
     vertexInputAttributeDescriptions[2].offset   = sizeof(float)*3 + sizeof(float)*3;
 
+    /*
+    The VkPipelineVertexInputStateCreateInfo object is where we put the vertex format defined above all together which
+    will eventually be passed to the pipeline CreateInfo object.
+    */
     VkPipelineVertexInputStateCreateInfo vertexInputState;
-    vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputState.pNext = NULL;
-    vertexInputState.flags = 0;
-    vertexInputState.vertexBindingDescriptionCount = sizeof(vertexInputBindingDescriptions)/sizeof(vertexInputBindingDescriptions[0]);
-    vertexInputState.pVertexBindingDescriptions = vertexInputBindingDescriptions;
+    vertexInputState.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputState.pNext                           = NULL;
+    vertexInputState.flags                           = 0;
+    vertexInputState.vertexBindingDescriptionCount   = sizeof(vertexInputBindingDescriptions)/sizeof(vertexInputBindingDescriptions[0]);
+    vertexInputState.pVertexBindingDescriptions      = vertexInputBindingDescriptions;
     vertexInputState.vertexAttributeDescriptionCount = sizeof(vertexInputAttributeDescriptions)/sizeof(vertexInputAttributeDescriptions[0]);
-    vertexInputState.pVertexAttributeDescriptions = vertexInputAttributeDescriptions;
+    vertexInputState.pVertexAttributeDescriptions    = vertexInputAttributeDescriptions;
 
+
+    /*
+    The input assembly state basically controls the topology of the vertex data (whether or not the rasterizer should
+    treat the vertex data as triangles, lines, etc.). Where the section above defined the structure of the vertex
+    buffer(s), this defines how the rasterizer should interpret the vertex buffer(s) when rasterizing.
+    */
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState;
-    inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssemblyState.pNext = NULL;
-    inputAssemblyState.flags = 0;
-    inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyState.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyState.pNext                  = NULL;
+    inputAssemblyState.flags                  = 0;
+    inputAssemblyState.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyState.primitiveRestartEnable = VK_FALSE;
 
+
+    /*
+    Viewport state. This is the glViewport() and glScissor() of Vulkan. These can actually be set dynamically rather
+    than statically. We're going to use this property in this example. By setting pViewports and pScissors to NULL,
+    we're telling Vulkan that we'll set these dynamically with vkCmdSetViewport() and vkCmdSetScissor() respectively.
+    */
     VkPipelineViewportStateCreateInfo viewportState;
-    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.pNext = NULL;
-    viewportState.flags = 0;
+    viewportState.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportState.pNext         = NULL;
+    viewportState.flags         = 0;
     viewportState.viewportCount = 1;
-    viewportState.pViewports = NULL;    // <-- Set to NULL because we are using dynamic viewports.
-    viewportState.scissorCount = 1;
-    viewportState.pScissors = NULL;     // <-- Set to NULL because we are using dynamic scissor rectangles.
+    viewportState.pViewports    = NULL; /* <-- Set to NULL because we are using dynamic viewports. Set with vkCmdSetViewport(). */
+    viewportState.scissorCount  = 1;
+    viewportState.pScissors     = NULL; /* <-- Set to NULL because we are using dynamic scissor rectangles. Set with vkCmdSetScissor(). */
 
+
+    /*
+    Rasterization state. This is where you set your fill modes, backface culling, polygon winding, etc.
+    */
     VkPipelineRasterizationStateCreateInfo rasterizationState;
-    rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizationState.pNext = NULL;
-    rasterizationState.flags = 0;
-    rasterizationState.depthClampEnable = VK_FALSE;
+    rasterizationState.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationState.pNext                   = NULL;
+    rasterizationState.flags                   = 0;
+    rasterizationState.depthClampEnable        = VK_FALSE;
     rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-    rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterizationState.depthBiasEnable = VK_FALSE;
+    rasterizationState.polygonMode             = VK_POLYGON_MODE_FILL;
+    rasterizationState.cullMode                = VK_CULL_MODE_BACK_BIT;
+    rasterizationState.frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE;   /* <-- This is the polygon winding. */
+    rasterizationState.depthBiasEnable         = VK_FALSE;
     rasterizationState.depthBiasConstantFactor = 0;
-    rasterizationState.depthBiasClamp = 1;
-    rasterizationState.depthBiasSlopeFactor = 0;
-    rasterizationState.lineWidth = 1;
+    rasterizationState.depthBiasClamp          = 1;
+    rasterizationState.depthBiasSlopeFactor    = 0;
+    rasterizationState.lineWidth               = 1;
 
+
+    /*
+    Multisample state. We're not doing multisample anti-aliasing in this example, so we're just setting this to basic
+    values. Note that rasterizationSamples should be set to VK_SAMPLE_COUNT_1_BIT to disable MSAA.
+    */
     VkPipelineMultisampleStateCreateInfo multisampleState;
-    multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampleState.pNext = NULL;
-    multisampleState.flags = 0;
-    multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    multisampleState.sampleShadingEnable = VK_FALSE;
-    multisampleState.minSampleShading = 0;
-    multisampleState.pSampleMask = NULL;
+    multisampleState.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleState.pNext                 = NULL;
+    multisampleState.flags                 = 0;
+    multisampleState.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
+    multisampleState.sampleShadingEnable   = VK_FALSE;
+    multisampleState.minSampleShading      = 0;
+    multisampleState.pSampleMask           = NULL;
     multisampleState.alphaToCoverageEnable = VK_FALSE;
-    multisampleState.alphaToOneEnable = VK_FALSE;
+    multisampleState.alphaToOneEnable      = VK_FALSE;
 
+
+    /*
+    Depth/stencil state. 
+    */
     VkPipelineDepthStencilStateCreateInfo depthStencilState;
-    depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depthStencilState.pNext = NULL;
-    depthStencilState.flags = 0;
-    depthStencilState.depthTestEnable = VK_TRUE;
-    depthStencilState.depthWriteEnable = VK_TRUE;
-    depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-    depthStencilState.depthBoundsTestEnable = VK_FALSE; // <-- Experiment with this.
-    depthStencilState.stencilTestEnable = VK_FALSE;
-    depthStencilState.front;
-    depthStencilState.back;
-    depthStencilState.minDepthBounds = 0;
-    depthStencilState.maxDepthBounds = 1;
+    depthStencilState.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencilState.pNext                 = NULL;
+    depthStencilState.flags                 = 0;
+    depthStencilState.depthTestEnable       = VK_TRUE;  /* This example will be using depth testing. */
+    depthStencilState.depthWriteEnable      = VK_TRUE;  /* We'll want to write to the depth buffer. */
+    depthStencilState.depthCompareOp        = VK_COMPARE_OP_LESS_OR_EQUAL;
+    depthStencilState.depthBoundsTestEnable = VK_FALSE;
+    depthStencilState.stencilTestEnable     = VK_FALSE; /* No stencil testing in this example. The "front" and "back" settings don't matter here. */
+    depthStencilState.front.failOp          = VK_STENCIL_OP_KEEP;
+    depthStencilState.front.passOp          = VK_STENCIL_OP_KEEP;
+    depthStencilState.front.depthFailOp     = VK_STENCIL_OP_KEEP;
+    depthStencilState.front.compareOp       = VK_COMPARE_OP_NEVER;
+    depthStencilState.front.compareMask     = 0;
+    depthStencilState.front.writeMask       = 0;
+    depthStencilState.front.reference       = 0;
+    depthStencilState.back                  = depthStencilState.front;  /* We're not doing stencil testing, so set to whatever you want (but make sure it's valid for correctness sake). */
+    depthStencilState.minDepthBounds        = 0;
+    depthStencilState.maxDepthBounds        = 1;
 
-    VkPipelineColorBlendAttachmentState colorBlendAttachmentStates[1];  // <-- One for each color attachment used by the subpass.
-    colorBlendAttachmentStates[0].blendEnable = VK_FALSE;
+
+    /*
+    Color blend state. We have one color blend attachment state for each color attachment in the subpass. This'll be
+    explained below in when creating the render pass.
+    */
+    VkPipelineColorBlendAttachmentState colorBlendAttachmentStates[1];  /* <-- One for each color attachment used by the subpass. */
+    colorBlendAttachmentStates[0].blendEnable         = VK_FALSE;
     colorBlendAttachmentStates[0].srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
     colorBlendAttachmentStates[0].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-    colorBlendAttachmentStates[0].colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachmentStates[0].colorBlendOp        = VK_BLEND_OP_ADD;
     colorBlendAttachmentStates[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
     colorBlendAttachmentStates[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-    colorBlendAttachmentStates[0].alphaBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachmentStates[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachmentStates[0].alphaBlendOp        = VK_BLEND_OP_ADD;
+    colorBlendAttachmentStates[0].colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
     VkPipelineColorBlendStateCreateInfo colorBlendState;
-    colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colorBlendState.pNext = NULL;
-    colorBlendState.flags = 0;
-    colorBlendState.logicOpEnable = VK_FALSE;
-    colorBlendState.logicOp = VK_LOGIC_OP_CLEAR;
-    colorBlendState.attachmentCount = sizeof(colorBlendAttachmentStates)/sizeof(colorBlendAttachmentStates[0]);
-    colorBlendState.pAttachments = colorBlendAttachmentStates;
+    colorBlendState.sType             = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendState.pNext             = NULL;
+    colorBlendState.flags             = 0;
+    colorBlendState.logicOpEnable     = VK_FALSE;
+    colorBlendState.logicOp           = VK_LOGIC_OP_CLEAR;
+    colorBlendState.attachmentCount   = sizeof(colorBlendAttachmentStates)/sizeof(colorBlendAttachmentStates[0]);
+    colorBlendState.pAttachments      = colorBlendAttachmentStates;
     colorBlendState.blendConstants[0] = 0;
     colorBlendState.blendConstants[1] = 0;
     colorBlendState.blendConstants[2] = 0;
     colorBlendState.blendConstants[3] = 0;
 
+
+    /*
+    Dynamic state. Vulkan allows for some state to be dynamically set instead of statically. We're using a dynamic
+    viewport and scissor in this example, mainly just to demonstrate how to use it. This requires us to call
+    vkCmdSetViewport() and vkCmdSetScissor() at some point when building the command queue.
+    */
     VkDynamicState dynamicStates[2];
     dynamicStates[0] = VK_DYNAMIC_STATE_VIEWPORT;
     dynamicStates[1] = VK_DYNAMIC_STATE_SCISSOR;
 
     VkPipelineDynamicStateCreateInfo dynamicState;
-    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.pNext = NULL;
-    dynamicState.flags = 0;
+    dynamicState.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.pNext             = NULL;
+    dynamicState.flags             = 0;
     dynamicState.dynamicStateCount = sizeof(dynamicStates)/sizeof(dynamicStates[0]);
-    dynamicState.pDynamicStates = dynamicStates;
+    dynamicState.pDynamicStates    = dynamicStates;
+    
 
+    /*
+    Pipeline layout. This defines descriptor set layouts and push constants. Descriptor set layouts basically define the
+    uniform variables in your shaders. Example shader:
+
+        layout(set = 0, binding = 0) uniform sampler   FRAG_Sampler;
+        layout(set = 0, binding = 1) uniform texture2D FRAG_Texture;
+
+    The declarations above declare a sampler and a 2D texture. The "set" element in the layout decoration represent the
+    descriptor set layout defined below. Each set can be associated with multiple bindings. You bind data at the level
+    of a descriptor set, so it makes sense to group shader resources by the frequency at which they're updated. For
+    example, you may want to have one descriptor set for global data that is updated once per frame, and then another
+    descriptor set for data that is updated per object.
+    */
 
     /*
     This example is using only a single texture. Vulkan supports separate textures and samplers (multiple samplers to 1 texture, for example). Since this
     is the more complicated way of doing textures, that's what we're going to do. You can also use a combined image/sampler which might be more useful in
     many situations, but that is easy to figure out on your own (hint: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).
     */
-    VkDescriptorSetLayout descriptorSetLayouts[1];
-
     VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[2];
-    descriptorSetLayoutBindings[0].binding = 0;
-    descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    descriptorSetLayoutBindings[0].descriptorCount = 1;                         /* <-- If you had an array of samplers defined in the shader, you would set this to the size of the array. */
-    descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;   /* <-- We're only going to be accessing the sampler from the fragment shader. */
-    descriptorSetLayoutBindings[0].pImmutableSamplers = NULL;                   /* <-- We'll use dynamic samplers for this example, but immutable samplers could be really useful in which case you'd set them here. */
+    descriptorSetLayoutBindings[0].binding            = 0;                                  /* The "binding" in "layout(set = 0, binding = 0)" */
+    descriptorSetLayoutBindings[0].descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;         /* The "sampler" in "uniform sampler FRAG_Sampler" */
+    descriptorSetLayoutBindings[0].descriptorCount    = 1;                                  /* If you had an array of samplers defined in the shader, you would set this to the size of the array. */
+    descriptorSetLayoutBindings[0].stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT;       /* We're only going to be accessing the sampler from the fragment shader. */
+    descriptorSetLayoutBindings[0].pImmutableSamplers = NULL;                               /* We'll use dynamic samplers for this example, but immutable samplers could be really useful in which case you'd set them here. */
 
-    descriptorSetLayoutBindings[1].binding = 1;
-    descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    descriptorSetLayoutBindings[1].descriptorCount = 1;                         /* <-- If you had an array of textures defined in the shader, you would set this to the size of the array. */
-    descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;   /* <-- We're only going to be accessing the image from the fragment shader. */
-    descriptorSetLayoutBindings[1].pImmutableSamplers = NULL;                   /* <-- Always NULL for images. */
+    descriptorSetLayoutBindings[1].binding            = 1;                                  /* The "binding" in "layout(set = 0, binding = 1)" */
+    descriptorSetLayoutBindings[1].descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;   /* The "texture2D" in "uniform texture2D FRAG_Texture". Same thing for texture1D, texture3D and textureCube. */
+    descriptorSetLayoutBindings[1].descriptorCount    = 1;                                  /* If you had an array of textures defined in the shader, you would set this to the size of the array. */
+    descriptorSetLayoutBindings[1].stageFlags         = VK_SHADER_STAGE_FRAGMENT_BIT;       /* We're only going to be accessing the image from the fragment shader. */
+    descriptorSetLayoutBindings[1].pImmutableSamplers = NULL;                               /* Always NULL for images. */
 
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descriptorSetLayoutCreateInfo.pNext = NULL;
-    descriptorSetLayoutCreateInfo.flags = 0;
+    descriptorSetLayoutCreateInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptorSetLayoutCreateInfo.pNext        = NULL;
+    descriptorSetLayoutCreateInfo.flags        = 0;
     descriptorSetLayoutCreateInfo.bindingCount = sizeof(descriptorSetLayoutBindings) / sizeof(descriptorSetLayoutBindings[0]);
-    descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings;
+    descriptorSetLayoutCreateInfo.pBindings    = descriptorSetLayoutBindings;
 
+    VkDescriptorSetLayout descriptorSetLayouts[1];
     result = vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, NULL, &descriptorSetLayouts[0]);
     if (result != VK_SUCCESS) {
         printf("Failed to create descriptor set layout.");
         return -1;
     }
 
-
     VkPipelineLayoutCreateInfo pipelineLayoutInfo;
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.pNext = NULL;
-    pipelineLayoutInfo.flags = 0;
-    pipelineLayoutInfo.setLayoutCount = sizeof(descriptorSetLayouts) / sizeof(descriptorSetLayouts[0]);
-    pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts;
+    pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.pNext                  = NULL;
+    pipelineLayoutInfo.flags                  = 0;
+    pipelineLayoutInfo.setLayoutCount         = sizeof(descriptorSetLayouts) / sizeof(descriptorSetLayouts[0]);
+    pipelineLayoutInfo.pSetLayouts            = descriptorSetLayouts;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
-    pipelineLayoutInfo.pPushConstantRanges = NULL;
+    pipelineLayoutInfo.pPushConstantRanges    = NULL;
 
     VkPipelineLayout pipelineLayout;
     result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipelineLayout);
@@ -976,52 +987,410 @@ int main(int argc, char** argv)
         return 2;
     }
 
-    VkGraphicsPipelineCreateInfo pipelineInfo;
-    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.pNext = NULL;
-    pipelineInfo.flags = 0;
-    pipelineInfo.stageCount = 2;    // Vertex + Fragment
-    pipelineInfo.pStages = pipelineStages;
-    pipelineInfo.pVertexInputState = &vertexInputState;
-    pipelineInfo.pInputAssemblyState = &inputAssemblyState;
-    pipelineInfo.pTessellationState = NULL; // <-- Not using tessellation shaders here, so set to NULL.
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizationState;
-    pipelineInfo.pMultisampleState = &multisampleState;
-    pipelineInfo.pDepthStencilState = &depthStencilState;
-    pipelineInfo.pColorBlendState = &colorBlendState;
-    pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = pipelineLayout;
-    pipelineInfo.renderPass = renderpass;
-    pipelineInfo.subpass = 0;
-    pipelineInfo.basePipelineHandle = 0;
-    pipelineInfo.basePipelineIndex = 0;
 
-    VkPipeline vkPipeline;
-    result = vkCreateGraphicsPipelines(device, 0, 1, &pipelineInfo, NULL, &vkPipeline);
+    /*
+    Render pass.
+    */
+    VkAttachmentDescription attachmentDesc[2];  /* 1 color attachment, 1 depth/stencil attachment. */
+
+    /* Color attachment. */
+    attachmentDesc[0].flags          = 0;
+    attachmentDesc[0].format         = VK_FORMAT_R8G8B8A8_UNORM;   /* <-- Maybe set this to the same format as your swapchain (below) to avoid some data conversion overhead? */
+    attachmentDesc[0].samples        = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDesc[0].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDesc[0].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDesc[0].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDesc[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDesc[0].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDesc[0].finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    /* Depth/stencil attachment. */
+    attachmentDesc[1].flags          = 0;
+    attachmentDesc[1].format         = VK_FORMAT_D24_UNORM_S8_UINT;
+    attachmentDesc[1].samples        = VK_SAMPLE_COUNT_1_BIT;
+    attachmentDesc[1].loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDesc[1].storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDesc[1].stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachmentDesc[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachmentDesc[1].initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachmentDesc[1].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference colorAttachment;
+    colorAttachment.attachment = 0;         /* Index into attachmentDescp[] */
+    colorAttachment.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthStencilAttachment;
+    depthStencilAttachment.attachment = 1;  /* Index into attachmentDescp[] */
+    depthStencilAttachment.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    /* We'll preserve all of our attachments, but not actually necessary since we're only using a single subpass. */
+    uint32_t preservedAttachments[2];
+    preservedAttachments[0] = 0;
+    preservedAttachments[1] = 1;
+
+    VkSubpassDescription subpassDesc;
+    subpassDesc.flags = 0;
+    subpassDesc.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpassDesc.inputAttachmentCount    = 0;
+    subpassDesc.pInputAttachments       = NULL;
+    subpassDesc.colorAttachmentCount    = 1;
+    subpassDesc.pColorAttachments       = &colorAttachment;
+    subpassDesc.pResolveAttachments     = NULL;
+    subpassDesc.pDepthStencilAttachment = &depthStencilAttachment;
+    subpassDesc.preserveAttachmentCount = sizeof(preservedAttachments) / sizeof(preservedAttachments[0]);
+    subpassDesc.pPreserveAttachments    = preservedAttachments;
+
+    VkRenderPassCreateInfo renderpassInfo;
+    renderpassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderpassInfo.pNext           = NULL;
+    renderpassInfo.flags           = 0;
+    renderpassInfo.attachmentCount = sizeof(attachmentDesc) / sizeof(attachmentDesc[0]);
+    renderpassInfo.pAttachments    = attachmentDesc;
+    renderpassInfo.subpassCount    = 1;
+    renderpassInfo.pSubpasses      = &subpassDesc;
+    renderpassInfo.dependencyCount = 0;
+    renderpassInfo.pDependencies   = NULL;
+
+    VkRenderPass renderPass;
+    result = vkCreateRenderPass(device, &renderpassInfo, NULL, &renderPass);
+    if (result != VK_SUCCESS) {
+        printf("Failed to create render pass.");
+        return -2;
+    }
+
+
+    /*
+    At this point we finally have everything we need to create the pipeline object. Creating a pipeline object is
+    slightly different to the creation of most other Vulkan objects. For pipelines, you can actually create multiple
+    pipeline objects with a single call. In this example we're only using a single pipeline object, but most real-world
+    projects will require multiple.
+    */
+    VkGraphicsPipelineCreateInfo pipelineInfo;
+    pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.pNext               = NULL;
+    pipelineInfo.flags               = 0;
+    pipelineInfo.stageCount          = sizeof(pipelineStages) / sizeof(pipelineStages[0]);
+    pipelineInfo.pStages             = pipelineStages;
+    pipelineInfo.pVertexInputState   = &vertexInputState;
+    pipelineInfo.pInputAssemblyState = &inputAssemblyState;
+    pipelineInfo.pTessellationState  = NULL; /* <-- Not using tessellation shaders here, so set to NULL. */
+    pipelineInfo.pViewportState      = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizationState;
+    pipelineInfo.pMultisampleState   = &multisampleState;
+    pipelineInfo.pDepthStencilState  = &depthStencilState;
+    pipelineInfo.pColorBlendState    = &colorBlendState;
+    pipelineInfo.pDynamicState       = &dynamicState;
+    pipelineInfo.layout              = pipelineLayout;
+    pipelineInfo.renderPass          = renderPass;
+    pipelineInfo.subpass             = 0;
+    pipelineInfo.basePipelineHandle  = 0;
+    pipelineInfo.basePipelineIndex   = 0;
+
+    VkPipeline pipeline;
+    result = vkCreateGraphicsPipelines(device, 0, 1, &pipelineInfo, NULL, &pipeline);
     if (result != VK_SUCCESS) {
         printf("Failed to create graphics pipeline.");
         return -2;
     }
 
 
-    // We need two framebuffers - one for each image in the swapchain.
-    VkFramebuffer framebuffers[2];
-    for (int i = 0; i < 2; ++i) {
-        VkImageView framebufferAttachments[1];
-        framebufferAttachments[0] = imageViews[i];
+
+    /*
+    The next concept to introduce is that of the swapchain. The swapchain is closely related to the surface. Indeed,
+    you need a surface before you can create a swapchain. A swapchain is made up of a number of images which, as the
+    name suggests, are swapped with each other at display time.
+
+    In a double buffered environment, there will be two images in the swapchain. At any given moment, one of those
+    images will be displayed on the window, while the other one, which is off-screen, is being drawn to by the graphics
+    driver. When the off-screen image is ready to be displayed, the two images are swapped and their roles reversed.
+
+    To create a swapchain, you'll first need a surface which we've already created. You'll also need to determine how
+    many images you need in the swap chain. If you're using double buffering you'll need two which is what we'll be
+    using in this example. Triple buffering will require three images.
+
+    Since the swapchain is made up of a number of images, we'll also need to specify the format and size of the images.
+    If we try specifying an unsupported image format, creation of the swapchain will fail. We'll need to first
+    enumerate over each of our supported formats. While you're just getting started, just use either VK_R8G8B8A8_UNORM
+    or VK_B8G8R8A8_UNORM and move on. From there you can start experimenting with sRGB formats if that's important for
+    you. For robustness you may want to check for available formats beforehand which is what this example does.
+    */
+    VkSurfaceFormatKHR supportedFormats[256];
+    uint32_t supportedFormatsCount = sizeof(supportedFormats) / sizeof(supportedFormats[0]);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(pPhysicalDevices[selectedPhysicalDeviceIndex], surface, &supportedFormatsCount, supportedFormats);
+    if (result != VK_SUCCESS) {
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        printf("Failed to retrieve physical device surface formats.");
+        return -1;
+    }
+
+    uint32_t iFormat = (uint32_t)-1;
+    for (uint32_t i = 0; i < supportedFormatsCount; ++i) {
+        if (supportedFormats[i].format == VK_FORMAT_R8G8B8A8_UNORM || supportedFormats[i].format == VK_FORMAT_B8G8R8A8_UNORM) {   /* <-- Can also use VK_FORMAT_*_SRGB */
+            iFormat = i;
+            break;
+        }
+    }
+
+    if (iFormat == (uint32_t)-1) {
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        printf("Could not find suitable display format.");
+        return -1;
+    }
+
+
+    /*
+    A this point we'll have our format selected, but there's just a few more pieces of information we'll need to
+    retrieve real quick. The swapchain CreateInfo structure will ask for the size of the images and a transform, which
+    is 90 degree rotations and flips. These can be retrieved from the current state of the surface. It's not entirely
+    necessary to do this, but it's an easy way to get suitable values.
+    */
+    VkSurfaceCapabilitiesKHR surfaceCaps;
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pPhysicalDevices[selectedPhysicalDeviceIndex], surface, &surfaceCaps);
+    if (result != VK_SUCCESS) {
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        printf("Failed to retrieve surface capabilities.");
+        return -1;
+    }
+
+    VkSwapchainCreateInfoKHR swapchainInfo;
+    swapchainInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainInfo.pNext                 = NULL;
+    swapchainInfo.flags                 = 0;
+    swapchainInfo.surface               = surface;
+    swapchainInfo.minImageCount         = 2;                                    /* Set this to 2 for double buffering. Triple buffering would be 3, etc. */
+    swapchainInfo.imageFormat           = supportedFormats[iFormat].format;     /* The format we selected earlier. */
+    swapchainInfo.imageColorSpace       = supportedFormats[iFormat].colorSpace; /* The color space we selected earlier. */
+    swapchainInfo.imageExtent           = surfaceCaps.currentExtent;            /* The size of the images of the swapchain. Keep this the same size as the surface. */
+    swapchainInfo.imageArrayLayers      = 1;                                    /* I'm not sure in what situation you would ever want to set this to anything other than 1. */
+    swapchainInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchainInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+    swapchainInfo.queueFamilyIndexCount = 0;                                    /* Only used when imageSharingMode is VK_SHARING_MODE_CONCURRENT. */
+    swapchainInfo.pQueueFamilyIndices   = NULL;                                 /* Only used when imageSharingMode is VK_SHARING_MODE_CONCURRENT. */
+    swapchainInfo.preTransform          = surfaceCaps.currentTransform;         /* Rotations (90 degree increments) and flips. Just use the current transform from the surface and move on. */
+    swapchainInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchainInfo.presentMode           = VK_PRESENT_MODE_FIFO_KHR;             /* This is what controls vsync. FIFO must always be supported, so use it by default. */
+    swapchainInfo.clipped               = VK_TRUE;                              /* Set this to true if you're only displaying to a window. */
+    swapchainInfo.oldSwapchain          = VK_NULL_HANDLE;                       /* You would set this if you're creating a new swapchain to replace an old one, such as when resizing a window. */
+
+    VkSwapchainKHR swapchain;
+    result = vkCreateSwapchainKHR(device, &swapchainInfo, NULL, &swapchain);
+    if (result != VK_SUCCESS) {
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        printf("Failed to create swapchain.");
+        return -2;
+    }
+
+
+    /*
+    At this point the swapchain has been created, but there's a little bit more to do. Later on we're going to be
+    creating a framebuffer for each of the swapchain images. Framebuffers interact with swapchain images through an
+    image view so we'll need to create those too.
+
+    We'll first determine the number of images making up the swapchain. When you created the swapchain you specified
+    the *minimum* number of images making up the swapchain. That doesn't mean the driver didn't give you more. You'll
+    need to handle this if you want a robust program. In practice, my testing has yielded an identical image count as
+    specified in minImageCount for 2 (double buffered) and 3 (triple buffered) which will meet the needs of the vast
+    majority of cases. When minImageCount is set to 1, my NVIDIA driver always allocates 2 images. I have not been
+    able to do single-buffered rendering in Vulkan.
+
+    I'm allocating the image and image view objects statically on the stack for simplicity and to avoid cluttering the
+    code with non-Vulkan code.
+    */
+    VkImage swapchainImages[16];    /* <-- Overkill. Consider allocating this dynamically. */
+    uint32_t swapchainImageCount = sizeof(swapchainImages) / sizeof(swapchainImages[0]);
+    result = vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, swapchainImages);    /* Set the output buffer to NULL to just retrieve a count. */
+    if (result != VK_SUCCESS) {
+        vkDestroySwapchainKHR(device, swapchain, NULL);
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        printf("Failed to retrieve swapchain image count.");
+        return -1;
+    }
+
+    /* Once we have the swapchain images we can create the views. The views will be used with the framebuffers later. */
+    VkImageView swapchainImageViews[16];
+    for (uint32_t iSwapchainImage = 0; iSwapchainImage < swapchainImageCount; iSwapchainImage += 1) {
+        VkImageViewCreateInfo imageViewInfo;
+        imageViewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewInfo.pNext                           = NULL;
+        imageViewInfo.flags                           = 0;
+        imageViewInfo.image                           = swapchainImages[iSwapchainImage];
+        imageViewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewInfo.format                          = supportedFormats[iFormat].format;
+        imageViewInfo.components.r                    = VK_COMPONENT_SWIZZLE_R;
+        imageViewInfo.components.g                    = VK_COMPONENT_SWIZZLE_G;
+        imageViewInfo.components.b                    = VK_COMPONENT_SWIZZLE_B;
+        imageViewInfo.components.a                    = VK_COMPONENT_SWIZZLE_A;
+        imageViewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewInfo.subresourceRange.baseMipLevel   = 0;
+        imageViewInfo.subresourceRange.levelCount     = 1;
+        imageViewInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewInfo.subresourceRange.layerCount     = 1;
+        result = vkCreateImageView(device, &imageViewInfo, NULL, &swapchainImageViews[iSwapchainImage]);
+        if (result != VK_SUCCESS) {
+            vkDestroySwapchainKHR(device, swapchain, NULL);
+            vkDestroyDevice(device, NULL);
+            vkDestroySurfaceKHR(instance, surface, NULL);
+            vkDestroyInstance(instance, NULL);
+            printf("Failed to create image views for swapchain images.");
+            return -2;
+        }
+    }
+
+    /*
+    There's one last bit of prep work we're needing to do for the swapchain. Swapping images within the swapchain need
+    to be synchronized which we achieve by using a semaphore which is passed in to vkAcquireNextImageKHR() and then
+    waited for in the call to vkQueuePresentKHR() by adding it to the pWaitSemaphore member. This'll be explained later
+    in the main loop, but we'll create the semapahore now in preparation.
+
+    Semaphores are deleted with vkDestroySemaphore().
+    */
+    VkSemaphoreCreateInfo semaphoreInfo;
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreInfo.pNext = 0;
+    semaphoreInfo.flags = 0;
+
+    VkSemaphore swapchainSmaphore;
+    vkCreateSemaphore(device, &semaphoreInfo, NULL, &swapchainSmaphore);
+
+
+
+    /*
+    In order for Vulkan to know which images to draw to and which images to use for the depth and stencil buffers, we
+    use a VkFramebuffer object. We need to create one for each swapchain image. In our particular example, we can get
+    away with just a single depth/stencil buffer. If you were using triple buferring you'd need two (one for each of
+    the in-progress back buffers).
+
+    Since we don't have a depth/stencil buffer yet, we'll need to create one. Fortunately this is a bit simpler than
+    the creation of a texture which you'll see below because we don't need to worry about copying data.
+    */
+
+    /*
+    Like swapchain images, the depth/stencil buffer is made up of both a VkImage and a VkImageView. We'll need to
+    create the VkImage first, followed by the VkImageView.
+    */
+    VkImageCreateInfo depthStencilImageCreateInfo;
+    depthStencilImageCreateInfo.sType                 = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    depthStencilImageCreateInfo.pNext                 = NULL;
+    depthStencilImageCreateInfo.flags                 = 0;
+    depthStencilImageCreateInfo.imageType             = VK_IMAGE_TYPE_2D;
+    depthStencilImageCreateInfo.format                = VK_FORMAT_D24_UNORM_S8_UINT;    /* <-- Typical depth/stencil format. Should be supported most everywhere. */
+    depthStencilImageCreateInfo.extent.width          = surfaceCaps.currentExtent.width;
+    depthStencilImageCreateInfo.extent.height         = surfaceCaps.currentExtent.height;
+    depthStencilImageCreateInfo.extent.depth          = 1;
+    depthStencilImageCreateInfo.mipLevels             = 1;
+    depthStencilImageCreateInfo.arrayLayers           = 1;
+    depthStencilImageCreateInfo.samples               = VK_SAMPLE_COUNT_1_BIT;
+    depthStencilImageCreateInfo.tiling                = VK_IMAGE_TILING_OPTIMAL;
+    depthStencilImageCreateInfo.usage                 = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    depthStencilImageCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    depthStencilImageCreateInfo.queueFamilyIndexCount = 0;
+    depthStencilImageCreateInfo.pQueueFamilyIndices   = NULL;
+    depthStencilImageCreateInfo.initialLayout         = VK_IMAGE_LAYOUT_UNDEFINED;  /* <-- Will be transitioned to VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL by the render pass. */
+
+    VkImage depthStencilImage;
+    result = vkCreateImage(device, &depthStencilImageCreateInfo, NULL, &depthStencilImage);
+    if (result != VK_SUCCESS) {
+        printf("Failed to create depth/stencil image.");
+        return -1;
+    }
+
+
+    /*
+    The image object for the depth/stencil image has been created, but it doesn't yet have any memory allocated for it.
+    This will be explained in more detail when we get to creating a texture.
+    */
+    VkMemoryRequirements depthStencilImageMemoryReqs;
+    vkGetImageMemoryRequirements(device, depthStencilImage, &depthStencilImageMemoryReqs);
+
+    VkMemoryAllocateInfo depthStencilImageMemoryAllocateInfo;
+    depthStencilImageMemoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    depthStencilImageMemoryAllocateInfo.pNext           = NULL;
+    depthStencilImageMemoryAllocateInfo.allocationSize  = depthStencilImageMemoryReqs.size;
+    depthStencilImageMemoryAllocateInfo.memoryTypeIndex = (uint32_t)-1; /* <-- Set to a proper value in the loop below. */
+
+    for (uint32_t iMemoryType = 0; iMemoryType < physicalDeviceMemoryProps.memoryTypeCount; iMemoryType += 1) { /* Check each supported memory type. */
+        if ((depthStencilImageMemoryReqs.memoryTypeBits & (1 << iMemoryType)) != 0) {  /* Check if the image memory can be allocated by this memory type. */
+            if ((physicalDeviceMemoryProps.memoryTypes[iMemoryType].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {  /* Check that this memory type supports GPU-side memory (device local). */
+                depthStencilImageMemoryAllocateInfo.memoryTypeIndex = iMemoryType;
+                break;
+            }
+        }
+    }
+
+    VkDeviceMemory depthStencilImageMemory;
+    result = vkAllocateMemory(device, &depthStencilImageMemoryAllocateInfo, NULL, &depthStencilImageMemory);
+    if (result != VK_SUCCESS) {
+        printf("Failed to allocate memory for depth/stencil image.");
+        return -1;
+    }
+
+    result = vkBindImageMemory(device, depthStencilImage, depthStencilImageMemory, 0);
+    if (result != VK_SUCCESS) {
+        printf("Failed to bind memory for depth/stencil image.");
+        return -1;
+    }
+
+
+    /*
+    The image view can only be created after allocating and binding memory for the depth/stencil image. Not doing this
+    will result in a crash.
+    */
+    VkImageViewCreateInfo depthStencilImageViewCreateInfo;
+    depthStencilImageViewCreateInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    depthStencilImageViewCreateInfo.pNext                           = NULL;
+    depthStencilImageViewCreateInfo.flags                           = 0;
+    depthStencilImageViewCreateInfo.image                           = depthStencilImage;
+    depthStencilImageViewCreateInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+    depthStencilImageViewCreateInfo.format                          = VK_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilImageViewCreateInfo.components.r                    = VK_COMPONENT_SWIZZLE_R;
+    depthStencilImageViewCreateInfo.components.g                    = VK_COMPONENT_SWIZZLE_G;
+    depthStencilImageViewCreateInfo.components.b                    = VK_COMPONENT_SWIZZLE_B;
+    depthStencilImageViewCreateInfo.components.a                    = VK_COMPONENT_SWIZZLE_A;
+    depthStencilImageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    depthStencilImageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
+    depthStencilImageViewCreateInfo.subresourceRange.levelCount     = 1;
+    depthStencilImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    depthStencilImageViewCreateInfo.subresourceRange.layerCount     = 1;
+
+    VkImageView depthStencilImageView;
+    result = vkCreateImageView(device, &depthStencilImageViewCreateInfo, NULL, &depthStencilImageView);
+    if (result != VK_SUCCESS) {
+        printf("Failed to create depth/stencil image view.");
+        return -1;
+    }
+
+
+
+    /*
+    We need one framebuffer for each swapchain image, but we can use the same depth/stencil buffer.
+    */
+    VkFramebuffer swapchainFramebuffers[16];
+    for (uint32_t iSwapchainImage = 0; iSwapchainImage < swapchainImageCount; ++iSwapchainImage) {
+        VkImageView framebufferAttachments[2];
+        framebufferAttachments[0] = swapchainImageViews[iSwapchainImage];
+        framebufferAttachments[1] = depthStencilImageView;
 
         VkFramebufferCreateInfo framebufferInfo;
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.pNext = NULL;
-        framebufferInfo.flags = 0;
-        framebufferInfo.renderPass = renderpass;
+        framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.pNext           = NULL;
+        framebufferInfo.flags           = 0;
+        framebufferInfo.renderPass      = renderPass;
         framebufferInfo.attachmentCount = sizeof(framebufferAttachments)/sizeof(framebufferAttachments[0]);
-        framebufferInfo.pAttachments = framebufferAttachments;
-        framebufferInfo.width = surfaceCaps.currentExtent.width;
-        framebufferInfo.height = surfaceCaps.currentExtent.height;
-        framebufferInfo.layers = 1;
-        result = vkCreateFramebuffer(device, &framebufferInfo, NULL, &framebuffers[i]);
+        framebufferInfo.pAttachments    = framebufferAttachments;
+        framebufferInfo.width           = surfaceCaps.currentExtent.width;
+        framebufferInfo.height          = surfaceCaps.currentExtent.height;
+        framebufferInfo.layers          = 1;    /* <-- I'm not sure in what situation you would set to anything other than 1. */
+        result = vkCreateFramebuffer(device, &framebufferInfo, NULL, &swapchainFramebuffers[iSwapchainImage]);
         if (result != VK_SUCCESS) {
             printf("Failed to create framebuffer.");
             return -2;
@@ -1029,133 +1398,282 @@ int main(int argc, char** argv)
     }
 
 
+    /*
+    Here is where we introduce command buffers. We need this before we create our vertex and index buffer and texture
+    because we need to execute a command for copying memory from system memory to GPU memory (explained later).
 
-    // Command queue.
-    VkCommandPoolCreateInfo cmdpoolInfo;
-    cmdpoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    cmdpoolInfo.pNext = NULL;
-    cmdpoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    cmdpoolInfo.queueFamilyIndex = selectedQueueFamilyIndex;
+    This example is only simple so we can get away with using only a single command buffer. Command buffers are created
+    from a pool called VkCommandPool. When you draw stuff, you first record a list of commands into a command buffer.
+    These commands are not executed immediately - they're executed later when you submit the command buffer to a queue.
+    This design allows you to pre-record command buffers at an earlier stage (perhaps at load time) and reuse them
+    without needing to incur the cost of re-issuing the drawing commands. This system, however, isn't always practical
+    and sometimes you will want the command buffer to be reset so you can reuse them. This option needs to be specified
+    at the level of the command pool, which is what we do in this example.
 
-    VkCommandPool vkCommandPool;
-    result = vkCreateCommandPool(device, &cmdpoolInfo, NULL, &vkCommandPool);
+    You've probably seen or heard that one of the main points of difference between Vulkan and OpenGL is Vulkan's well
+    specified multithreading support. Command buffers are where this really starts to become apparent. With Vulkan, you
+    can record multiple command buffers across different threads. When allocating command buffers across different
+    threads you would have separate command pools available on a per-thread basis.
+    */
+    VkCommandPoolCreateInfo commandPoolCreateInfo;
+    commandPoolCreateInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolCreateInfo.pNext            = NULL;
+    commandPoolCreateInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;   /* <-- Allows us to reuse the same command buffer (though not strictly necessary for this example). */
+    commandPoolCreateInfo.queueFamilyIndex = selectedQueueFamilyIndex;                          /* <-- The dreaded queue family needs to be specified for command pools... */
+
+    VkCommandPool commandPool;
+    result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &commandPool);
     if (result != VK_SUCCESS) {
         printf("Failed to create command pool.");
         return -2;
     }
 
-    VkCommandBufferAllocateInfo cmdbufferInfo;
-    cmdbufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    cmdbufferInfo.pNext = NULL;
-    cmdbufferInfo.commandPool = vkCommandPool;
-    cmdbufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    cmdbufferInfo.commandBufferCount = 1;
+    /*
+    Once we have the command pool we can create our command buffers. In our example we only need a single command
+    which we'll be recording dynamically each frame. You don't need to do it like that - you can instead pre-record
+    your command buffers and reuse them without being reset, but those command buffers will need to be allocated from
+    a separate command pool that was created without the VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT flag.
 
-    VkCommandBuffer vkCmdBuffer;
-    result = vkAllocateCommandBuffers(device, &cmdbufferInfo, &vkCmdBuffer);
+    Command buffers can be primary or secondary. Basically, primary command buffers are submitted directly to the queue
+    whereas secondary command buffers are submitted to a primary command buffer. We're not using secondary command
+    buffers here, but if you were wanting to use them, you'd use vkCmdExecuteCommands() to record them to a primary
+    command buffer. There's other details with secondary command buffers which make them particularly useful in
+    certain situations, such as being able to be used simultaneously by multiple primary command buffers (provided the
+    necessary flag has been set on the secondary command buffer - VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT). I'll
+    leave this an excercise for you.
+    */
+    VkCommandBufferAllocateInfo commandBufferCreateInfo;
+    commandBufferCreateInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    commandBufferCreateInfo.pNext              = NULL;
+    commandBufferCreateInfo.commandPool        = commandPool;
+    commandBufferCreateInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    commandBufferCreateInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    result = vkAllocateCommandBuffers(device, &commandBufferCreateInfo, &commandBuffer);
     if (result != VK_SUCCESS) {
         printf("Failed to allocate command buffer.");
         return -2;
     }
 
-    VkQueue vkQueue;
-    vkGetDeviceQueue(device, selectedQueueFamilyIndex, 0, &vkQueue); // <-- TODO: Change "0" to a variable.
+
+
+    /*
+    We'll need a queue before we'll be able to execute any commands. When create created the logical device (VkDevice)
+    we specified how many queues to make available. Here is were we retrieve it. Note that conceptually these queues
+    were created internally when we created the device. Here we just retrieve it by an index rather than creating it.
+    */
+    VkQueue queue;
+    vkGetDeviceQueue(device, selectedQueueFamilyIndex, 0, &queue); /* 0 = queue index. Only using a single queue in this example so will never be anything other than zero. */
 
 
 
-    // Memory and Buffers
-    //
-    // Each device can use different types of memory. You retrieve these from the physical device (VkPhysicalDevice) using
-    // vkGetPhysicalDeviceMemoryProperties(). The main two we care about is VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT and
-    // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT. The former represents memory on the device (your video memory on your GPU) and
-    // the later represents your normal system RAM.
-    //
-    // A buffer (VkBuffer) is bound to memory (VkDeviceMemory) using vkBindBufferMemory().
-    //
-    // In this example we are using the same buffer for both vertex and index data, with the idea being that we store them
-    // both in a single memory allocation.
+    /*
+    Vertex and index buffers.
 
+    In this example we'll be storing vertex and index buffers in GPU memory which is probably where you'll want to
+    store this data in most situations. This involves the use of an intermediary buffer which is allocated to system
+    memory. Then, a command is used to transfer memory from the intermediary buffer to a device local buffer (GPU
+    memory). This transfer is why we were needing to allocate a command buffer first. In my testing, vertex and index
+    buffers don't actually need to be stored in GPU memory, but since it'll be a common thing to do, I'll demonstrate
+    it in this example.
 
+    In this example we're going to use a single VkBuffer for both vertex and index data. The idea is that both can be
+    used with only a single memory allocation.
 
+    The format of your vertex buffer and index buffers must match the format specified when you created the pipeline.
+    */
 
-    // Geometry data. For this example it's simple - it's just 3 floats for position, 3 floats for color, 2 floats for texture
-    // coordinates, interleaved. The hard part is allocating memory and uploading it to a device local buffer.
+    /*
+    This is our geometry data. This needs to match the format we specified when we created the pipeline. These are the
+    attributes used for each vertex which are interleaved.
+
+        - Position:      3xfloat32
+        - Color:         3xfloat32
+        - Texture Coord: 2xfloat32
+    */
     float geometryVertexData[] = {
-        -0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f
+        -0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   /* Vertex 0 */
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,   /* Vertex 1 */
+         0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,   /* Vertex 2 */
+         0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f    /* Vertex 3 */
     };
 
+    /*
+    This is our index data. These are specified based on the topology that was specified when we created the pipeline,
+    which in this example is a triangle list. That means each group of 3 indices specify a triangle. Another thing to
+    consider is the winding, which was also specified when we created the pipeline, which in this example is counter
+    clockwise.
+    */
     uint32_t geometryIndexData[] = {
         0, 1, 2, 2, 3, 0
     };
 
-    VkBufferCreateInfo bufferInfo;
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.pNext = NULL;
-    bufferInfo.flags = 0;
-    bufferInfo.size = sizeof(geometryVertexData) + sizeof(geometryIndexData);
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    bufferInfo.queueFamilyIndexCount = 0;   // <-- Ignored when sharingMode is not VK_SHARING_MODE_CONCURRENT.
-    bufferInfo.pQueueFamilyIndices = NULL;
 
-    VkBuffer vkBuffer;
-    result = vkCreateBuffer(device, &bufferInfo, NULL, &vkBuffer);
+    /*
+    Before we can copy out vertex and index data over to the GPU we first need to copy it into a staging buffer. The
+    staging buffer is used as the intermediary between system memory and GPU memory and is just a normal buffer, but
+    with the appropriate usage mode and a host visible memory allocation.
+    */
+    VkBufferCreateInfo vertexIndexStagingBufferCreateInfo;
+    vertexIndexStagingBufferCreateInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    vertexIndexStagingBufferCreateInfo.pNext                 = NULL;
+    vertexIndexStagingBufferCreateInfo.flags                 = 0;
+    vertexIndexStagingBufferCreateInfo.size                  = sizeof(geometryVertexData) + sizeof(geometryIndexData);
+    vertexIndexStagingBufferCreateInfo.usage                 = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  /* We're going to be using this buffer as the transfer source. */
+    vertexIndexStagingBufferCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    vertexIndexStagingBufferCreateInfo.queueFamilyIndexCount = 0;   /* <-- Ignored when sharingMode is not VK_SHARING_MODE_CONCURRENT. */
+    vertexIndexStagingBufferCreateInfo.pQueueFamilyIndices   = NULL;
+
+    VkBuffer vertexIndexStagingBuffer;
+    result = vkCreateBuffer(device, &vertexIndexStagingBufferCreateInfo, NULL, &vertexIndexStagingBuffer);
     if (result != VK_SUCCESS) {
-        printf("Failed to create buffer for geometry.");
-        return -2;
+        printf("Failed to create vertex/index staging buffer.");
+        return -1;
     }
 
-    VkMemoryRequirements bufferReqs;
-    vkGetBufferMemoryRequirements(device, vkBuffer, &bufferReqs);
+    VkMemoryRequirements vertexIndexStagingBufferMemoryReqs;
+    vkGetBufferMemoryRequirements(device, vertexIndexStagingBuffer, &vertexIndexStagingBufferMemoryReqs);
 
-    VkMemoryAllocateInfo bufferMemoryInfo;
-    bufferMemoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    bufferMemoryInfo.pNext = NULL;
-    bufferMemoryInfo.allocationSize = bufferReqs.size;
-    bufferMemoryInfo.memoryTypeIndex = (uint32_t)-1;    // <-- Set to -1 initially so we can check whether or not a valid memory type was found.
+    VkMemoryAllocateInfo vertexIndexStagingBufferMemoryInfo;
+    vertexIndexStagingBufferMemoryInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    vertexIndexStagingBufferMemoryInfo.pNext           = NULL;
+    vertexIndexStagingBufferMemoryInfo.allocationSize  = vertexIndexStagingBufferMemoryReqs.size;
+    vertexIndexStagingBufferMemoryInfo.memoryTypeIndex = (uint32_t)-1;    /* <-- Set to a proper value below. */
 
-    // The memory type index is found from the physical device memory properties.
-    VkPhysicalDeviceMemoryProperties memoryProps;
-    vkGetPhysicalDeviceMemoryProperties(pPhysicalDevices[selectedPhysicalDeviceIndex], &memoryProps);
-    for (uint32_t i = 0; i < memoryProps.memoryTypeCount; ++i) {
-        if ((bufferReqs.memoryTypeBits & (1U << i)) != 0) {
-            // The bit is set which means the buffer can be used with this type of memory, but we want to make sure this buffer contains the memory type we want.
-            if ((memoryProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-                bufferMemoryInfo.memoryTypeIndex = i;
+    for (uint32_t iMemoryType = 0; iMemoryType < physicalDeviceMemoryProps.memoryTypeCount; ++iMemoryType) {
+        if ((vertexIndexStagingBufferMemoryReqs.memoryTypeBits & (1 << iMemoryType)) != 0) {
+            if ((physicalDeviceMemoryProps.memoryTypes[iMemoryType].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {  /* <-- Staging buffer must be host visible. */
+                vertexIndexStagingBufferMemoryInfo.memoryTypeIndex = iMemoryType;
                 break;
             }
         }
     }
 
-    VkDeviceMemory vkBufferMemory;
-    result = vkAllocateMemory(device, &bufferMemoryInfo, NULL, &vkBufferMemory);
+    VkDeviceMemory vertexIndexStagingBufferMemory;
+    result = vkAllocateMemory(device, &vertexIndexStagingBufferMemoryInfo, NULL, &vertexIndexStagingBufferMemory);
     if (result != VK_SUCCESS) {
-        printf("Failed to allocate memory.");
+        printf("Failed to allocate vertex/index staging buffer memory.");
         return -2;
     }
 
-    result = vkBindBufferMemory(device, vkBuffer, vkBufferMemory, 0);
+    result = vkBindBufferMemory(device, vertexIndexStagingBuffer, vertexIndexStagingBufferMemory, 0);
     if (result != VK_SUCCESS) {
-        printf("Failed to bind buffer memory.");
+        printf("Failed to bind vertex/index staging buffer memory.");
         return -2;
     }
 
-    // To get the data from our regular old C buffer into the VkBuffer we just need to map the VkBuffer, memcpy(), then unmap.
+    /* To get the data from our regular old C buffer into the VkBuffer we just need to map the VkBuffer, memcpy(), then unmap. */
     void* pMappedBufferData;
-    result = vkMapMemory(device, vkBufferMemory, 0, bufferReqs.size, 0, &pMappedBufferData);
+    result = vkMapMemory(device, vertexIndexStagingBufferMemory, 0, vertexIndexStagingBufferMemoryReqs.size, 0, &pMappedBufferData);
     if (result != VK_SUCCESS) {
-        printf("Failed to map buffer.");
+        printf("Failed to map vertex/index staging buffer.");
         return -2;
     }
 
     memcpy(pMappedBufferData, geometryVertexData, sizeof(geometryVertexData));
     memcpy((void*)(((char*)pMappedBufferData) + sizeof(geometryVertexData)), geometryIndexData, sizeof(geometryIndexData));
 
-    vkUnmapMemory(device, vkBufferMemory);
+    vkUnmapMemory(device, vertexIndexStagingBufferMemory);
+
+
+
+    /* At this point the staging buffer has been set up, so now we need to create the actual GPU-side buffer. */
+    VkBufferCreateInfo vertexIndexBufferCreateInfo;
+    vertexIndexBufferCreateInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    vertexIndexBufferCreateInfo.pNext                 = NULL;
+    vertexIndexBufferCreateInfo.flags                 = 0;
+    vertexIndexBufferCreateInfo.size                  = sizeof(geometryVertexData) + sizeof(geometryIndexData);
+    vertexIndexBufferCreateInfo.usage                 = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    vertexIndexBufferCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    vertexIndexBufferCreateInfo.queueFamilyIndexCount = 0;   /* <-- Ignored when sharingMode is not VK_SHARING_MODE_CONCURRENT. */
+    vertexIndexBufferCreateInfo.pQueueFamilyIndices   = NULL;
+
+    VkBuffer vertexIndexBuffer;
+    result = vkCreateBuffer(device, &vertexIndexBufferCreateInfo, NULL, &vertexIndexBuffer);
+    if (result != VK_SUCCESS) {
+        printf("Failed to create buffer for geometry.");
+        return -2;
+    }
+
+    VkMemoryRequirements vertexIndexBufferMemoryReqs;
+    vkGetBufferMemoryRequirements(device, vertexIndexBuffer, &vertexIndexBufferMemoryReqs);
+
+    VkMemoryAllocateInfo vertexIndexBufferMemoryInfo;
+    vertexIndexBufferMemoryInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    vertexIndexBufferMemoryInfo.pNext           = NULL;
+    vertexIndexBufferMemoryInfo.allocationSize  = vertexIndexBufferMemoryReqs.size;
+    vertexIndexBufferMemoryInfo.memoryTypeIndex = (uint32_t)-1;    /* <-- Set to a proper value below. */
+
+    for (uint32_t iMemoryType = 0; iMemoryType < physicalDeviceMemoryProps.memoryTypeCount; ++iMemoryType) {
+        if ((vertexIndexBufferMemoryReqs.memoryTypeBits & (1 << iMemoryType)) != 0) {
+            if ((physicalDeviceMemoryProps.memoryTypes[iMemoryType].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+                vertexIndexBufferMemoryInfo.memoryTypeIndex = iMemoryType;
+                break;
+            }
+        }
+    }
+
+    VkDeviceMemory vertexIndexBufferMemory;
+    result = vkAllocateMemory(device, &vertexIndexBufferMemoryInfo, NULL, &vertexIndexBufferMemory);
+    if (result != VK_SUCCESS) {
+        printf("Failed to allocate memory.");
+        return -2;
+    }
+
+    result = vkBindBufferMemory(device, vertexIndexBuffer, vertexIndexBufferMemory, 0);
+    if (result != VK_SUCCESS) {
+        printf("Failed to bind buffer memory.");
+        return -2;
+    }
     
+
+    /*
+    We've created both the staging buffer and the actual buffer, so now we need to transfer. This will be our first use
+    of the command buffer we created earlier. With the way we're doing things in this example we don't need to worry
+    about pipeline barriers, however in a real program you'll need to consider this for things such as making sure the
+    vertex stage of the pipeline does not start until the transfer has completed. Pipeline barriers will be shown when
+    we get to textures.
+    */
+    {
+        VkCommandBufferBeginInfo beginInfo;
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.pNext = NULL;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        beginInfo.pInheritanceInfo = NULL;
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        {
+            VkBufferCopy region;
+            region.srcOffset = 0;
+            region.dstOffset = 0;
+            region.size = vertexIndexStagingBufferCreateInfo.size;
+            vkCmdCopyBuffer(commandBuffer, vertexIndexStagingBuffer, vertexIndexBuffer, 1, &region);
+        }
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo;
+        submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.pNext                = NULL;
+        submitInfo.waitSemaphoreCount   = 0;
+        submitInfo.pWaitSemaphores      = NULL;
+        submitInfo.pWaitDstStageMask    = NULL;
+        submitInfo.commandBufferCount   = 1;
+        submitInfo.pCommandBuffers      = &commandBuffer;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.pSignalSemaphores    = NULL;
+        result = vkQueueSubmit(queue, 1, &submitInfo, 0);
+        if (result != VK_SUCCESS) {
+            printf("Failed to submit buffer.");
+            return -2;
+        }
+
+        vkQueueWaitIdle(queue);
+    }
+
+    /* The staging buffer is no longer needed. */
+    vkDestroyBuffer(device, vertexIndexStagingBuffer, NULL);
+    vkFreeMemory(device, vertexIndexStagingBufferMemory, NULL);
+
 
 
     /*
@@ -1212,9 +1730,9 @@ int main(int argc, char** argv)
     imageAllocateInfo.allocationSize  = imageMemoryRequirements.size;
     imageAllocateInfo.memoryTypeIndex = (uint32_t)-1;    // <-- Set to a proper value below.
 
-    for (uint32_t i = 0; i < memoryProps.memoryTypeCount; ++i) {
+    for (uint32_t i = 0; i < physicalDeviceMemoryProps.memoryTypeCount; ++i) {
         if ((imageMemoryRequirements.memoryTypeBits & (1U << i)) != 0) {
-            if ((memoryProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {  /* DEVICE_LOCAL = GPU memory. */
+            if ((physicalDeviceMemoryProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {  /* DEVICE_LOCAL = GPU memory. */
                 imageAllocateInfo.memoryTypeIndex = i;
                 break;
             }
@@ -1238,62 +1756,62 @@ int main(int argc, char** argv)
     At this point we have created the image handle and allocated some memory for it. We now need to fill the memory with actual image data. To do this
     we use a staging buffer and then copy it over using a command.
     */
-    VkBufferCreateInfo stagingBufferCreateInfo;
-    stagingBufferCreateInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    stagingBufferCreateInfo.pNext                 = NULL;
-    stagingBufferCreateInfo.flags                 = 0;
-    stagingBufferCreateInfo.size                  = imageAllocateInfo.allocationSize;
-    stagingBufferCreateInfo.usage                 = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;   /* Will be the source of a transfer. */
-    stagingBufferCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
-    stagingBufferCreateInfo.queueFamilyIndexCount = 0;
-    stagingBufferCreateInfo.pQueueFamilyIndices   = NULL;
+    VkBufferCreateInfo imageStagingBufferCreateInfo;
+    imageStagingBufferCreateInfo.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    imageStagingBufferCreateInfo.pNext                 = NULL;
+    imageStagingBufferCreateInfo.flags                 = 0;
+    imageStagingBufferCreateInfo.size                  = imageAllocateInfo.allocationSize;
+    imageStagingBufferCreateInfo.usage                 = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;   /* Will be the source of a transfer. */
+    imageStagingBufferCreateInfo.sharingMode           = VK_SHARING_MODE_EXCLUSIVE;
+    imageStagingBufferCreateInfo.queueFamilyIndexCount = 0;
+    imageStagingBufferCreateInfo.pQueueFamilyIndices   = NULL;
 
-    VkBuffer stagingBuffer;
-    result = vkCreateBuffer(device, &stagingBufferCreateInfo, NULL, &stagingBuffer);
+    VkBuffer imageStagingBuffer;
+    result = vkCreateBuffer(device, &imageStagingBufferCreateInfo, NULL, &imageStagingBuffer);
     if (result != VK_SUCCESS) {
         printf("Failed to create staging buffer.");
         return -1;
     }
 
     /* Allocate memory for the staging buffer. */
-    vkGetBufferMemoryRequirements(device, stagingBuffer, &bufferReqs);
+    vkGetBufferMemoryRequirements(device, imageStagingBuffer, &vertexIndexBufferMemoryReqs);
 
-    VkMemoryAllocateInfo stagingBufferAllocateInfo;
-    stagingBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    stagingBufferAllocateInfo.pNext = NULL;
-    stagingBufferAllocateInfo.allocationSize = bufferReqs.size;
-    stagingBufferAllocateInfo.memoryTypeIndex = (uint32_t)-1;   // <-- Set to a proper value below.
+    VkMemoryAllocateInfo imageStagingBufferAllocateInfo;
+    imageStagingBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    imageStagingBufferAllocateInfo.pNext = NULL;
+    imageStagingBufferAllocateInfo.allocationSize = vertexIndexBufferMemoryReqs.size;
+    imageStagingBufferAllocateInfo.memoryTypeIndex = (uint32_t)-1;   // <-- Set to a proper value below.
 
-    for (uint32_t i = 0; i < memoryProps.memoryTypeCount; ++i) {
-        if ((bufferReqs.memoryTypeBits & (1U << i)) != 0) {
-            if ((memoryProps.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-                stagingBufferAllocateInfo.memoryTypeIndex = i;
+    for (uint32_t i = 0; i < physicalDeviceMemoryProps.memoryTypeCount; ++i) {
+        if ((vertexIndexBufferMemoryReqs.memoryTypeBits & (1U << i)) != 0) {
+            if ((physicalDeviceMemoryProps.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+                imageStagingBufferAllocateInfo.memoryTypeIndex = i;
                 break;
             }
         }
     }
 
-    VkDeviceMemory stagingBufferMemory;
-    result = vkAllocateMemory(device, &stagingBufferAllocateInfo, NULL, &stagingBufferMemory);
+    VkDeviceMemory imageStagingBufferMemory;
+    result = vkAllocateMemory(device, &imageStagingBufferAllocateInfo, NULL, &imageStagingBufferMemory);
     if (result != VK_SUCCESS) {
         printf("Failed to allocate memory.");
         return -2;
     }
 
     /* Memory is allocated for the staging buffer. Now copy our image data into it. */
-    void* pStagedBufferData;
-    result = vkMapMemory(device, stagingBufferMemory, 0, bufferReqs.size, 0, &pStagedBufferData);
+    void* pImageStagedBufferData;
+    result = vkMapMemory(device, imageStagingBufferMemory, 0, vertexIndexBufferMemoryReqs.size, 0, &pImageStagedBufferData);
     if (result != VK_SUCCESS) {
         printf("Failed to map staging buffer memory.");
         return -2;
     }
 
-    memcpy(pStagedBufferData, g_TextureDataRGBA, sizeof(g_TextureDataRGBA));
+    memcpy(pImageStagedBufferData, g_TextureDataRGBA, sizeof(g_TextureDataRGBA));
 
-    vkUnmapMemory(device, stagingBufferMemory);
+    vkUnmapMemory(device, imageStagingBufferMemory);
 
     /* The member can now be bound to the buffer. We could have also done this before the map/unmap part. */
-    vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    vkBindBufferMemory(device, imageStagingBuffer, imageStagingBufferMemory, 0);
 
     /*
     At this point we have our image data in our staging buffer. Now we need to copy the data from the staging buffer into the texture. The texture's data
@@ -1306,7 +1824,7 @@ int main(int argc, char** argv)
         beginInfo.pNext = NULL;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         beginInfo.pInheritanceInfo = NULL;
-        vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
         {
             VkImageMemoryBarrier imageMemoryBarrier;
             imageMemoryBarrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1323,7 +1841,7 @@ int main(int argc, char** argv)
             imageMemoryBarrier.subresourceRange.levelCount     = 1;
             imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
             imageMemoryBarrier.subresourceRange.layerCount     = 1;
-            vkCmdPipelineBarrier(vkCmdBuffer,
+            vkCmdPipelineBarrier(commandBuffer,
                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,  /* <-- Wait for nothing. */
                 VK_PIPELINE_STAGE_TRANSFER_BIT,     /* <-- Block the transfer stage until our layout transition is complete. */
                 0,
@@ -1346,7 +1864,7 @@ int main(int argc, char** argv)
             region.imageExtent.width               = g_TextureSizeX;
             region.imageExtent.height              = g_TextureSizeY;
             region.imageExtent.depth               = 1;
-            vkCmdCopyBufferToImage(vkCmdBuffer, stagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            vkCmdCopyBufferToImage(commandBuffer, imageStagingBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
             /*
             When the command above has been executed, the image data should have been copied. We now need to transition the image to a layout
@@ -1364,7 +1882,7 @@ int main(int argc, char** argv)
             imageMemoryBarrier.subresourceRange.levelCount     = 1;
             imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
             imageMemoryBarrier.subresourceRange.layerCount     = 1;
-            vkCmdPipelineBarrier(vkCmdBuffer,
+            vkCmdPipelineBarrier(commandBuffer,
                 VK_PIPELINE_STAGE_TRANSFER_BIT,         /* <-- Wait for the transfer stage to complete. */
                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,  /* <-- We access this image via the fragment shader, so don't start fragment shading until the transition is complete. This doesn't actually matter for this example, but good practice. */
                 0,
@@ -1373,7 +1891,7 @@ int main(int argc, char** argv)
                 1, &imageMemoryBarrier
             );
         }
-        vkEndCommandBuffer(vkCmdBuffer);
+        vkEndCommandBuffer(commandBuffer);
 
         VkSubmitInfo submitInfo;
         submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1382,19 +1900,21 @@ int main(int argc, char** argv)
         submitInfo.pWaitSemaphores      = NULL;
         submitInfo.pWaitDstStageMask    = NULL;
         submitInfo.commandBufferCount   = 1;
-        submitInfo.pCommandBuffers      = &vkCmdBuffer;
+        submitInfo.pCommandBuffers      = &commandBuffer;
         submitInfo.signalSemaphoreCount = 0;
         submitInfo.pSignalSemaphores    = NULL;
-        result = vkQueueSubmit(vkQueue, 1, &submitInfo, 0);
+        result = vkQueueSubmit(queue, 1, &submitInfo, 0);
         if (result != VK_SUCCESS) {
             printf("Failed to submit buffer.");
             return -2;
         }
 
-        vkQueueWaitIdle(vkQueue);
+        vkQueueWaitIdle(queue);
     }
 
-
+    /* The image staging buffer is no longer needed and can be freed. */
+    vkDestroyBuffer(device, imageStagingBuffer, NULL);
+    vkFreeMemory(device, imageStagingBufferMemory, NULL);
 
 
     VkImageViewCreateInfo imageViewCreateInfo;
@@ -1465,10 +1985,10 @@ int main(int argc, char** argv)
     descriptorPoolSizes[1].descriptorCount = 1; /* This example only has 1 image. */
 
     VkDescriptorPoolCreateInfo descriptorPoolCreateInfo;
-    descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    descriptorPoolCreateInfo.pNext = NULL;
-    descriptorPoolCreateInfo.flags = 0;     /* Could set this to VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT if we wanted to be able to free an individual descriptor set, but we're not doing that in this example. */
-    descriptorPoolCreateInfo.maxSets = 1;   /* We're only going to be allocating a single descriptor set. */
+    descriptorPoolCreateInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    descriptorPoolCreateInfo.pNext         = NULL;
+    descriptorPoolCreateInfo.flags         = 0; /* Could set this to VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT if we wanted to be able to free an individual descriptor set, but we're not doing that in this example. */
+    descriptorPoolCreateInfo.maxSets       = 1; /* We're only going to be allocating a single descriptor set. */
     descriptorPoolCreateInfo.poolSizeCount = sizeof(descriptorPoolSizes) / sizeof(descriptorPoolSizes[0]);
     descriptorPoolCreateInfo.pPoolSizes    = descriptorPoolSizes;
 
@@ -1481,11 +2001,11 @@ int main(int argc, char** argv)
 
     /* We have the descriptor pool, so now we can create our descriptor set. */
     VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
-    descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptorSetAllocateInfo.pNext = NULL;
-    descriptorSetAllocateInfo.descriptorPool = descriptorPool;
+    descriptorSetAllocateInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    descriptorSetAllocateInfo.pNext              = NULL;
+    descriptorSetAllocateInfo.descriptorPool     = descriptorPool;
     descriptorSetAllocateInfo.descriptorSetCount = 1;   /* <-- This is the size of the pSetLayouts array, and also the number of descriptor sets we want to allocate. */
-    descriptorSetAllocateInfo.pSetLayouts = descriptorSetLayouts;
+    descriptorSetAllocateInfo.pSetLayouts        = descriptorSetLayouts;
 
     VkDescriptorSet descriptorSets[1];
     result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, descriptorSets);
@@ -1545,82 +2065,88 @@ int main(int argc, char** argv)
         }
 #endif
      
-        uint32_t imageIndex;
-        result = vkAcquireNextImageKHR(device, vkSwapchain, UINT64_MAX, semaphore, VK_NULL_HANDLE, &imageIndex);
+        uint32_t swapchainImageIndex;
+        result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, swapchainSmaphore, VK_NULL_HANDLE, &swapchainImageIndex);
         if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
             return -1;
         }
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            // Here is where you might want to recreate the swapchain. I'm not doing this in this here because I want to
-            // keep the code flat and this would require function-izing the swapchain initialization stuff which I don't
-            // want to do in this example.
-            //
-            // You may get this error when you try resizing the window. This happens on Nvidia, but not Intel. I have not
-            // tested AMD.
+            /*
+            Here is where you might want to recreate the swapchain. I'm not doing this in this here because I want to
+            keep the code flat and this would require function-izing the swapchain initialization stuff which I don't
+            want to do in this example.
+            
+            You may get this error when you try resizing the window. This happens on Nvidia, but not Intel. I have not
+            tested AMD.
+            */
         }
 
-
-        // Transition the layout of the swapchain image first.
         VkCommandBufferBeginInfo beginInfo;
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.pNext = NULL;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         beginInfo.pInheritanceInfo = NULL;
-        vkBeginCommandBuffer(vkCmdBuffer, &beginInfo);
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
         {
-            VkClearValue clearValues[1];
+            VkClearValue clearValues[2];
+
+            /* Color attachment. */
             clearValues[0].color.float32[0] = 0.2f;
             clearValues[0].color.float32[1] = 0;
             clearValues[0].color.float32[2] = 0;
             clearValues[0].color.float32[3] = 1;
 
+            /* Depth/stencil attachment. */
+            clearValues[1].depthStencil.depth   = 1;    /* 0 = closer to viewer; 1 = further away. */
+            clearValues[1].depthStencil.stencil = 0;
+
             VkRenderPassBeginInfo renderpassBeginInfo;
-            renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            renderpassBeginInfo.pNext = NULL;
-            renderpassBeginInfo.renderPass = renderpass;
-            renderpassBeginInfo.framebuffer = framebuffers[imageIndex];
+            renderpassBeginInfo.sType               = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            renderpassBeginInfo.pNext               = NULL;
+            renderpassBeginInfo.renderPass          = renderPass;
+            renderpassBeginInfo.framebuffer         = swapchainFramebuffers[swapchainImageIndex];
             renderpassBeginInfo.renderArea.offset.x = 0;
             renderpassBeginInfo.renderArea.offset.y = 0;
-            renderpassBeginInfo.renderArea.extent = surfaceCaps.currentExtent;
-            renderpassBeginInfo.clearValueCount = 1;
-            renderpassBeginInfo.pClearValues = clearValues;
-            vkCmdBeginRenderPass(vkCmdBuffer, &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+            renderpassBeginInfo.renderArea.extent   = surfaceCaps.currentExtent;
+            renderpassBeginInfo.clearValueCount     = sizeof(clearValues) / sizeof(clearValues[0]);
+            renderpassBeginInfo.pClearValues        = clearValues;
+            vkCmdBeginRenderPass(commandBuffer, &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
             {
                 VkViewport viewport;
-                viewport.x = 0;
-                viewport.y = 0;
-                viewport.width = (float)surfaceCaps.currentExtent.width;
-                viewport.height = (float)surfaceCaps.currentExtent.height;
+                viewport.x        = 0;
+                viewport.y        = 0;
+                viewport.width    = (float)surfaceCaps.currentExtent.width;
+                viewport.height   = (float)surfaceCaps.currentExtent.height;
                 viewport.minDepth = 0;
                 viewport.maxDepth = 1;
-                vkCmdSetViewport(vkCmdBuffer, 0, 1, &viewport);
+                vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
                 VkRect2D scissor;
-                scissor.offset.x = 0;
-                scissor.offset.y = 0;
-                scissor.extent.width = surfaceCaps.currentExtent.width;
+                scissor.offset.x      = 0;
+                scissor.offset.y      = 0;
+                scissor.extent.width  = surfaceCaps.currentExtent.width;
                 scissor.extent.height = surfaceCaps.currentExtent.height;
-                vkCmdSetScissor(vkCmdBuffer, 0, 1, &scissor);
+                vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
                 
                 /* Bind the pipeline first. You can bind descriptor sets, vertex buffers and index buffers before binding the pipeline, but I like to do the pipeline first. */
-                vkCmdBindPipeline(vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
                 /* We need to bind the descriptor sets before we'll be able to use the texture in the shader. */
-                vkCmdBindDescriptorSets(vkCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, sizeof(descriptorSets) / sizeof(descriptorSets[0]), descriptorSets, 0, NULL);
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, sizeof(descriptorSets) / sizeof(descriptorSets[0]), descriptorSets, 0, NULL);
 
                 /* Vertex and index buffers need to be bound before drawing. */
                 VkDeviceSize offset = 0;
-                vkCmdBindVertexBuffers(vkCmdBuffer, 0, 1, &vkBuffer, &offset);
-                vkCmdBindIndexBuffer(vkCmdBuffer, vkBuffer, sizeof(geometryVertexData), VK_INDEX_TYPE_UINT32);
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexIndexBuffer, &offset);
+                vkCmdBindIndexBuffer(commandBuffer, vertexIndexBuffer, sizeof(geometryVertexData), VK_INDEX_TYPE_UINT32);
 
                 /* Only draw once the necessary things have been bound (pipeline, descriptor sets, vertex buffers, index buffers) */
-                vkCmdDrawIndexed(vkCmdBuffer, sizeof(geometryIndexData) / sizeof(geometryIndexData[0]), 1, 0, 0, 0);
+                vkCmdDrawIndexed(commandBuffer, sizeof(geometryIndexData) / sizeof(geometryIndexData[0]), 1, 0, 0, 0);
             }
-            vkCmdEndRenderPass(vkCmdBuffer);
+            vkCmdEndRenderPass(commandBuffer);
         }
-        result = vkEndCommandBuffer(vkCmdBuffer);
+        result = vkEndCommandBuffer(commandBuffer);
         if (result != VK_SUCCESS) {
             printf("Command buffer recording failed.");
             return -2;
@@ -1634,13 +2160,13 @@ int main(int argc, char** argv)
         submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.pNext                = NULL;
         submitInfo.waitSemaphoreCount   = 1;
-        submitInfo.pWaitSemaphores      = &semaphore;
+        submitInfo.pWaitSemaphores      = &swapchainSmaphore;
         submitInfo.pWaitDstStageMask    = pWaitDstStageMask;
         submitInfo.commandBufferCount   = 1;
-        submitInfo.pCommandBuffers      = &vkCmdBuffer;
+        submitInfo.pCommandBuffers      = &commandBuffer;
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores    = &semaphore;
-        result = vkQueueSubmit(vkQueue, 1, &submitInfo, 0);
+        submitInfo.pSignalSemaphores    = &swapchainSmaphore;
+        result = vkQueueSubmit(queue, 1, &submitInfo, 0);
         if (result != VK_SUCCESS) {
             printf("Failed to submit buffer.");
             return -2;
@@ -1650,14 +2176,19 @@ int main(int argc, char** argv)
         info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         info.pNext              = NULL;
         info.waitSemaphoreCount = 1;
-        info.pWaitSemaphores    = &semaphore;
+        info.pWaitSemaphores    = &swapchainSmaphore;
         info.swapchainCount     = 1;
-        info.pSwapchains        = &vkSwapchain;
-        info.pImageIndices      = &imageIndex;
+        info.pSwapchains        = &swapchain;
+        info.pImageIndices      = &swapchainImageIndex;
         info.pResults           = NULL;
-        vkQueuePresentKHR(vkQueue, &info);
+        vkQueuePresentKHR(queue, &info);
     }
 
-    /* Unreachable. */
+    /* Teardown. */
+    vkDestroySwapchainKHR(device, swapchain, NULL);
+    vkDestroyDevice(device, NULL);
+    vkDestroySurfaceKHR(instance, surface, NULL);
+    vkDestroyInstance(instance, NULL);
+
     return 0;
 }
