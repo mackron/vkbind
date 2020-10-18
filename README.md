@@ -4,6 +4,7 @@ vkbind is a single file Vulkan API loader. It includes a full implementation of 
 from the Vulkan spec) so there's no need for the offical headers or SDK. Unlike the official headers, the
 platform-specific sections are all contained within the same file.
 
+
 Usage
 =====
 For platforms that statically expose all Vulkan APIs you can use vkbind like so:
@@ -75,11 +76,21 @@ vkbInitDeviceAPI(device, &api);
 vkbBindAPI(&api);
 ```
 
+
 Examples
 ========
-You can find some general Vulkan examples in the "examples" folder. Unlike many other examples out there, these ones
-are flat, all self contained in a single code file, and easy to read. Note that shaders have been pre-compiled by
-glslangValidator (GLSL to SPIR-V compiler). You can see the relevant shaders in the "examples/shaders" folder.
+You can find some general Vulkan examples in the "examples" folder. The first example, 01_Fundamentals, is completely
+flat and self contained in a single code file. This is unlike most of the other popular example projects out there which
+are full of abstractions which make things too hard to follow. It covers most (all?) of the fundamentals any real Vulkan
+program is going to need, and tries to explain how things like vertex layouts and descriptor sets interact with shaders
+which I think is something other examples seem to overlook.
+
+For practicality, future examples will not be entirely flat, but should still be significantly better than other
+popular examples out there in terms of readability. 
+
+Note that shaders are pre-compiled with glslangValidator (GLSL to SPIR-V compiler) and embedded into a source file for
+each example. This is just to avoid the need to worry about file IO for shaders and to focus on Vulkan itself.
+
 
 License
 =======
