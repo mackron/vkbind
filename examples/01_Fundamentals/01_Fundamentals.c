@@ -1,9 +1,4 @@
 /*
-TODO:
-    - Uniform variables with per-frame updating.
-*/
-
-/*
 Demonstrates how to draw a textured quad in Vulkan.
 
 This example is completely flat. The only library it uses is vkbind which is just a Vulkan API loader. The vkbind.h
@@ -49,7 +44,7 @@ embedded the raw binary data into the source file below. Doing it this way means
 distracting you with file IO. I'm keeping this in a separate file to just keep it separate from the focus of this
 example which is the Vulkan API.
 */
-#include "02_Textures_VFS.c"    /* <-- Compiled shader code is here. */
+#include "01_Fundamentals_VFS.c"    /* <-- Compiled shader code is here. */
 
 /*
 This the raw texture data that we'll be uploading to the Vulkan API when we create texture object. The texel encoding
@@ -809,7 +804,7 @@ int main(int argc, char** argv)
     vertexShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vertexShaderInfo.pNext = NULL;
     vertexShaderInfo.flags = 0;
-    vertexShaderInfo.pCode = (const uint32_t*)vfs_map_file("shaders/02_Textures.glsl.vert.spirv", &vertexShaderInfo.codeSize);
+    vertexShaderInfo.pCode = (const uint32_t*)vfs_map_file("shaders/01_Fundamentals.glsl.vert.spirv", &vertexShaderInfo.codeSize);
 
     VkShaderModule vertexShaderModule;
     result = vkCreateShaderModule(device, &vertexShaderInfo, NULL, &vertexShaderModule);
@@ -822,7 +817,7 @@ int main(int argc, char** argv)
     fragmentShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     fragmentShaderInfo.pNext = NULL;
     fragmentShaderInfo.flags = 0;
-    fragmentShaderInfo.pCode = (const uint32_t*)vfs_map_file("shaders/02_Textures.glsl.frag.spirv", &fragmentShaderInfo.codeSize);
+    fragmentShaderInfo.pCode = (const uint32_t*)vfs_map_file("shaders/01_Fundamentals.glsl.frag.spirv", &fragmentShaderInfo.codeSize);
 
     VkShaderModule fragmentShaderModule;
     result = vkCreateShaderModule(device, &fragmentShaderInfo, NULL, &fragmentShaderModule);

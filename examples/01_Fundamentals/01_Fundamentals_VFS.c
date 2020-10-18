@@ -117,10 +117,10 @@ typedef struct
 } vfs_file_data;
 
 static vfs_file_data g_vfsCentralDirectory[] = {
-    {"shaders/02_Textures.glsl.frag", 576, 0},
-    {"shaders/02_Textures.glsl.frag.spirv", 932, 576},
-    {"shaders/02_Textures.glsl.vert", 513, 1512},
-    {"shaders/02_Textures.glsl.vert.spirv", 1416, 2032}
+    {"shaders/01_Fundamentals.glsl.frag", 576, 0},
+    {"shaders/01_Fundamentals.glsl.frag.spirv", 932, 576},
+    {"shaders/01_Fundamentals.glsl.vert", 513, 1512},
+    {"shaders/01_Fundamentals.glsl.vert.spirv", 1416, 2032}
 };
 
 static size_t vfs_find_file(const char* pFilePath)
