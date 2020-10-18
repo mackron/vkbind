@@ -1,5 +1,17 @@
 /*
-Demonstrates how to draw a textured quad in Vulkan.
+Demonstrates the fundamentals of the Vulkan API, including:
+
+  * Layers
+  * Extensions
+  * Physical and logical devices
+  * Queue families
+  * Swapchains
+  * Pipelines
+  * Vertex and index buffers
+  * Textures
+  * Uniform buffers
+  * Descriptor sets and how they connect to shaders
+  * Command buffers
 
 This example is completely flat. The only library it uses is vkbind which is just a Vulkan API loader. The vkbind.h
 file contains all of the Vulkan API declarations you need and is therefore a replacement for the official Vulkan
@@ -8,14 +20,15 @@ to keeping them all separate which is just unnecessary.
 
 In a real-world program you would not want to write Vulkan code as it's written in this example. This example is void
 of abstractions and functions in order to make it easier to see what's actually going on with Vulkan. The idea is to
-show how to use Vulkan, not how to architecture your program. Also, resource cleanup is intentionally left out when
-cleaning up after errors just to keep things clean. A real program would probably want to clean everything up properly.
+show how to use Vulkan, not how to architecture your program. Also, resource cleanup is intentionally left out just to
+keep things clean. A real program would probably want to clean everything up properly.
 
-Currently, only Windows is supported. This example will show you how to connect Vulkan to the Win32 windowing system
-which is something almost all programs will want to do, so including that here is something I think is valuable.
+Currently only Windows is supported. This example will show you how to connect Vulkan to the Win32 windowing system
+which is something almost all programs will want to do, so including that here is something I think is valuable. I will
+look into adding X11 support at some point later on.
 
 This is example is focused on how to use the Vulkan API, not how to achieve specific graphics effects. If you're
-looking for an example for lighting, PBR, etc. you'll want to look elsewhere.
+looking for an example for lighting, PBR, etc. you'll need to look elsewhere.
 */
 
 /*
@@ -88,6 +101,9 @@ static LRESULT DefaultWindowProcWin32(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 }
 #endif
 
+/*
+This callback is used with the VK_EXT_debug_report extension. This just prints any messages that come through.
+*/
 VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugReport(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
     printf("%s\n", pMessage);
@@ -2349,7 +2365,14 @@ int main(int argc, char** argv)
         vkQueuePresentKHR(queue, &info);
     }
 
-    /* Teardown. */
+    /*
+    Teardown. This isn't a complete teardown - you would need to destroy anything that was created with vkCreate*()
+    and free any memory that was created with vkAllocateMemory() with vkFreeMemory(). Unfortunately the flat nature of
+    this example just makes this too annoying to deal with so I'm not doing a complete teardown for the sake of
+    simplicity. Note that the validation layer will result in a bunch of errors being reported at this point due to
+    devices being uninitialized while other objects are still active. To avoid this, uninitialize your objects in the
+    correct order.
+    */
     vkDestroySwapchainKHR(device, swapchain, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);
