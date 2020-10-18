@@ -9,9 +9,15 @@ layout(location = 2) in vec2 VERT_TexCoord;
 layout(location = 0) out vec3 FRAG_Color;
 layout(location = 1) out vec2 FRAG_TexCoord;
 
+// Uniforms
+layout(set = 1, binding = 0) uniform UBO
+{
+    vec4 Offset;
+} Transform;
+
 void main()
 {
-    gl_Position   = vec4(VERT_Position, 1);
+    gl_Position   = vec4(VERT_Position, 1) + Transform.Offset;
     FRAG_Color    = VERT_Color;
     FRAG_TexCoord = VERT_TexCoord;
 }
