@@ -27,8 +27,15 @@ Currently only Windows is supported. This example will show you how to connect V
 which is something almost all programs will want to do, so including that here is something I think is valuable. I will
 look into adding X11 support at some point later on.
 
-This is example is focused on how to use the Vulkan API, not how to achieve specific graphics effects. If you're
-looking for an example for lighting, PBR, etc. you'll need to look elsewhere.
+This example is focused on how to use the Vulkan API, not how to achieve specific graphics effects. If you're looking
+for an example for lighting, PBR, etc. you'll need to look elsewhere.
+
+Note that the program will close if you attempt to resize the window. This is due to the swapchain becoming invalid
+since it's dimensions must always match that of the surface (the window, in this example). A normal program would want
+to detect this and re-create the swapchain. The proper way to do this would be to wrap swapchain creation in a
+function, but since we're keeping this example free of functions I'm just leaving it out. Once you understand how to
+create a swapchain, which is demonstrated in this example, it should be easy enough for you to figure out how to handle
+window resizes and re-create it.
 */
 
 /*
@@ -60,11 +67,11 @@ example which is the Vulkan API.
 #include "01_Fundamentals_VFS.c"    /* <-- Compiled shader code is here. */
 
 /*
-This the raw texture data that we'll be uploading to the Vulkan API when we create texture object. The texel encoding
-we're using in this example is RGBA8 (or VK_FORMAT_R8G8B8A8_UNORM). We use this format for it's wide spread support.
-This texture is a small 2x2 texture. We'll be using nearest-neighbor filtering (also known as point filtering) when
-displaying the texture on the quad. Moving counter clockwise starting from the left, the texture should be red, green,
-blue, black. The alpha channel is always set to opaque, or 0xFF.
+This is the raw texture data that we'll be uploading to the Vulkan API when we create texture object. The texel
+encoding we're using in this example is RGBA8 (or VK_FORMAT_R8G8B8A8_UNORM). We use this format for it's wide spread
+support. This texture is a small 2x2 texture. We'll be using nearest-neighbor filtering (also known as point
+filtering) when displaying the texture on the quad. Moving counter clockwise starting from the left, the texture
+should be red, green, blue, black. The alpha channel is always set to opaque, or 0xFF.
 */
 static const uint32_t g_TextureSizeX = 2;
 static const uint32_t g_TextureSizeY = 2;
@@ -176,23 +183,23 @@ int main(int argc, char** argv)
     created from.
 
     To create an instance, there's two concepts to be aware of: layers and extensions. Vulkan has a layering feature
-    whereby certain functionality can be plugged into the API. This example is enabling the standard validation layer
-    which you've probably heard of already. If you're enabling a layer or extension, you need to check that it's
-    actually supported by the instance or else you'll get an error when trying to create the instance.
-    */
-    const char* ppDesiredLayers[] = {
-        "VK_LAYER_KHRONOS_validation"
-    };
+    whereby certain functionality can be plugged into (or layered on top of) the API. This example is enabling the
+    standard validation layer which you've probably heard of already. If you're enabling a layer or extension, you need
+    to check that it's actually supported by the instance or else you'll get an error when trying to create the
+    instance.
 
-    const char* ppDesiredExtensions[] = {
-        VK_EXT_DEBUG_REPORT_EXTENSION_NAME  /* This is optional and is used for consuming validation errors. */
-    };
+    Note that if the VK_LAYER_KHRONOS_validation layer is not detected, you should try installing the official Vulkan
+    SDK for your platform.
+    */
 
     /* I'm using fixed sized arrays here for this example, but in a real program you may want to size these dynamically. */
     const char* ppEnabledLayerNames[32];
     uint32_t enabledLayerCount = 0;
-    const char* ppEnabledExtensionNames[32];
-    uint32_t enabledExtensionCount = 0;
+
+    /* This is the list of layers that we'd like, but aren't strictly necessary. */
+    const char* ppDesiredLayers[] = {
+        "VK_LAYER_KHRONOS_validation"
+    };
 
     /*
     Here is where check for the availability of our desired layers. All layers are optional, so if they aren't
@@ -221,11 +228,16 @@ int main(int argc, char** argv)
         }
     }
 
+
     /*
     Now we do the same with extensions. The extension must be present or else initialization of Vulkan will fail so
     therefore we must ensure our optional extensions are only enabled if present. Some extensions are mandatory which
     means we *want* initialization to fail if they are not present.
     */
+
+    /* I'm using fixed sized arrays here for this example, but in a real program you may want to size these dynamically. */
+    const char* ppEnabledExtensionNames[32];
+    uint32_t enabledExtensionCount = 0;
 
     /*
     This extension is required for outputting to a window (or "surface") which is what this example is doing which
@@ -258,6 +270,10 @@ int main(int argc, char** argv)
 
     We should probably also do this with layers, but since all layers are optional, I'm not as concerned about that.
     */
+    const char* ppDesiredExtensions[] = {
+        VK_EXT_DEBUG_REPORT_EXTENSION_NAME  /* This is optional and is used for consuming validation errors. */
+    };
+
     VkExtensionProperties* pSupportedExtensions = NULL;
     uint32_t supportedExtensionCount;
     result = vkEnumerateInstanceExtensionProperties(NULL, &supportedExtensionCount, NULL);
