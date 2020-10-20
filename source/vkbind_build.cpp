@@ -1893,7 +1893,12 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum);
+                                                        if (otherRequireEnum.value != "") {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        } else {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum);
+                                                        }
+                                                        
                                                         outputEnums.push_back(otherRequireEnum.name);
                                                     }
                                                 }
@@ -1911,7 +1916,11 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
                                                         codeOut += ",\n";
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum, (otherRequireEnum.extnumber != "") ? otherRequireEnum.extnumber : extension.number);
+                                                        if (otherRequireEnum.value != "") {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        } else {
+                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildCalculateExtensionEnumValue(otherRequireEnum, (otherRequireEnum.extnumber != "") ? otherRequireEnum.extnumber : extension.number);
+                                                        }
                                                         outputEnums.push_back(otherRequireEnum.name);
                                                     }
                                                 }
