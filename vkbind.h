@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.159.0 - 2020-11-02
+vkbind - v1.2.160.0 - 2020-11-09
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 159
+#define VK_HEADER_VERSION 160
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -699,6 +699,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT = 1000297000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV = 1000326000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV = 1000326001,
+    VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV = 1000326002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT = 1000332000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT = 1000332001,
     VK_STRUCTURE_TYPE_COPY_COMMAND_TRANSFORM_INFO_QCOM = 1000333000,
@@ -9674,6 +9677,63 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 #define VK_QCOM_render_pass_store_ops_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
 
 
+#define VK_NV_fragment_shading_rate_enums 1
+#define VK_NV_FRAGMENT_SHADING_RATE_ENUMS_SPEC_VERSION 1
+#define VK_NV_FRAGMENT_SHADING_RATE_ENUMS_EXTENSION_NAME "VK_NV_fragment_shading_rate_enums"
+
+typedef enum
+{
+    VK_FRAGMENT_SHADING_RATE_TYPE_FRAGMENT_SIZE_NV = 0,
+    VK_FRAGMENT_SHADING_RATE_TYPE_ENUMS_NV = 1,
+    VK_FRAGMENT_SHADING_RATE_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkFragmentShadingRateTypeNV;
+
+typedef enum
+{
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_PIXEL_NV = 0,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_1X2_PIXELS_NV = 1,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_2X1_PIXELS_NV = 4,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_2X2_PIXELS_NV = 5,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_2X4_PIXELS_NV = 6,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_4X2_PIXELS_NV = 9,
+    VK_FRAGMENT_SHADING_RATE_1_INVOCATION_PER_4X4_PIXELS_NV = 10,
+    VK_FRAGMENT_SHADING_RATE_2_INVOCATIONS_PER_PIXEL_NV = 11,
+    VK_FRAGMENT_SHADING_RATE_4_INVOCATIONS_PER_PIXEL_NV = 12,
+    VK_FRAGMENT_SHADING_RATE_8_INVOCATIONS_PER_PIXEL_NV = 13,
+    VK_FRAGMENT_SHADING_RATE_16_INVOCATIONS_PER_PIXEL_NV = 14,
+    VK_FRAGMENT_SHADING_RATE_NO_INVOCATIONS_NV = 15,
+    VK_FRAGMENT_SHADING_RATE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkFragmentShadingRateNV;
+
+
+typedef struct VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 fragmentShadingRateEnums;
+    VkBool32 supersampleFragmentShadingRates;
+    VkBool32 noInvocationFragmentShadingRates;
+} VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV;
+
+typedef struct VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkSampleCountFlagBits maxFragmentShadingRateInvocationCount;
+} VkPhysicalDeviceFragmentShadingRateEnumsPropertiesNV;
+
+typedef struct VkPipelineFragmentShadingRateEnumStateCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkFragmentShadingRateTypeNV shadingRateType;
+    VkFragmentShadingRateNV shadingRate;
+    VkFragmentShadingRateCombinerOpKHR combinerOps[2];
+} VkPipelineFragmentShadingRateEnumStateCreateInfoNV;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdSetFragmentShadingRateEnumNV)(VkCommandBuffer commandBuffer, VkFragmentShadingRateNV shadingRate, const VkFragmentShadingRateCombinerOpKHR combinerOps[2]);
+
 #define VK_EXT_fragment_density_map2 1
 #define VK_EXT_FRAGMENT_DENSITY_MAP_2_SPEC_VERSION 1
 #define VK_EXT_FRAGMENT_DENSITY_MAP_2_EXTENSION_NAME "VK_EXT_fragment_density_map2"
@@ -11157,6 +11217,7 @@ PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
 PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
 PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
 PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
@@ -11630,6 +11691,7 @@ typedef struct
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
     PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+    PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
     PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
     PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
     PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
@@ -12261,6 +12323,7 @@ VkResult vkbBindGlobalAPI()
     vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
     vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
+    vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetFragmentShadingRateEnumNV");
     vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyBuffer2KHR");
     vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyImage2KHR");
     vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyBufferToImage2KHR");
@@ -12763,6 +12826,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
         pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
         pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
+        pAPI->vkCmdSetFragmentShadingRateEnumNV = vkCmdSetFragmentShadingRateEnumNV;
         pAPI->vkCmdCopyBuffer2KHR = vkCmdCopyBuffer2KHR;
         pAPI->vkCmdCopyImage2KHR = vkCmdCopyImage2KHR;
         pAPI->vkCmdCopyBufferToImage2KHR = vkCmdCopyBufferToImage2KHR;
@@ -13262,6 +13326,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
+    pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkGetInstanceProcAddr(instance, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyBuffer2KHR");
     pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyImage2KHR");
     pAPI->vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyBufferToImage2KHR");
@@ -13679,6 +13744,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+    pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyBuffer2KHR");
     pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyImage2KHR");
     pAPI->vkCmdCopyBufferToImage2KHR = (PFN_vkCmdCopyBufferToImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyBufferToImage2KHR");
@@ -14143,6 +14209,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
     vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
+    vkCmdSetFragmentShadingRateEnumNV = pAPI->vkCmdSetFragmentShadingRateEnumNV;
     vkCmdCopyBuffer2KHR = pAPI->vkCmdCopyBuffer2KHR;
     vkCmdCopyImage2KHR = pAPI->vkCmdCopyImage2KHR;
     vkCmdCopyBufferToImage2KHR = pAPI->vkCmdCopyBufferToImage2KHR;
