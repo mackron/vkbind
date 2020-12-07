@@ -515,14 +515,17 @@ int main(int argc, char** argv)
             }
 
 
-            /* We want to use double buffering which means */
+            /*
+            We want to use double buffering which means we'll need to retrieve the capabilities of the surface and check
+            the minImageCount property.
+            */
             VkSurfaceCapabilitiesKHR surfaceCaps;
             result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pPhysicalDevices[iPhysicalDevice], surface, &surfaceCaps);
             if (result != VK_SUCCESS) {
                 continue;
             }
 
-            if (surfaceCaps.minImageCount < 2) {
+            if (surfaceCaps.maxImageCount < 2) {
                 continue;   /* The surface and device combination do not support at least two images (required for double buffering). */
             }
 
@@ -1217,7 +1220,7 @@ int main(int argc, char** argv)
     attachmentDesc[1].finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference colorAttachment;
-    colorAttachment.attachment = 0;         /* Index into attachmentDescp[] */
+    colorAttachment.attachment = 0;         /* Index into attachmentDesc[] */
     colorAttachment.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference depthStencilAttachment;
