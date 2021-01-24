@@ -254,14 +254,17 @@ VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 static unsigned int g_vkbInitCount = 0;
 static VkbHandle g_vkbVulkanSO = NULL;
 
-VkResult vkbLoadVulkanSO()
+static VkResult vkbLoadVulkanSO()
 {
     size_t i;
 
     const char* vulkanSONames[] = {
-#if defined(_WIN32)
+    #if defined(VKBIND_VULKAN_SO)
+        VKBIND_VULKAN_SO,
+    #endif
+    #if defined(_WIN32)
         "vulkan-1.dll"
-#elif defined(__APPLE__)
+    #elif defined(__APPLE__)
         /*
         The idea here is that since MoltenVK seems to be the de facto standard for Vulkan on Apple platforms at the moment we'll try
         that first. If Apple ever decides to officially support Vulkan we can perhaps consider dropping it to the bottom of the priority
@@ -270,10 +273,10 @@ VkResult vkbLoadVulkanSO()
         "libMoltenVK.dylib",
         "libvulkan.dylib.1",
         "libvulkan.dylib"
-#else
+    #else
         "libvulkan.so.1",
         "libvulkan.so"
-#endif
+    #endif
     };
 
     for (i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
