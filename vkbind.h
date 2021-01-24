@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.166.0 - 2021-01-04
+vkbind - v1.2.167.0 - 2021-01-24
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 166
+#define VK_HEADER_VERSION 167
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -9843,7 +9843,7 @@ typedef struct VkCommandBufferInheritanceRenderPassTransformInfoQCOM
 
 
 #define VK_EXT_device_memory_report 1
-#define VK_EXT_DEVICE_MEMORY_REPORT_SPEC_VERSION 1
+#define VK_EXT_DEVICE_MEMORY_REPORT_SPEC_VERSION 2
 #define VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME "VK_EXT_device_memory_report"
 
 typedef VkFlags VkDeviceMemoryReportFlagsEXT;
@@ -10933,6 +10933,9 @@ typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
 
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
+
 
 
 PFN_vkCreateInstance vkCreateInstance;
@@ -11409,6 +11412,8 @@ PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
 typedef struct
 {
@@ -11886,6 +11891,8 @@ typedef struct
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 } VkbAPI;
 
 
@@ -12012,14 +12019,17 @@ VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 static unsigned int g_vkbInitCount = 0;
 static VkbHandle g_vkbVulkanSO = NULL;
 
-VkResult vkbLoadVulkanSO()
+static VkResult vkbLoadVulkanSO()
 {
     size_t i;
 
     const char* vulkanSONames[] = {
-#if defined(_WIN32)
+    #if defined(VKBIND_VULKAN_SO)
+        VKBIND_VULKAN_SO,
+    #endif
+    #if defined(_WIN32)
         "vulkan-1.dll"
-#elif defined(__APPLE__)
+    #elif defined(__APPLE__)
         /*
         The idea here is that since MoltenVK seems to be the de facto standard for Vulkan on Apple platforms at the moment we'll try
         that first. If Apple ever decides to officially support Vulkan we can perhaps consider dropping it to the bottom of the priority
@@ -12028,10 +12038,10 @@ VkResult vkbLoadVulkanSO()
         "libMoltenVK.dylib",
         "libvulkan.dylib.1",
         "libvulkan.dylib"
-#else
+    #else
         "libvulkan.so.1",
         "libvulkan.so"
-#endif
+    #endif
     };
 
     for (i = 0; i < sizeof(vulkanSONames)/sizeof(vulkanSONames[0]); ++i) {
@@ -12521,6 +12531,8 @@ VkResult vkbBindGlobalAPI()
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     /*
     We can only safely guarantee that vkGetInstanceProcAddr was successfully returned from dlsym(). The Vulkan specification lists some APIs
@@ -13027,6 +13039,8 @@ VkResult vkbInit(VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
     }
 
     g_vkbInitCount += 1;    /* <-- Only increment the init counter on success. */
@@ -13530,6 +13544,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
 }
@@ -13929,6 +13945,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
 }
@@ -14417,6 +14435,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_GGP*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
+#ifdef VK_USE_PLATFORM_SCREEN_QNX
+#endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
 }
