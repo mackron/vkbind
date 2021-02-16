@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.169.0 - 2021-02-02
+vkbind - v1.2.170.0 - 2021-02-16
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 169
+#define VK_HEADER_VERSION 170
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -700,6 +700,16 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT = 1000297000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_MEMORY_BARRIER_2_KHR = 1000314000,
+    VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2_KHR = 1000314001,
+    VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2_KHR = 1000314002,
+    VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR = 1000314003,
+    VK_STRUCTURE_TYPE_SUBMIT_INFO_2_KHR = 1000314004,
+    VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR = 1000314005,
+    VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR = 1000314006,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR = 1000314007,
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV = 1000314008,
+    VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV = 1000314009,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES_KHR = 1000325000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV = 1000326000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV = 1000326001,
@@ -872,6 +882,7 @@ typedef enum
     VK_ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT = 0x01000000,
     VK_ACCESS_COMMAND_PREPROCESS_READ_BIT_NV = 0x00020000,
     VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV = 0x00040000,
+    VK_ACCESS_NONE_KHR = 0,
     VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_NV = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR,
     VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR,
     VK_ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR = VK_ACCESS_SHADING_RATE_IMAGE_READ_BIT_NV,
@@ -899,6 +910,8 @@ typedef enum
     VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR = 1000111000,
     VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV = 1000164003,
     VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT = 1000218000,
+    VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR = 1000314000,
+    VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR = 1000314001,
     VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
     VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL,
     VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR = VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV,
@@ -1491,6 +1504,7 @@ typedef enum
     VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV = 0x00100000,
     VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT = 0x00800000,
     VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV = 0x00020000,
+    VK_PIPELINE_STAGE_NONE_KHR = 0,
     VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV = VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
     VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV = VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
     VK_PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV,
@@ -1522,6 +1536,12 @@ typedef enum
 } VkFenceCreateFlagBits;
 typedef VkFlags VkFenceCreateFlags;
 typedef VkFlags VkSemaphoreCreateFlags;
+
+typedef enum
+{
+    VK_EVENT_CREATE_DEVICE_ONLY_BIT_KHR = 0x00000001,
+    VK_EVENT_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
+} VkEventCreateFlagBits;
 typedef VkFlags VkEventCreateFlags;
 
 typedef enum
@@ -10048,6 +10068,139 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 #define VK_QCOM_render_pass_store_ops_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
 
 
+#define VK_KHR_synchronization2 1
+#define VK_KHR_SYNCHRONIZATION_2_SPEC_VERSION 1
+#define VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME "VK_KHR_synchronization2"
+
+typedef uint64_t VkFlags64;
+
+typedef VkFlags64 VkPipelineStageFlags2KHR;
+typedef VkFlags64 VkAccessFlags2KHR;
+
+typedef enum
+{
+    VK_SUBMIT_PROTECTED_BIT_KHR = 0x00000001,
+    VK_SUBMIT_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkSubmitFlagBitsKHR;
+typedef VkFlags VkSubmitFlagsKHR;
+
+typedef struct VkMemoryBarrier2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineStageFlags2KHR srcStageMask;
+    VkAccessFlags2KHR srcAccessMask;
+    VkPipelineStageFlags2KHR dstStageMask;
+    VkAccessFlags2KHR dstAccessMask;
+} VkMemoryBarrier2KHR;
+
+typedef struct VkBufferMemoryBarrier2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineStageFlags2KHR srcStageMask;
+    VkAccessFlags2KHR srcAccessMask;
+    VkPipelineStageFlags2KHR dstStageMask;
+    VkAccessFlags2KHR dstAccessMask;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
+    VkBuffer buffer;
+    VkDeviceSize offset;
+    VkDeviceSize size;
+} VkBufferMemoryBarrier2KHR;
+
+typedef struct VkImageMemoryBarrier2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineStageFlags2KHR srcStageMask;
+    VkAccessFlags2KHR srcAccessMask;
+    VkPipelineStageFlags2KHR dstStageMask;
+    VkAccessFlags2KHR dstAccessMask;
+    VkImageLayout oldLayout;
+    VkImageLayout newLayout;
+    uint32_t srcQueueFamilyIndex;
+    uint32_t dstQueueFamilyIndex;
+    VkImage image;
+    VkImageSubresourceRange subresourceRange;
+} VkImageMemoryBarrier2KHR;
+
+typedef struct VkDependencyInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDependencyFlags dependencyFlags;
+    uint32_t memoryBarrierCount;
+    const VkMemoryBarrier2KHR* pMemoryBarriers;
+    uint32_t bufferMemoryBarrierCount;
+    const VkBufferMemoryBarrier2KHR* pBufferMemoryBarriers;
+    uint32_t imageMemoryBarrierCount;
+    const VkImageMemoryBarrier2KHR* pImageMemoryBarriers;
+} VkDependencyInfoKHR;
+
+typedef struct VkSemaphoreSubmitInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    uint64_t value;
+    VkPipelineStageFlags2KHR stageMask;
+    uint32_t deviceIndex;
+} VkSemaphoreSubmitInfoKHR;
+
+typedef struct VkCommandBufferSubmitInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkCommandBuffer commandBuffer;
+    uint32_t deviceMask;
+} VkCommandBufferSubmitInfoKHR;
+
+typedef struct VkSubmitInfo2KHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSubmitFlagsKHR flags;
+    uint32_t waitSemaphoreInfoCount;
+    const VkSemaphoreSubmitInfoKHR* pWaitSemaphoreInfos;
+    uint32_t commandBufferInfoCount;
+    const VkCommandBufferSubmitInfoKHR* pCommandBufferInfos;
+    uint32_t signalSemaphoreInfoCount;
+    const VkSemaphoreSubmitInfoKHR* pSignalSemaphoreInfos;
+} VkSubmitInfo2KHR;
+
+typedef struct VkPhysicalDeviceSynchronization2FeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 synchronization2;
+} VkPhysicalDeviceSynchronization2FeaturesKHR;
+
+typedef struct VkQueueFamilyCheckpointProperties2NV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkPipelineStageFlags2KHR checkpointExecutionStageMask;
+} VkQueueFamilyCheckpointProperties2NV;
+
+typedef struct VkCheckpointData2NV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkPipelineStageFlags2KHR stage;
+    void* pCheckpointMarker;
+} VkCheckpointData2NV;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdSetEvent2KHR)(VkCommandBuffer commandBuffer, VkEvent event, const VkDependencyInfoKHR* pDependencyInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdResetEvent2KHR)(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags2KHR stageMask);
+typedef void (VKAPI_PTR *PFN_vkCmdWaitEvents2KHR)(VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents, const VkDependencyInfoKHR* pDependencyInfos);
+typedef void (VKAPI_PTR *PFN_vkCmdPipelineBarrier2KHR)(VkCommandBuffer commandBuffer, const VkDependencyInfoKHR* pDependencyInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdWriteTimestamp2KHR)(VkCommandBuffer commandBuffer, VkPipelineStageFlags2KHR stage, VkQueryPool queryPool, uint32_t query);
+typedef VkResult (VKAPI_PTR *PFN_vkQueueSubmit2KHR)(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2KHR* pSubmits, VkFence fence);
+typedef void (VKAPI_PTR *PFN_vkCmdWriteBufferMarker2AMD)(VkCommandBuffer commandBuffer, VkPipelineStageFlags2KHR stage, VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker);
+typedef void (VKAPI_PTR *PFN_vkGetQueueCheckpointData2NV)(VkQueue queue, uint32_t* pCheckpointDataCount, VkCheckpointData2NV* pCheckpointData);
+
 #define VK_KHR_zero_initialize_workgroup_memory 1
 #define VK_KHR_ZERO_INITIALIZE_WORKGROUP_MEMORY_SPEC_VERSION 1
 #define VK_KHR_ZERO_INITIALIZE_WORKGROUP_MEMORY_EXTENSION_NAME "VK_KHR_zero_initialize_workgroup_memory"
@@ -11374,6 +11527,14 @@ PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
+PFN_vkCmdResetEvent2KHR vkCmdResetEvent2KHR;
+PFN_vkCmdWaitEvents2KHR vkCmdWaitEvents2KHR;
+PFN_vkCmdPipelineBarrier2KHR vkCmdPipelineBarrier2KHR;
+PFN_vkCmdWriteTimestamp2KHR vkCmdWriteTimestamp2KHR;
+PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
+PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
+PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
 PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
 PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
 PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
@@ -11853,6 +12014,14 @@ typedef struct
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
     PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+    PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
+    PFN_vkCmdResetEvent2KHR vkCmdResetEvent2KHR;
+    PFN_vkCmdWaitEvents2KHR vkCmdWaitEvents2KHR;
+    PFN_vkCmdPipelineBarrier2KHR vkCmdPipelineBarrier2KHR;
+    PFN_vkCmdWriteTimestamp2KHR vkCmdWriteTimestamp2KHR;
+    PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
+    PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
+    PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
     PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
     PFN_vkCmdCopyBuffer2KHR vkCmdCopyBuffer2KHR;
     PFN_vkCmdCopyImage2KHR vkCmdCopyImage2KHR;
@@ -12493,6 +12662,14 @@ VkResult vkbBindGlobalAPI()
     vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
     vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
+    vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetEvent2KHR");
+    vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResetEvent2KHR");
+    vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdWaitEvents2KHR");
+    vkCmdPipelineBarrier2KHR = (PFN_vkCmdPipelineBarrier2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdPipelineBarrier2KHR");
+    vkCmdWriteTimestamp2KHR = (PFN_vkCmdWriteTimestamp2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdWriteTimestamp2KHR");
+    vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)vkb_dlsym(g_vkbVulkanSO, "vkQueueSubmit2KHR");
+    vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdWriteBufferMarker2AMD");
+    vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointData2NV");
     vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetFragmentShadingRateEnumNV");
     vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyBuffer2KHR");
     vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyImage2KHR");
@@ -13001,6 +13178,14 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
         pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
         pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
+        pAPI->vkCmdSetEvent2KHR = vkCmdSetEvent2KHR;
+        pAPI->vkCmdResetEvent2KHR = vkCmdResetEvent2KHR;
+        pAPI->vkCmdWaitEvents2KHR = vkCmdWaitEvents2KHR;
+        pAPI->vkCmdPipelineBarrier2KHR = vkCmdPipelineBarrier2KHR;
+        pAPI->vkCmdWriteTimestamp2KHR = vkCmdWriteTimestamp2KHR;
+        pAPI->vkQueueSubmit2KHR = vkQueueSubmit2KHR;
+        pAPI->vkCmdWriteBufferMarker2AMD = vkCmdWriteBufferMarker2AMD;
+        pAPI->vkGetQueueCheckpointData2NV = vkGetQueueCheckpointData2NV;
         pAPI->vkCmdSetFragmentShadingRateEnumNV = vkCmdSetFragmentShadingRateEnumNV;
         pAPI->vkCmdCopyBuffer2KHR = vkCmdCopyBuffer2KHR;
         pAPI->vkCmdCopyImage2KHR = vkCmdCopyImage2KHR;
@@ -13506,6 +13691,14 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
+    pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)vkGetInstanceProcAddr(instance, "vkCmdSetEvent2KHR");
+    pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)vkGetInstanceProcAddr(instance, "vkCmdResetEvent2KHR");
+    pAPI->vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)vkGetInstanceProcAddr(instance, "vkCmdWaitEvents2KHR");
+    pAPI->vkCmdPipelineBarrier2KHR = (PFN_vkCmdPipelineBarrier2KHR)vkGetInstanceProcAddr(instance, "vkCmdPipelineBarrier2KHR");
+    pAPI->vkCmdWriteTimestamp2KHR = (PFN_vkCmdWriteTimestamp2KHR)vkGetInstanceProcAddr(instance, "vkCmdWriteTimestamp2KHR");
+    pAPI->vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)vkGetInstanceProcAddr(instance, "vkQueueSubmit2KHR");
+    pAPI->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vkGetInstanceProcAddr(instance, "vkCmdWriteBufferMarker2AMD");
+    pAPI->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointData2NV");
     pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkGetInstanceProcAddr(instance, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyBuffer2KHR");
     pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdCopyImage2KHR");
@@ -13929,6 +14122,14 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+    pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetEvent2KHR");
+    pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResetEvent2KHR");
+    pAPI->vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdWaitEvents2KHR");
+    pAPI->vkCmdPipelineBarrier2KHR = (PFN_vkCmdPipelineBarrier2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdPipelineBarrier2KHR");
+    pAPI->vkCmdWriteTimestamp2KHR = (PFN_vkCmdWriteTimestamp2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdWriteTimestamp2KHR");
+    pAPI->vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)pAPI->vkGetDeviceProcAddr(device, "vkQueueSubmit2KHR");
+    pAPI->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdWriteBufferMarker2AMD");
+    pAPI->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointData2NV");
     pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdCopyBuffer2KHR = (PFN_vkCmdCopyBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyBuffer2KHR");
     pAPI->vkCmdCopyImage2KHR = (PFN_vkCmdCopyImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyImage2KHR");
@@ -14397,6 +14598,14 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
     vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
+    vkCmdSetEvent2KHR = pAPI->vkCmdSetEvent2KHR;
+    vkCmdResetEvent2KHR = pAPI->vkCmdResetEvent2KHR;
+    vkCmdWaitEvents2KHR = pAPI->vkCmdWaitEvents2KHR;
+    vkCmdPipelineBarrier2KHR = pAPI->vkCmdPipelineBarrier2KHR;
+    vkCmdWriteTimestamp2KHR = pAPI->vkCmdWriteTimestamp2KHR;
+    vkQueueSubmit2KHR = pAPI->vkQueueSubmit2KHR;
+    vkCmdWriteBufferMarker2AMD = pAPI->vkCmdWriteBufferMarker2AMD;
+    vkGetQueueCheckpointData2NV = pAPI->vkGetQueueCheckpointData2NV;
     vkCmdSetFragmentShadingRateEnumNV = pAPI->vkCmdSetFragmentShadingRateEnumNV;
     vkCmdCopyBuffer2KHR = pAPI->vkCmdCopyBuffer2KHR;
     vkCmdCopyImage2KHR = pAPI->vkCmdCopyImage2KHR;
