@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.170.0 - 2021-02-16
+vkbind - v1.2.171.0 - 2021-03-01
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 170
+#define VK_HEADER_VERSION 171
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -734,6 +734,7 @@ typedef enum
     VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE = 1000351000,
     VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE = 1000351002,
+    VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX = 1000378000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
@@ -11118,6 +11119,25 @@ typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+#include <screen/screen.h>
+
+#define VK_QNX_screen_surface 1
+#define VK_QNX_SCREEN_SURFACE_SPEC_VERSION 1
+#define VK_QNX_SCREEN_SURFACE_EXTENSION_NAME "VK_QNX_screen_surface"
+
+typedef VkFlags VkScreenSurfaceCreateFlagsQNX;
+typedef struct VkScreenSurfaceCreateInfoQNX
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkScreenSurfaceCreateFlagsQNX flags;
+    struct _screen_context* context;
+    struct _screen_window* window;
+} VkScreenSurfaceCreateInfoQNX;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateScreenSurfaceQNX)(VkInstance instance, const VkScreenSurfaceCreateInfoQNX* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, struct _screen_window* window);
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
 
@@ -11605,6 +11625,8 @@ PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
+PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
 typedef struct
@@ -12092,6 +12114,8 @@ typedef struct
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+    PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
+    PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 } VkbAPI;
 
@@ -12740,6 +12764,8 @@ VkResult vkbBindGlobalAPI()
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+    vkCreateScreenSurfaceQNX = (PFN_vkCreateScreenSurfaceQNX)vkb_dlsym(g_vkbVulkanSO, "vkCreateScreenSurfaceQNX");
+    vkGetPhysicalDeviceScreenPresentationSupportQNX = (PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceScreenPresentationSupportQNX");
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     /*
@@ -13256,6 +13282,8 @@ VkResult vkbInit(VkbAPI* pAPI)
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+        pAPI->vkCreateScreenSurfaceQNX = vkCreateScreenSurfaceQNX;
+        pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX = vkGetPhysicalDeviceScreenPresentationSupportQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
     }
 
@@ -13769,6 +13797,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+    pAPI->vkCreateScreenSurfaceQNX = (PFN_vkCreateScreenSurfaceQNX)vkGetInstanceProcAddr(instance, "vkCreateScreenSurfaceQNX");
+    pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX = (PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceScreenPresentationSupportQNX");
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
@@ -14676,6 +14706,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+    vkCreateScreenSurfaceQNX = pAPI->vkCreateScreenSurfaceQNX;
+    vkGetPhysicalDeviceScreenPresentationSupportQNX = pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
