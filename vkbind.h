@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.172.0 - 2021-03-09
+vkbind - v1.2.173.0 - 2021-03-22
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -143,7 +143,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)
-#define VK_HEADER_VERSION 172
+#define VK_HEADER_VERSION 173
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_VERSION(1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
@@ -734,6 +734,11 @@ typedef enum
     VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE = 1000351000,
     VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE = 1000351002,
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364000,
+    VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA = 1000364001,
+    VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364002,
+    VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365000,
+    VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365001,
     VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX = 1000378000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
@@ -3670,6 +3675,7 @@ typedef enum
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID = 0x00000400,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT = 0x00000080,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT = 0x00000100,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA = 0x00000800,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -3741,6 +3747,7 @@ typedef enum
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT = 0x00000008,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_FENCE_BIT = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT = 0x00000010,
+    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA = 0x00000080,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -11046,6 +11053,63 @@ typedef struct VkImagePipeSurfaceCreateInfoFUCHSIA
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkCreateImagePipeSurfaceFUCHSIA)(VkInstance instance, const VkImagePipeSurfaceCreateInfoFUCHSIA* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#define VK_FUCHSIA_external_memory 1
+#define VK_FUCHSIA_EXTERNAL_MEMORY_SPEC_VERSION 1
+#define VK_FUCHSIA_EXTERNAL_MEMORY_EXTENSION_NAME "VK_FUCHSIA_external_memory"
+
+typedef struct VkImportMemoryZirconHandleInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkExternalMemoryHandleTypeFlagBits handleType;
+    zx_handle_t handle;
+} VkImportMemoryZirconHandleInfoFUCHSIA;
+
+typedef struct VkMemoryZirconHandlePropertiesFUCHSIA
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t memoryTypeBits;
+} VkMemoryZirconHandlePropertiesFUCHSIA;
+
+typedef struct VkMemoryGetZirconHandleInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemory memory;
+    VkExternalMemoryHandleTypeFlagBits handleType;
+} VkMemoryGetZirconHandleInfoFUCHSIA;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryZirconHandleFUCHSIA)(VkDevice device, const VkMemoryGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo, zx_handle_t* pZirconHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, zx_handle_t zirconHandle, VkMemoryZirconHandlePropertiesFUCHSIA* pMemoryZirconHandleProperties);
+
+#define VK_FUCHSIA_external_semaphore 1
+#define VK_FUCHSIA_EXTERNAL_SEMAPHORE_SPEC_VERSION 1
+#define VK_FUCHSIA_EXTERNAL_SEMAPHORE_EXTENSION_NAME "VK_FUCHSIA_external_semaphore"
+
+typedef struct VkImportSemaphoreZirconHandleInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    VkSemaphoreImportFlags flags;
+    VkExternalSemaphoreHandleTypeFlagBits handleType;
+    zx_handle_t zirconHandle;
+} VkImportSemaphoreZirconHandleInfoFUCHSIA;
+
+typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    VkExternalSemaphoreHandleTypeFlagBits handleType;
+} VkSemaphoreGetZirconHandleInfoFUCHSIA;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkImportSemaphoreZirconHandleFUCHSIA)(VkDevice device, const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreZirconHandleFUCHSIA)(VkDevice device, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo, zx_handle_t* pZirconHandle);
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
 #ifdef VK_USE_PLATFORM_GGP
@@ -11618,6 +11682,10 @@ PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
 PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
+PFN_vkGetMemoryZirconHandleFUCHSIA vkGetMemoryZirconHandleFUCHSIA;
+PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA vkGetMemoryZirconHandlePropertiesFUCHSIA;
+PFN_vkImportSemaphoreZirconHandleFUCHSIA vkImportSemaphoreZirconHandleFUCHSIA;
+PFN_vkGetSemaphoreZirconHandleFUCHSIA vkGetSemaphoreZirconHandleFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
 PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
@@ -12107,6 +12175,10 @@ typedef struct
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
+    PFN_vkGetMemoryZirconHandleFUCHSIA vkGetMemoryZirconHandleFUCHSIA;
+    PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA vkGetMemoryZirconHandlePropertiesFUCHSIA;
+    PFN_vkImportSemaphoreZirconHandleFUCHSIA vkImportSemaphoreZirconHandleFUCHSIA;
+    PFN_vkGetSemaphoreZirconHandleFUCHSIA vkGetSemaphoreZirconHandleFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
@@ -12757,6 +12829,10 @@ VkResult vkbBindGlobalAPI()
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkCreateImagePipeSurfaceFUCHSIA");
+    vkGetMemoryZirconHandleFUCHSIA = (PFN_vkGetMemoryZirconHandleFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetMemoryZirconHandleFUCHSIA");
+    vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkImportSemaphoreZirconHandleFUCHSIA");
+    vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetSemaphoreZirconHandleFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkb_dlsym(g_vkbVulkanSO, "vkCreateStreamDescriptorSurfaceGGP");
@@ -13275,6 +13351,10 @@ VkResult vkbInit(VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
         pAPI->vkCreateImagePipeSurfaceFUCHSIA = vkCreateImagePipeSurfaceFUCHSIA;
+        pAPI->vkGetMemoryZirconHandleFUCHSIA = vkGetMemoryZirconHandleFUCHSIA;
+        pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = vkGetMemoryZirconHandlePropertiesFUCHSIA;
+        pAPI->vkImportSemaphoreZirconHandleFUCHSIA = vkImportSemaphoreZirconHandleFUCHSIA;
+        pAPI->vkGetSemaphoreZirconHandleFUCHSIA = vkGetSemaphoreZirconHandleFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
         pAPI->vkCreateStreamDescriptorSurfaceGGP = vkCreateStreamDescriptorSurfaceGGP;
@@ -13790,6 +13870,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     pAPI->vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkGetInstanceProcAddr(instance, "vkCreateImagePipeSurfaceFUCHSIA");
+    pAPI->vkGetMemoryZirconHandleFUCHSIA = (PFN_vkGetMemoryZirconHandleFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetMemoryZirconHandleFUCHSIA");
+    pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    pAPI->vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)vkGetInstanceProcAddr(instance, "vkImportSemaphoreZirconHandleFUCHSIA");
+    pAPI->vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetSemaphoreZirconHandleFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     pAPI->vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkGetInstanceProcAddr(instance, "vkCreateStreamDescriptorSurfaceGGP");
@@ -14202,6 +14286,10 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_METAL_EXT
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
+    pAPI->vkGetMemoryZirconHandleFUCHSIA = (PFN_vkGetMemoryZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryZirconHandleFUCHSIA");
+    pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
+    pAPI->vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkImportSemaphoreZirconHandleFUCHSIA");
+    pAPI->vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetSemaphoreZirconHandleFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
 #endif /*VK_USE_PLATFORM_GGP*/
@@ -14699,6 +14787,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = pAPI->vkCreateImagePipeSurfaceFUCHSIA;
+    vkGetMemoryZirconHandleFUCHSIA = pAPI->vkGetMemoryZirconHandleFUCHSIA;
+    vkGetMemoryZirconHandlePropertiesFUCHSIA = pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA;
+    vkImportSemaphoreZirconHandleFUCHSIA = pAPI->vkImportSemaphoreZirconHandleFUCHSIA;
+    vkGetSemaphoreZirconHandleFUCHSIA = pAPI->vkGetSemaphoreZirconHandleFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     vkCreateStreamDescriptorSurfaceGGP = pAPI->vkCreateStreamDescriptorSurfaceGGP;
