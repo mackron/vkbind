@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.177.0 - 2021-04-26
+vkbind - v1.2.178.0 - 2021-05-10
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 177
+#define VK_HEADER_VERSION 178
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -472,11 +472,12 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR = 1000023014,
     VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR = 1000023015,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_INFO_KHR = 1000024000,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR = 1000299000,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR = 1000299001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT = 1000028000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT = 1000028001,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_STREAM_CREATE_INFO_EXT = 1000028002,
+    VK_STRUCTURE_TYPE_CU_MODULE_CREATE_INFO_NVX = 1000029000,
+    VK_STRUCTURE_TYPE_CU_FUNCTION_CREATE_INFO_NVX = 1000029001,
+    VK_STRUCTURE_TYPE_CU_LAUNCH_INFO_NVX = 1000029002,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_HANDLE_INFO_NVX = 1000030000,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_ADDRESS_PROPERTIES_NVX = 1000030001,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_EXT = 1000038000,
@@ -771,6 +772,8 @@ typedef enum
     VK_STRUCTURE_TYPE_DEVICE_PRIVATE_DATA_CREATE_INFO_EXT = 1000295001,
     VK_STRUCTURE_TYPE_PRIVATE_DATA_SLOT_CREATE_INFO_EXT = 1000295002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_CREATION_CACHE_CONTROL_FEATURES_EXT = 1000297000,
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_INFO_KHR = 1000299000,
+    VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_INFO_KHR = 1000299001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
     VK_STRUCTURE_TYPE_MEMORY_BARRIER_2_KHR = 1000314000,
@@ -996,12 +999,12 @@ typedef enum
     VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR = 1000024000,
     VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR = 1000024001,
     VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR = 1000024002,
-    VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR = 1000299000,
-    VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR = 1000299001,
-    VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR = 1000299002,
     VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR = 1000111000,
     VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV = 1000164003,
     VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT = 1000218000,
+    VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR = 1000299000,
+    VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR = 1000299001,
+    VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR = 1000299002,
     VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR = 1000314000,
     VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR = 1000314001,
     VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
@@ -1070,6 +1073,8 @@ typedef enum
     VK_OBJECT_TYPE_DISPLAY_MODE_KHR = 1000002001,
     VK_OBJECT_TYPE_VIDEO_SESSION_KHR = 1000023000,
     VK_OBJECT_TYPE_VIDEO_SESSION_PARAMETERS_KHR = 1000023001,
+    VK_OBJECT_TYPE_CU_MODULE_NVX = 1000029000,
+    VK_OBJECT_TYPE_CU_FUNCTION_NVX = 1000029001,
     VK_OBJECT_TYPE_DEBUG_UTILS_MESSENGER_EXT = 1000128000,
     VK_OBJECT_TYPE_DEBUG_REPORT_CALLBACK_EXT = 1000011000,
     VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR = 1000150000,
@@ -1432,11 +1437,11 @@ typedef enum
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG = 0x00002000,
     VK_FORMAT_FEATURE_VIDEO_DECODE_OUTPUT_BIT_KHR = 0x02000000,
     VK_FORMAT_FEATURE_VIDEO_DECODE_DPB_BIT_KHR = 0x04000000,
-    VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR = 0x08000000,
-    VK_FORMAT_FEATURE_VIDEO_ENCODE_DPB_BIT_KHR = 0x10000000,
     VK_FORMAT_FEATURE_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR = 0x20000000,
     VK_FORMAT_FEATURE_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x01000000,
     VK_FORMAT_FEATURE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = 0x40000000,
+    VK_FORMAT_FEATURE_VIDEO_ENCODE_INPUT_BIT_KHR = 0x08000000,
+    VK_FORMAT_FEATURE_VIDEO_ENCODE_DPB_BIT_KHR = 0x10000000,
     VK_FORMAT_FEATURE_TRANSFER_SRC_BIT_KHR = VK_FORMAT_FEATURE_TRANSFER_SRC_BIT,
     VK_FORMAT_FEATURE_TRANSFER_DST_BIT_KHR = VK_FORMAT_FEATURE_TRANSFER_DST_BIT,
     VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT_EXT = VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT,
@@ -1521,11 +1526,11 @@ typedef enum
     VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR = 0x00000400,
     VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR = 0x00000800,
     VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR = 0x00001000,
+    VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV = 0x00000100,
+    VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x00000200,
     VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 0x00002000,
     VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 0x00004000,
     VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR = 0x00008000,
-    VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV = 0x00000100,
-    VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x00000200,
     VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV,
     VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkImageUsageFlagBits;
@@ -1677,13 +1682,13 @@ typedef enum
     VK_QUERY_TYPE_PIPELINE_STATISTICS = 1,
     VK_QUERY_TYPE_TIMESTAMP = 2,
     VK_QUERY_TYPE_RESULT_STATUS_ONLY_KHR = 1000023000,
-    VK_QUERY_TYPE_VIDEO_ENCODE_BITSTREAM_BUFFER_RANGE_KHR = 1000299000,
     VK_QUERY_TYPE_TRANSFORM_FEEDBACK_STREAM_EXT = 1000028004,
     VK_QUERY_TYPE_PERFORMANCE_QUERY_KHR = 1000116000,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR = 1000150000,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR = 1000150001,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_NV = 1000165000,
     VK_QUERY_TYPE_PERFORMANCE_QUERY_INTEL = 1000210000,
+    VK_QUERY_TYPE_VIDEO_ENCODE_BITSTREAM_BUFFER_RANGE_KHR = 1000299000,
     VK_QUERY_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkQueryType;
 
@@ -1726,14 +1731,14 @@ typedef enum
     VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT = 0x00020000,
     VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR = 0x00002000,
     VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR = 0x00004000,
-    VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 0x00008000,
-    VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 0x00010000,
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT = 0x00000800,
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT = 0x00001000,
     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT = 0x00000200,
     VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR = 0x00080000,
     VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR = 0x00100000,
     VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR = 0x00000400,
+    VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 0x00008000,
+    VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 0x00010000,
     VK_BUFFER_USAGE_RAY_TRACING_BIT_NV = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
     VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
     VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
@@ -4495,6 +4500,7 @@ typedef enum
     VK_DRIVER_ID_MESA_LLVMPIPE = 13,
     VK_DRIVER_ID_MOLTENVK = 14,
     VK_DRIVER_ID_COREAVI_PROPRIETARY = 15,
+    VK_DRIVER_ID_JUICE_PROPRIETARY = 16,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -5626,6 +5632,54 @@ typedef void (VKAPI_PTR *PFN_vkCmdEndTransformFeedbackEXT)(VkCommandBuffer comma
 typedef void (VKAPI_PTR *PFN_vkCmdBeginQueryIndexedEXT)(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags, uint32_t index);
 typedef void (VKAPI_PTR *PFN_vkCmdEndQueryIndexedEXT)(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query, uint32_t index);
 typedef void (VKAPI_PTR *PFN_vkCmdDrawIndirectByteCountEXT)(VkCommandBuffer commandBuffer, uint32_t instanceCount, uint32_t firstInstance, VkBuffer counterBuffer, VkDeviceSize counterBufferOffset, uint32_t counterOffset, uint32_t vertexStride);
+
+#define VK_NVX_binary_import 1
+#define VK_NVX_BINARY_IMPORT_SPEC_VERSION 1
+#define VK_NVX_BINARY_IMPORT_EXTENSION_NAME "VK_NVX_binary_import"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCuModuleNVX)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCuFunctionNVX)
+
+typedef struct VkCuModuleCreateInfoNVX
+{
+    VkStructureType sType;
+    const void* pNext;
+    size_t dataSize;
+    const void* pData;
+} VkCuModuleCreateInfoNVX;
+
+typedef struct VkCuFunctionCreateInfoNVX
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkCuModuleNVX module;
+    const char* pName;
+} VkCuFunctionCreateInfoNVX;
+
+typedef struct VkCuLaunchInfoNVX
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkCuFunctionNVX function;
+    uint32_t gridDimX;
+    uint32_t gridDimY;
+    uint32_t gridDimZ;
+    uint32_t blockDimX;
+    uint32_t blockDimY;
+    uint32_t blockDimZ;
+    uint32_t sharedMemBytes;
+    size_t paramCount;
+    const void* const * pParams;
+    size_t extraCount;
+    const void* const * pExtras;
+} VkCuLaunchInfoNVX;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateCuModuleNVX)(VkDevice device, const VkCuModuleCreateInfoNVX* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCuModuleNVX* pModule);
+typedef VkResult (VKAPI_PTR *PFN_vkCreateCuFunctionNVX)(VkDevice device, const VkCuFunctionCreateInfoNVX* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCuFunctionNVX* pFunction);
+typedef void (VKAPI_PTR *PFN_vkDestroyCuModuleNVX)(VkDevice device, VkCuModuleNVX module, const VkAllocationCallbacks* pAllocator);
+typedef void (VKAPI_PTR *PFN_vkDestroyCuFunctionNVX)(VkDevice device, VkCuFunctionNVX function, const VkAllocationCallbacks* pAllocator);
+typedef void (VKAPI_PTR *PFN_vkCmdCuLaunchKernelNVX)(VkCommandBuffer commandBuffer, const VkCuLaunchInfoNVX* pLaunchInfo);
 
 #define VK_NVX_image_view_handle 1
 #define VK_NVX_IMAGE_VIEW_HANDLE_SPEC_VERSION 2
@@ -7028,6 +7082,8 @@ typedef enum
     VK_DEBUG_REPORT_OBJECT_TYPE_DISPLAY_MODE_KHR_EXT = 30,
     VK_DEBUG_REPORT_OBJECT_TYPE_VALIDATION_CACHE_EXT_EXT = 33,
     VK_DEBUG_REPORT_OBJECT_TYPE_VALIDATION_CACHE_EXT = VK_DEBUG_REPORT_OBJECT_TYPE_VALIDATION_CACHE_EXT_EXT,
+    VK_DEBUG_REPORT_OBJECT_TYPE_CU_MODULE_NVX_EXT = 1000029000,
+    VK_DEBUG_REPORT_OBJECT_TYPE_CU_FUNCTION_NVX_EXT = 1000029001,
     VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_EXT = 1000156000,
     VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT = 1000085000,
     VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR_EXT = 1000150000,
@@ -11693,68 +11749,6 @@ typedef struct VkVideoDecodeInfoKHR
 
 typedef void (VKAPI_PTR *PFN_vkCmdDecodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoDecodeInfoKHR* pFrameInfo);
 
-#define VK_KHR_video_encode_queue 1
-#define VK_KHR_VIDEO_ENCODE_QUEUE_SPEC_VERSION 2
-#define VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME "VK_KHR_video_encode_queue"
-
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_DEFAULT_KHR = 0,
-    VK_VIDEO_ENCODE_RESERVED_0_BIT_KHR = 0x00000001,
-    VK_VIDEO_ENCODE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
-} VkVideoEncodeFlagBitsKHR;
-typedef VkFlags VkVideoEncodeFlagsKHR;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_RATE_CONTROL_DEFAULT_KHR = 0,
-    VK_VIDEO_ENCODE_RATE_CONTROL_RESET_BIT_KHR = 0x00000001,
-    VK_VIDEO_ENCODE_RATE_CONTROL_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
-} VkVideoEncodeRateControlFlagBitsKHR;
-typedef VkFlags VkVideoEncodeRateControlFlagsKHR;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_NONE_BIT_KHR = 0,
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR = 1,
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR = 2,
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
-} VkVideoEncodeRateControlModeFlagBitsKHR;
-typedef VkFlags VkVideoEncodeRateControlModeFlagsKHR;
-
-typedef struct VkVideoEncodeInfoKHR
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkVideoEncodeFlagsKHR flags;
-    uint32_t qualityLevel;
-    VkExtent2D codedExtent;
-    VkBuffer dstBitstreamBuffer;
-    VkDeviceSize dstBitstreamBufferOffset;
-    VkDeviceSize dstBitstreamBufferMaxRange;
-    VkVideoPictureResourceKHR srcPictureResource;
-    const VkVideoReferenceSlotKHR* pSetupReferenceSlot;
-    uint32_t referenceSlotCount;
-    const VkVideoReferenceSlotKHR* pReferenceSlots;
-} VkVideoEncodeInfoKHR;
-
-typedef struct VkVideoEncodeRateControlInfoKHR
-{
-    VkStructureType sType;
-    const void* pNext;
-    VkVideoEncodeRateControlFlagsKHR flags;
-    VkVideoEncodeRateControlModeFlagBitsKHR rateControlMode;
-    uint32_t averageBitrate;
-    uint16_t peakToAverageBitrateRatio;
-    uint16_t frameRateNumerator;
-    uint16_t frameRateDenominator;
-    uint32_t virtualBufferSizeInMs;
-} VkVideoEncodeRateControlInfoKHR;
-
-
-typedef void (VKAPI_PTR *PFN_vkCmdEncodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoEncodeInfoKHR* pEncodeInfo);
-
 #define VK_EXT_video_encode_h264 1
 #define VK_EXT_VIDEO_ENCODE_H264_SPEC_VERSION 1
 #define VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME "VK_EXT_video_encode_h264"
@@ -12085,6 +12079,68 @@ typedef struct VkVideoDecodeH265DpbSlotInfoEXT
 } VkVideoDecodeH265DpbSlotInfoEXT;
 
 
+
+#define VK_KHR_video_encode_queue 1
+#define VK_KHR_VIDEO_ENCODE_QUEUE_SPEC_VERSION 2
+#define VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME "VK_KHR_video_encode_queue"
+
+
+typedef enum
+{
+    VK_VIDEO_ENCODE_DEFAULT_KHR = 0,
+    VK_VIDEO_ENCODE_RESERVED_0_BIT_KHR = 0x00000001,
+    VK_VIDEO_ENCODE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkVideoEncodeFlagBitsKHR;
+typedef VkFlags VkVideoEncodeFlagsKHR;
+
+typedef enum
+{
+    VK_VIDEO_ENCODE_RATE_CONTROL_DEFAULT_KHR = 0,
+    VK_VIDEO_ENCODE_RATE_CONTROL_RESET_BIT_KHR = 0x00000001,
+    VK_VIDEO_ENCODE_RATE_CONTROL_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkVideoEncodeRateControlFlagBitsKHR;
+typedef VkFlags VkVideoEncodeRateControlFlagsKHR;
+
+typedef enum
+{
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_NONE_BIT_KHR = 0,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR = 1,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR = 2,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkVideoEncodeRateControlModeFlagBitsKHR;
+typedef VkFlags VkVideoEncodeRateControlModeFlagsKHR;
+
+typedef struct VkVideoEncodeInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkVideoEncodeFlagsKHR flags;
+    uint32_t qualityLevel;
+    VkExtent2D codedExtent;
+    VkBuffer dstBitstreamBuffer;
+    VkDeviceSize dstBitstreamBufferOffset;
+    VkDeviceSize dstBitstreamBufferMaxRange;
+    VkVideoPictureResourceKHR srcPictureResource;
+    const VkVideoReferenceSlotKHR* pSetupReferenceSlot;
+    uint32_t referenceSlotCount;
+    const VkVideoReferenceSlotKHR* pReferenceSlots;
+} VkVideoEncodeInfoKHR;
+
+typedef struct VkVideoEncodeRateControlInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkVideoEncodeRateControlFlagsKHR flags;
+    VkVideoEncodeRateControlModeFlagBitsKHR rateControlMode;
+    uint32_t averageBitrate;
+    uint16_t peakToAverageBitrateRatio;
+    uint16_t frameRateNumerator;
+    uint16_t frameRateDenominator;
+    uint32_t virtualBufferSizeInMs;
+} VkVideoEncodeRateControlInfoKHR;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdEncodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoEncodeInfoKHR* pEncodeInfo);
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
@@ -12317,6 +12373,11 @@ PFN_vkCmdEndTransformFeedbackEXT vkCmdEndTransformFeedbackEXT;
 PFN_vkCmdBeginQueryIndexedEXT vkCmdBeginQueryIndexedEXT;
 PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
 PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
+PFN_vkCreateCuModuleNVX vkCreateCuModuleNVX;
+PFN_vkCreateCuFunctionNVX vkCreateCuFunctionNVX;
+PFN_vkDestroyCuModuleNVX vkDestroyCuModuleNVX;
+PFN_vkDestroyCuFunctionNVX vkDestroyCuFunctionNVX;
+PFN_vkCmdCuLaunchKernelNVX vkCmdCuLaunchKernelNVX;
 PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
 PFN_vkGetImageViewAddressNVX vkGetImageViewAddressNVX;
 PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
@@ -12831,6 +12892,11 @@ typedef struct
     PFN_vkCmdBeginQueryIndexedEXT vkCmdBeginQueryIndexedEXT;
     PFN_vkCmdEndQueryIndexedEXT vkCmdEndQueryIndexedEXT;
     PFN_vkCmdDrawIndirectByteCountEXT vkCmdDrawIndirectByteCountEXT;
+    PFN_vkCreateCuModuleNVX vkCreateCuModuleNVX;
+    PFN_vkCreateCuFunctionNVX vkCreateCuFunctionNVX;
+    PFN_vkDestroyCuModuleNVX vkDestroyCuModuleNVX;
+    PFN_vkDestroyCuFunctionNVX vkDestroyCuFunctionNVX;
+    PFN_vkCmdCuLaunchKernelNVX vkCmdCuLaunchKernelNVX;
     PFN_vkGetImageViewHandleNVX vkGetImageViewHandleNVX;
     PFN_vkGetImageViewAddressNVX vkGetImageViewAddressNVX;
     PFN_vkGetShaderInfoAMD vkGetShaderInfoAMD;
@@ -13506,6 +13572,11 @@ VkResult vkbBindGlobalAPI()
     vkCmdBeginQueryIndexedEXT = (PFN_vkCmdBeginQueryIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBeginQueryIndexedEXT");
     vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdEndQueryIndexedEXT");
     vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawIndirectByteCountEXT");
+    vkCreateCuModuleNVX = (PFN_vkCreateCuModuleNVX)vkb_dlsym(g_vkbVulkanSO, "vkCreateCuModuleNVX");
+    vkCreateCuFunctionNVX = (PFN_vkCreateCuFunctionNVX)vkb_dlsym(g_vkbVulkanSO, "vkCreateCuFunctionNVX");
+    vkDestroyCuModuleNVX = (PFN_vkDestroyCuModuleNVX)vkb_dlsym(g_vkbVulkanSO, "vkDestroyCuModuleNVX");
+    vkDestroyCuFunctionNVX = (PFN_vkDestroyCuFunctionNVX)vkb_dlsym(g_vkbVulkanSO, "vkDestroyCuFunctionNVX");
+    vkCmdCuLaunchKernelNVX = (PFN_vkCmdCuLaunchKernelNVX)vkb_dlsym(g_vkbVulkanSO, "vkCmdCuLaunchKernelNVX");
     vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewHandleNVX");
     vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewAddressNVX");
     vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkb_dlsym(g_vkbVulkanSO, "vkGetShaderInfoAMD");
@@ -14049,6 +14120,11 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdBeginQueryIndexedEXT = vkCmdBeginQueryIndexedEXT;
         pAPI->vkCmdEndQueryIndexedEXT = vkCmdEndQueryIndexedEXT;
         pAPI->vkCmdDrawIndirectByteCountEXT = vkCmdDrawIndirectByteCountEXT;
+        pAPI->vkCreateCuModuleNVX = vkCreateCuModuleNVX;
+        pAPI->vkCreateCuFunctionNVX = vkCreateCuFunctionNVX;
+        pAPI->vkDestroyCuModuleNVX = vkDestroyCuModuleNVX;
+        pAPI->vkDestroyCuFunctionNVX = vkDestroyCuFunctionNVX;
+        pAPI->vkCmdCuLaunchKernelNVX = vkCmdCuLaunchKernelNVX;
         pAPI->vkGetImageViewHandleNVX = vkGetImageViewHandleNVX;
         pAPI->vkGetImageViewAddressNVX = vkGetImageViewAddressNVX;
         pAPI->vkGetShaderInfoAMD = vkGetShaderInfoAMD;
@@ -14589,6 +14665,11 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBeginQueryIndexedEXT = (PFN_vkCmdBeginQueryIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdBeginQueryIndexedEXT");
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawIndirectByteCountEXT");
+    pAPI->vkCreateCuModuleNVX = (PFN_vkCreateCuModuleNVX)vkGetInstanceProcAddr(instance, "vkCreateCuModuleNVX");
+    pAPI->vkCreateCuFunctionNVX = (PFN_vkCreateCuFunctionNVX)vkGetInstanceProcAddr(instance, "vkCreateCuFunctionNVX");
+    pAPI->vkDestroyCuModuleNVX = (PFN_vkDestroyCuModuleNVX)vkGetInstanceProcAddr(instance, "vkDestroyCuModuleNVX");
+    pAPI->vkDestroyCuFunctionNVX = (PFN_vkDestroyCuFunctionNVX)vkGetInstanceProcAddr(instance, "vkDestroyCuFunctionNVX");
+    pAPI->vkCmdCuLaunchKernelNVX = (PFN_vkCmdCuLaunchKernelNVX)vkGetInstanceProcAddr(instance, "vkCmdCuLaunchKernelNVX");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)vkGetInstanceProcAddr(instance, "vkGetImageViewHandleNVX");
     pAPI->vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)vkGetInstanceProcAddr(instance, "vkGetImageViewAddressNVX");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)vkGetInstanceProcAddr(instance, "vkGetShaderInfoAMD");
@@ -15082,6 +15163,11 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBeginQueryIndexedEXT = (PFN_vkCmdBeginQueryIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBeginQueryIndexedEXT");
     pAPI->vkCmdEndQueryIndexedEXT = (PFN_vkCmdEndQueryIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdEndQueryIndexedEXT");
     pAPI->vkCmdDrawIndirectByteCountEXT = (PFN_vkCmdDrawIndirectByteCountEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawIndirectByteCountEXT");
+    pAPI->vkCreateCuModuleNVX = (PFN_vkCreateCuModuleNVX)pAPI->vkGetDeviceProcAddr(device, "vkCreateCuModuleNVX");
+    pAPI->vkCreateCuFunctionNVX = (PFN_vkCreateCuFunctionNVX)pAPI->vkGetDeviceProcAddr(device, "vkCreateCuFunctionNVX");
+    pAPI->vkDestroyCuModuleNVX = (PFN_vkDestroyCuModuleNVX)pAPI->vkGetDeviceProcAddr(device, "vkDestroyCuModuleNVX");
+    pAPI->vkDestroyCuFunctionNVX = (PFN_vkDestroyCuFunctionNVX)pAPI->vkGetDeviceProcAddr(device, "vkDestroyCuFunctionNVX");
+    pAPI->vkCmdCuLaunchKernelNVX = (PFN_vkCmdCuLaunchKernelNVX)pAPI->vkGetDeviceProcAddr(device, "vkCmdCuLaunchKernelNVX");
     pAPI->vkGetImageViewHandleNVX = (PFN_vkGetImageViewHandleNVX)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewHandleNVX");
     pAPI->vkGetImageViewAddressNVX = (PFN_vkGetImageViewAddressNVX)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewAddressNVX");
     pAPI->vkGetShaderInfoAMD = (PFN_vkGetShaderInfoAMD)pAPI->vkGetDeviceProcAddr(device, "vkGetShaderInfoAMD");
@@ -15546,6 +15632,11 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBeginQueryIndexedEXT = pAPI->vkCmdBeginQueryIndexedEXT;
     vkCmdEndQueryIndexedEXT = pAPI->vkCmdEndQueryIndexedEXT;
     vkCmdDrawIndirectByteCountEXT = pAPI->vkCmdDrawIndirectByteCountEXT;
+    vkCreateCuModuleNVX = pAPI->vkCreateCuModuleNVX;
+    vkCreateCuFunctionNVX = pAPI->vkCreateCuFunctionNVX;
+    vkDestroyCuModuleNVX = pAPI->vkDestroyCuModuleNVX;
+    vkDestroyCuFunctionNVX = pAPI->vkDestroyCuFunctionNVX;
+    vkCmdCuLaunchKernelNVX = pAPI->vkCmdCuLaunchKernelNVX;
     vkGetImageViewHandleNVX = pAPI->vkGetImageViewHandleNVX;
     vkGetImageViewAddressNVX = pAPI->vkGetImageViewAddressNVX;
     vkGetShaderInfoAMD = pAPI->vkGetShaderInfoAMD;
