@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.180.0 - 2021-06-07
+vkbind - v1.2.182.0 - 2021-06-21
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 180
+#define VK_HEADER_VERSION 182
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -791,6 +791,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV = 1000326000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV = 1000326001,
     VK_STRUCTURE_TYPE_PIPELINE_FRAGMENT_SHADING_RATE_ENUM_STATE_CREATE_INFO_NV = 1000326002,
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_MOTION_TRIANGLES_DATA_NV = 1000327000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MOTION_BLUR_FEATURES_NV = 1000327001,
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MOTION_INFO_NV = 1000327002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_YCBCR_2_PLANE_444_FORMATS_FEATURES_EXT = 1000330000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_FEATURES_EXT = 1000332000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_2_PROPERTIES_EXT = 1000332001,
@@ -815,17 +818,23 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT = 1000352000,
     VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT = 1000352001,
     VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT = 1000352002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT = 1000353000,
     VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364000,
     VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA = 1000364001,
     VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364002,
     VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365000,
     VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365001,
+    VK_STRUCTURE_TYPE_SUBPASSS_SHADING_PIPELINE_CREATE_INFO_HUAWEI = 1000369000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI = 1000369001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI = 1000369002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT = 1000377000,
     VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX = 1000378000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT = 1000381000,
     VK_STRUCTURE_TYPE_PIPELINE_COLOR_WRITE_CREATE_INFO_EXT = 1000381001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GLOBAL_PRIORITY_QUERY_FEATURES_EXT = 1000388000,
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_EXT = 1000388001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT = 1000392000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT = 1000392001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
@@ -1926,6 +1935,7 @@ typedef enum
     VK_PIPELINE_CREATE_LIBRARY_BIT_KHR = 0x00000800,
     VK_PIPELINE_CREATE_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_EXT = 0x00000100,
     VK_PIPELINE_CREATE_EARLY_RETURN_ON_FAILURE_BIT_EXT = 0x00000200,
+    VK_PIPELINE_CREATE_RAY_TRACING_ALLOW_MOTION_BIT_NV = 0x00100000,
     VK_PIPELINE_CREATE_DISPATCH_BASE = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT,
     VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR = VK_PIPELINE_CREATE_VIEW_INDEX_FROM_DEVICE_INDEX_BIT,
     VK_PIPELINE_CREATE_DISPATCH_BASE_KHR = VK_PIPELINE_CREATE_DISPATCH_BASE,
@@ -2094,6 +2104,7 @@ typedef enum
     VK_SHADER_STAGE_CALLABLE_BIT_KHR = 0x00002000,
     VK_SHADER_STAGE_TASK_BIT_NV = 0x00000040,
     VK_SHADER_STAGE_MESH_BIT_NV = 0x00000080,
+    VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI = 0x00004000,
     VK_SHADER_STAGE_RAYGEN_BIT_NV = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
     VK_SHADER_STAGE_ANY_HIT_BIT_NV = VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
     VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
@@ -2239,6 +2250,7 @@ typedef enum
     VK_PIPELINE_BIND_POINT_GRAPHICS = 0,
     VK_PIPELINE_BIND_POINT_COMPUTE = 1,
     VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR = 1000165000,
+    VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI = 1000369003,
     VK_PIPELINE_BIND_POINT_RAY_TRACING_NV = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
     VK_PIPELINE_BIND_POINT_MAX_ENUM = 0x7FFFFFFF
 } VkPipelineBindPoint;
@@ -7427,6 +7439,7 @@ typedef enum
     VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR = 0x00000004,
     VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR = 0x00000008,
     VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR = 0x00000010,
+    VK_BUILD_ACCELERATION_STRUCTURE_MOTION_BIT_NV = 0x00000020,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR,
     VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
@@ -7488,6 +7501,7 @@ typedef VkFlags VkGeometryInstanceFlagsKHR;
 typedef enum
 {
     VK_ACCELERATION_STRUCTURE_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR = 0x00000001,
+    VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV = 0x00000004,
     VK_ACCELERATION_STRUCTURE_CREATE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
 } VkAccelerationStructureCreateFlagBitsKHR;
 typedef VkFlags VkAccelerationStructureCreateFlagsKHR;
@@ -10159,6 +10173,13 @@ typedef struct VkDeviceDeviceMemoryReportCreateInfoEXT
 
 
 
+#define VK_EXT_acquire_drm_display 1
+#define VK_EXT_ACQUIRE_DRM_DISPLAY_SPEC_VERSION 1
+#define VK_EXT_ACQUIRE_DRM_DISPLAY_EXTENSION_NAME "VK_EXT_acquire_drm_display"
+
+typedef VkResult (VKAPI_PTR *PFN_vkAcquireDrmDisplayEXT)(VkPhysicalDevice physicalDevice, int32_t drmFd, VkDisplayKHR display);
+typedef VkResult (VKAPI_PTR *PFN_vkGetDrmDisplayEXT)(VkPhysicalDevice physicalDevice, int32_t drmFd, uint32_t connectorId, VkDisplayKHR* display);
+
 #define VK_EXT_robustness2 1
 #define VK_EXT_ROBUSTNESS_2_SPEC_VERSION 1
 #define VK_EXT_ROBUSTNESS_2_EXTENSION_NAME "VK_EXT_robustness2"
@@ -10530,6 +10551,102 @@ typedef struct VkPipelineFragmentShadingRateEnumStateCreateInfoNV
 
 typedef void (VKAPI_PTR *PFN_vkCmdSetFragmentShadingRateEnumNV)(VkCommandBuffer commandBuffer, VkFragmentShadingRateNV shadingRate, const VkFragmentShadingRateCombinerOpKHR combinerOps[2]);
 
+#define VK_NV_ray_tracing_motion_blur 1
+#define VK_NV_RAY_TRACING_MOTION_BLUR_SPEC_VERSION 1
+#define VK_NV_RAY_TRACING_MOTION_BLUR_EXTENSION_NAME "VK_NV_ray_tracing_motion_blur"
+
+typedef VkFlags VkAccelerationStructureMotionInfoFlagsNV;
+typedef enum
+{
+    VK_ACCELERATION_STRUCTURE_MOTION_INSTANCE_TYPE_STATIC_NV = 0,
+    VK_ACCELERATION_STRUCTURE_MOTION_INSTANCE_TYPE_MATRIX_MOTION_NV = 1,
+    VK_ACCELERATION_STRUCTURE_MOTION_INSTANCE_TYPE_SRT_MOTION_NV = 2,
+    VK_ACCELERATION_STRUCTURE_MOTION_INSTANCE_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkAccelerationStructureMotionInstanceTypeNV;
+
+typedef VkFlags VkAccelerationStructureMotionInstanceFlagsNV;
+
+typedef struct VkAccelerationStructureGeometryMotionTrianglesDataNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceOrHostAddressConstKHR vertexData;
+} VkAccelerationStructureGeometryMotionTrianglesDataNV;
+
+typedef struct VkAccelerationStructureMotionInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t maxInstances;
+    VkAccelerationStructureMotionInfoFlagsNV flags;
+} VkAccelerationStructureMotionInfoNV;
+
+typedef struct VkAccelerationStructureMatrixMotionInstanceNV
+{
+    VkTransformMatrixKHR transformT0;
+    VkTransformMatrixKHR transformT1;
+    uint32_t instanceCustomIndex:24;
+    uint32_t mask:8;
+    uint32_t instanceShaderBindingTableRecordOffset:24;
+    VkGeometryInstanceFlagsKHR flags:8;
+    uint64_t accelerationStructureReference;
+} VkAccelerationStructureMatrixMotionInstanceNV;
+
+typedef struct VkSRTDataNV
+{
+    float sx;
+    float a;
+    float b;
+    float pvx;
+    float sy;
+    float c;
+    float pvy;
+    float sz;
+    float pvz;
+    float qx;
+    float qy;
+    float qz;
+    float qw;
+    float tx;
+    float ty;
+    float tz;
+} VkSRTDataNV;
+
+typedef struct VkAccelerationStructureSRTMotionInstanceNV
+{
+    VkSRTDataNV transformT0;
+    VkSRTDataNV transformT1;
+    uint32_t instanceCustomIndex:24;
+    uint32_t mask:8;
+    uint32_t instanceShaderBindingTableRecordOffset:24;
+    VkGeometryInstanceFlagsKHR flags:8;
+    uint64_t accelerationStructureReference;
+} VkAccelerationStructureSRTMotionInstanceNV;
+
+typedef union VkAccelerationStructureMotionInstanceDataNV
+{
+    VkAccelerationStructureInstanceKHR staticInstance;
+    VkAccelerationStructureMatrixMotionInstanceNV matrixMotionInstance;
+    VkAccelerationStructureSRTMotionInstanceNV srtMotionInstance;
+} VkAccelerationStructureMotionInstanceDataNV;
+
+typedef struct VkAccelerationStructureMotionInstanceNV
+{
+    VkAccelerationStructureMotionInstanceTypeNV type;
+    VkAccelerationStructureMotionInstanceFlagsNV flags;
+    VkAccelerationStructureMotionInstanceDataNV data;
+} VkAccelerationStructureMotionInstanceNV;
+
+typedef struct VkPhysicalDeviceRayTracingMotionBlurFeaturesNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 rayTracingMotionBlur;
+    VkBool32 rayTracingMotionBlurPipelineTraceRaysIndirect;
+} VkPhysicalDeviceRayTracingMotionBlurFeaturesNV;
+
+
+
 #define VK_EXT_ycbcr_2plane_444_formats 1
 #define VK_EXT_YCBCR_2PLANE_444_FORMATS_SPEC_VERSION 1
 #define VK_EXT_YCBCR_2PLANE_444_FORMATS_EXTENSION_NAME "VK_EXT_ycbcr_2plane_444_formats"
@@ -10817,6 +10934,54 @@ typedef struct VkVertexInputAttributeDescription2EXT
 
 typedef void (VKAPI_PTR *PFN_vkCmdSetVertexInputEXT)(VkCommandBuffer commandBuffer, uint32_t vertexBindingDescriptionCount, const VkVertexInputBindingDescription2EXT* pVertexBindingDescriptions, uint32_t vertexAttributeDescriptionCount, const VkVertexInputAttributeDescription2EXT* pVertexAttributeDescriptions);
 
+#define VK_EXT_physical_device_drm 1
+#define VK_EXT_PHYSICAL_DEVICE_DRM_SPEC_VERSION 1
+#define VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME "VK_EXT_physical_device_drm"
+
+typedef struct VkPhysicalDeviceDrmPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 hasPrimary;
+    VkBool32 hasRender;
+    int64_t primaryMajor;
+    int64_t primaryMinor;
+    int64_t renderMajor;
+    int64_t renderMinor;
+} VkPhysicalDeviceDrmPropertiesEXT;
+
+
+
+#define VK_HUAWEI_subpass_shading 1
+#define VK_HUAWEI_SUBPASS_SHADING_SPEC_VERSION 0
+#define VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME "VK_HUAWEI_subpass_shading"
+
+typedef struct VkSubpassShadingPipelineCreateInfoHUAWEI
+{
+    VkStructureType sType;
+    void* pNext;
+    VkRenderPass renderPass;
+    uint32_t subpass;
+} VkSubpassShadingPipelineCreateInfoHUAWEI;
+
+typedef struct VkPhysicalDeviceSubpassShadingFeaturesHUAWEI
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 subpassShading;
+} VkPhysicalDeviceSubpassShadingFeaturesHUAWEI;
+
+typedef struct VkPhysicalDeviceSubpassShadingPropertiesHUAWEI
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxSubpassShadingWorkgroupSizeAspectRatio;
+} VkPhysicalDeviceSubpassShadingPropertiesHUAWEI;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)(VkRenderPass renderpass, VkExtent2D* pMaxWorkgroupSize);
+typedef void (VKAPI_PTR *PFN_vkCmdSubpassShadingHUAWEI)(VkCommandBuffer commandBuffer);
+
 #define VK_EXT_extended_dynamic_state2 1
 #define VK_EXT_EXTENDED_DYNAMIC_STATE_2_SPEC_VERSION 1
 #define VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME "VK_EXT_extended_dynamic_state2"
@@ -10881,6 +11046,41 @@ typedef struct VkQueueFamilyGlobalPriorityPropertiesEXT
 } VkQueueFamilyGlobalPriorityPropertiesEXT;
 
 
+
+#define VK_EXT_multi_draw 1
+#define VK_EXT_MULTI_DRAW_SPEC_VERSION 1
+#define VK_EXT_MULTI_DRAW_EXTENSION_NAME "VK_EXT_multi_draw"
+
+typedef struct VkPhysicalDeviceMultiDrawFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 multiDraw;
+} VkPhysicalDeviceMultiDrawFeaturesEXT;
+
+typedef struct VkPhysicalDeviceMultiDrawPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxMultiDrawCount;
+} VkPhysicalDeviceMultiDrawPropertiesEXT;
+
+typedef struct VkMultiDrawInfoEXT
+{
+    uint32_t firstVertex;
+    uint32_t vertexCount;
+} VkMultiDrawInfoEXT;
+
+typedef struct VkMultiDrawIndexedInfoEXT
+{
+    uint32_t firstIndex;
+    uint32_t indexCount;
+    int32_t vertexOffset;
+} VkMultiDrawIndexedInfoEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdDrawMultiEXT)(VkCommandBuffer commandBuffer, uint32_t drawCount, const VkMultiDrawInfoEXT* pVertexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride);
+typedef void (VKAPI_PTR *PFN_vkCmdDrawMultiIndexedEXT)(VkCommandBuffer commandBuffer, uint32_t drawCount, const VkMultiDrawIndexedInfoEXT* pIndexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride, const int32_t* pVertexOffset);
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -12613,6 +12813,8 @@ PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
 PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
 PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
 PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
+PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
 PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
@@ -12633,12 +12835,16 @@ PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
 PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
 PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
 PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
+PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+PFN_vkCmdSubpassShadingHUAWEI vkCmdSubpassShadingHUAWEI;
 PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT;
 PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT;
 PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
 PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT;
 PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
 PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
+PFN_vkCmdDrawMultiEXT vkCmdDrawMultiEXT;
+PFN_vkCmdDrawMultiIndexedEXT vkCmdDrawMultiIndexedEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -13132,6 +13338,8 @@ typedef struct
     PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
     PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
     PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+    PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
+    PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
     PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
@@ -13152,12 +13360,16 @@ typedef struct
     PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
     PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
+    PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+    PFN_vkCmdSubpassShadingHUAWEI vkCmdSubpassShadingHUAWEI;
     PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT;
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT;
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
     PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT;
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
     PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
+    PFN_vkCmdDrawMultiEXT vkCmdDrawMultiEXT;
+    PFN_vkCmdDrawMultiIndexedEXT vkCmdDrawMultiIndexedEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -13812,6 +14024,8 @@ VkResult vkbBindGlobalAPI()
     vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindPipelineShaderGroupNV");
     vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateIndirectCommandsLayoutNV");
     vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyIndirectCommandsLayoutNV");
+    vkAcquireDrmDisplayEXT = (PFN_vkAcquireDrmDisplayEXT)vkb_dlsym(g_vkbVulkanSO, "vkAcquireDrmDisplayEXT");
+    vkGetDrmDisplayEXT = (PFN_vkGetDrmDisplayEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDrmDisplayEXT");
     vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreatePrivateDataSlotEXT");
     vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
@@ -13832,12 +14046,16 @@ VkResult vkbBindGlobalAPI()
     vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBlitImage2KHR");
     vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResolveImage2KHR");
     vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetVertexInputEXT");
+    vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkCmdSubpassShadingHUAWEI");
     vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPatchControlPointsEXT");
     vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetRasterizerDiscardEnableEXT");
     vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDepthBiasEnableEXT");
     vkCmdSetLogicOpEXT = (PFN_vkCmdSetLogicOpEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetLogicOpEXT");
     vkCmdSetPrimitiveRestartEnableEXT = (PFN_vkCmdSetPrimitiveRestartEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPrimitiveRestartEnableEXT");
     vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetColorWriteEnableEXT");
+    vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMultiEXT");
+    vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMultiIndexedEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -14360,6 +14578,8 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdBindPipelineShaderGroupNV = vkCmdBindPipelineShaderGroupNV;
         pAPI->vkCreateIndirectCommandsLayoutNV = vkCreateIndirectCommandsLayoutNV;
         pAPI->vkDestroyIndirectCommandsLayoutNV = vkDestroyIndirectCommandsLayoutNV;
+        pAPI->vkAcquireDrmDisplayEXT = vkAcquireDrmDisplayEXT;
+        pAPI->vkGetDrmDisplayEXT = vkGetDrmDisplayEXT;
         pAPI->vkCreatePrivateDataSlotEXT = vkCreatePrivateDataSlotEXT;
         pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
         pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
@@ -14380,12 +14600,16 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdBlitImage2KHR = vkCmdBlitImage2KHR;
         pAPI->vkCmdResolveImage2KHR = vkCmdResolveImage2KHR;
         pAPI->vkCmdSetVertexInputEXT = vkCmdSetVertexInputEXT;
+        pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+        pAPI->vkCmdSubpassShadingHUAWEI = vkCmdSubpassShadingHUAWEI;
         pAPI->vkCmdSetPatchControlPointsEXT = vkCmdSetPatchControlPointsEXT;
         pAPI->vkCmdSetRasterizerDiscardEnableEXT = vkCmdSetRasterizerDiscardEnableEXT;
         pAPI->vkCmdSetDepthBiasEnableEXT = vkCmdSetDepthBiasEnableEXT;
         pAPI->vkCmdSetLogicOpEXT = vkCmdSetLogicOpEXT;
         pAPI->vkCmdSetPrimitiveRestartEnableEXT = vkCmdSetPrimitiveRestartEnableEXT;
         pAPI->vkCmdSetColorWriteEnableEXT = vkCmdSetColorWriteEnableEXT;
+        pAPI->vkCmdDrawMultiEXT = vkCmdDrawMultiEXT;
+        pAPI->vkCmdDrawMultiIndexedEXT = vkCmdDrawMultiIndexedEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -14905,6 +15129,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)vkGetInstanceProcAddr(instance, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)vkGetInstanceProcAddr(instance, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)vkGetInstanceProcAddr(instance, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkAcquireDrmDisplayEXT = (PFN_vkAcquireDrmDisplayEXT)vkGetInstanceProcAddr(instance, "vkAcquireDrmDisplayEXT");
+    pAPI->vkGetDrmDisplayEXT = (PFN_vkGetDrmDisplayEXT)vkGetInstanceProcAddr(instance, "vkGetDrmDisplayEXT");
     pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkCreatePrivateDataSlotEXT");
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
@@ -14925,12 +15151,16 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdResolveImage2KHR");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)vkGetInstanceProcAddr(instance, "vkCmdSetVertexInputEXT");
+    pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)vkGetInstanceProcAddr(instance, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    pAPI->vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)vkGetInstanceProcAddr(instance, "vkCmdSubpassShadingHUAWEI");
     pAPI->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vkGetInstanceProcAddr(instance, "vkCmdSetPatchControlPointsEXT");
     pAPI->vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetRasterizerDiscardEnableEXT");
     pAPI->vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetDepthBiasEnableEXT");
     pAPI->vkCmdSetLogicOpEXT = (PFN_vkCmdSetLogicOpEXT)vkGetInstanceProcAddr(instance, "vkCmdSetLogicOpEXT");
     pAPI->vkCmdSetPrimitiveRestartEnableEXT = (PFN_vkCmdSetPrimitiveRestartEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetPrimitiveRestartEnableEXT");
     pAPI->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetColorWriteEnableEXT");
+    pAPI->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMultiEXT");
+    pAPI->vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMultiIndexedEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -15388,12 +15618,16 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResolveImage2KHR");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetVertexInputEXT");
+    pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    pAPI->vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkCmdSubpassShadingHUAWEI");
     pAPI->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPatchControlPointsEXT");
     pAPI->vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetRasterizerDiscardEnableEXT");
     pAPI->vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDepthBiasEnableEXT");
     pAPI->vkCmdSetLogicOpEXT = (PFN_vkCmdSetLogicOpEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetLogicOpEXT");
     pAPI->vkCmdSetPrimitiveRestartEnableEXT = (PFN_vkCmdSetPrimitiveRestartEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPrimitiveRestartEnableEXT");
     pAPI->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetColorWriteEnableEXT");
+    pAPI->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMultiEXT");
+    pAPI->vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMultiIndexedEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -15872,6 +16106,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBindPipelineShaderGroupNV = pAPI->vkCmdBindPipelineShaderGroupNV;
     vkCreateIndirectCommandsLayoutNV = pAPI->vkCreateIndirectCommandsLayoutNV;
     vkDestroyIndirectCommandsLayoutNV = pAPI->vkDestroyIndirectCommandsLayoutNV;
+    vkAcquireDrmDisplayEXT = pAPI->vkAcquireDrmDisplayEXT;
+    vkGetDrmDisplayEXT = pAPI->vkGetDrmDisplayEXT;
     vkCreatePrivateDataSlotEXT = pAPI->vkCreatePrivateDataSlotEXT;
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
@@ -15892,12 +16128,16 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBlitImage2KHR = pAPI->vkCmdBlitImage2KHR;
     vkCmdResolveImage2KHR = pAPI->vkCmdResolveImage2KHR;
     vkCmdSetVertexInputEXT = pAPI->vkCmdSetVertexInputEXT;
+    vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+    vkCmdSubpassShadingHUAWEI = pAPI->vkCmdSubpassShadingHUAWEI;
     vkCmdSetPatchControlPointsEXT = pAPI->vkCmdSetPatchControlPointsEXT;
     vkCmdSetRasterizerDiscardEnableEXT = pAPI->vkCmdSetRasterizerDiscardEnableEXT;
     vkCmdSetDepthBiasEnableEXT = pAPI->vkCmdSetDepthBiasEnableEXT;
     vkCmdSetLogicOpEXT = pAPI->vkCmdSetLogicOpEXT;
     vkCmdSetPrimitiveRestartEnableEXT = pAPI->vkCmdSetPrimitiveRestartEnableEXT;
     vkCmdSetColorWriteEnableEXT = pAPI->vkCmdSetColorWriteEnableEXT;
+    vkCmdDrawMultiEXT = pAPI->vkCmdDrawMultiEXT;
+    vkCmdDrawMultiIndexedEXT = pAPI->vkCmdDrawMultiIndexedEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
