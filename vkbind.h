@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.182.0 - 2021-06-21
+vkbind - v1.2.183.0 - 2021-06-28
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 182
+#define VK_HEADER_VERSION 183
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -824,7 +824,7 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364002,
     VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365000,
     VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365001,
-    VK_STRUCTURE_TYPE_SUBPASSS_SHADING_PIPELINE_CREATE_INFO_HUAWEI = 1000369000,
+    VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI = 1000369000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI = 1000369001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI = 1000369002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT = 1000377000,
@@ -5406,7 +5406,7 @@ typedef struct VkAcquireNextImageInfoKHR
 typedef struct VkDeviceGroupPresentCapabilitiesKHR
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     uint32_t presentMask[VK_MAX_DEVICE_GROUP_SIZE];
     VkDeviceGroupPresentModeFlagsKHR modes;
 } VkDeviceGroupPresentCapabilitiesKHR;
@@ -6752,7 +6752,7 @@ typedef struct VkPhysicalDevicePerformanceQueryPropertiesKHR
 typedef struct VkPerformanceCounterKHR
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkPerformanceCounterUnitKHR unit;
     VkPerformanceCounterScopeKHR scope;
     VkPerformanceCounterStorageKHR storage;
@@ -6762,7 +6762,7 @@ typedef struct VkPerformanceCounterKHR
 typedef struct VkPerformanceCounterDescriptionKHR
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkPerformanceCounterDescriptionFlagsKHR flags;
     char name[VK_MAX_DESCRIPTION_SIZE];
     char category[VK_MAX_DESCRIPTION_SIZE];
@@ -10150,7 +10150,7 @@ typedef struct VkPhysicalDeviceDeviceMemoryReportFeaturesEXT
 typedef struct VkDeviceMemoryReportCallbackDataEXT
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkDeviceMemoryReportFlagsEXT flags;
     VkDeviceMemoryReportEventTypeEXT type;
     uint64_t memoryObjectId;
@@ -10640,7 +10640,7 @@ typedef struct VkAccelerationStructureMotionInstanceNV
 typedef struct VkPhysicalDeviceRayTracingMotionBlurFeaturesNV
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkBool32 rayTracingMotionBlur;
     VkBool32 rayTracingMotionBlurPipelineTraceRaysIndirect;
 } VkPhysicalDeviceRayTracingMotionBlurFeaturesNV;
@@ -11840,7 +11840,7 @@ typedef struct VkVideoCapabilitiesKHR
 typedef struct VkPhysicalDeviceVideoFormatInfoKHR
 {
     VkStructureType sType;
-    const void* pNext;
+    void* pNext;
     VkImageUsageFlags imageUsage;
     const VkVideoProfilesKHR* pVideoProfiles;
 } VkPhysicalDeviceVideoFormatInfoKHR;
