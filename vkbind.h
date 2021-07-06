@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.183.0 - 2021-06-28
+vkbind - v1.2.184.0 - 2021-07-06
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 183
+#define VK_HEADER_VERSION 184
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -175,6 +175,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
 #define VK_API_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
 
+#define VK_UUID_SIZE 16
 #define VK_ATTACHMENT_UNUSED (~0U)
 #define VK_FALSE 0
 #define VK_LOD_CLAMP_NONE 1000.0F
@@ -187,7 +188,6 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAX_MEMORY_TYPES 32
 #define VK_MAX_MEMORY_HEAPS 16
 #define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE 256
-#define VK_UUID_SIZE 16
 #define VK_MAX_EXTENSION_NAME_SIZE 256
 #define VK_MAX_DESCRIPTION_SIZE 256
 
@@ -827,6 +827,8 @@ typedef enum
     VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI = 1000369000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI = 1000369001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI = 1000369002,
+    VK_STRUCTURE_TYPE_MEMORY_GET_REMOTE_ADDRESS_INFO_NV = 1000371000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV = 1000371001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT = 1000377000,
     VK_STRUCTURE_TYPE_SCREEN_SURFACE_CREATE_INFO_QNX = 1000378000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COLOR_WRITE_ENABLE_FEATURES_EXT = 1000381000,
@@ -1103,6 +1105,12 @@ typedef enum
 
 typedef enum
 {
+    VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1,
+    VK_PIPELINE_CACHE_HEADER_VERSION_MAX_ENUM = 0x7FFFFFFF
+} VkPipelineCacheHeaderVersion;
+
+typedef enum
+{
     VK_VENDOR_ID_VIV = 0x10001,
     VK_VENDOR_ID_VSI = 0x10002,
     VK_VENDOR_ID_KAZAN = 0x10003,
@@ -1111,12 +1119,6 @@ typedef enum
     VK_VENDOR_ID_POCL = 0x10006,
     VK_VENDOR_ID_MAX_ENUM = 0x7FFFFFFF
 } VkVendorId;
-
-typedef enum
-{
-    VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1,
-    VK_PIPELINE_CACHE_HEADER_VERSION_MAX_ENUM = 0x7FFFFFFF
-} VkPipelineCacheHeaderVersion;
 
 typedef enum
 {
@@ -1568,6 +1570,7 @@ typedef enum
     VK_MEMORY_PROPERTY_PROTECTED_BIT = 0x00000020,
     VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD = 0x00000040,
     VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD = 0x00000080,
+    VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV = 0x00000100,
     VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkMemoryPropertyFlagBits;
 typedef VkFlags VkMemoryPropertyFlags;
@@ -2457,6 +2460,15 @@ typedef struct VkMemoryBarrier
     VkAccessFlags srcAccessMask;
     VkAccessFlags dstAccessMask;
 } VkMemoryBarrier;
+
+typedef struct VkPipelineCacheHeaderVersionOne
+{
+    uint32_t headerSize;
+    VkPipelineCacheHeaderVersion headerVersion;
+    uint32_t vendorID;
+    uint32_t deviceID;
+    uint8_t pipelineCacheUUID[VK_UUID_SIZE];
+} VkPipelineCacheHeaderVersionOne;
 
 typedef void* (VKAPI_PTR *PFN_vkAllocationFunction)(void* pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope);
 typedef void (VKAPI_PTR *PFN_vkFreeFunction)(void* pUserData, void* pMemory);
@@ -3814,6 +3826,7 @@ typedef enum
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT = 0x00000080,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT = 0x00000100,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA = 0x00000800,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV = 0x00001000,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -10953,7 +10966,7 @@ typedef struct VkPhysicalDeviceDrmPropertiesEXT
 
 
 #define VK_HUAWEI_subpass_shading 1
-#define VK_HUAWEI_SUBPASS_SHADING_SPEC_VERSION 0
+#define VK_HUAWEI_SUBPASS_SHADING_SPEC_VERSION 2
 #define VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME "VK_HUAWEI_subpass_shading"
 
 typedef struct VkSubpassShadingPipelineCreateInfoHUAWEI
@@ -10979,8 +10992,32 @@ typedef struct VkPhysicalDeviceSubpassShadingPropertiesHUAWEI
 } VkPhysicalDeviceSubpassShadingPropertiesHUAWEI;
 
 
-typedef VkResult (VKAPI_PTR *PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)(VkRenderPass renderpass, VkExtent2D* pMaxWorkgroupSize);
+typedef VkResult (VKAPI_PTR *PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)(VkDevice device, VkRenderPass renderpass, VkExtent2D* pMaxWorkgroupSize);
 typedef void (VKAPI_PTR *PFN_vkCmdSubpassShadingHUAWEI)(VkCommandBuffer commandBuffer);
+
+#define VK_NV_external_memory_rdma 1
+#define VK_NV_EXTERNAL_MEMORY_RDMA_SPEC_VERSION 1
+#define VK_NV_EXTERNAL_MEMORY_RDMA_EXTENSION_NAME "VK_NV_external_memory_rdma"
+
+typedef void* VkRemoteAddressNV;
+
+typedef struct VkMemoryGetRemoteAddressInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemory memory;
+    VkExternalMemoryHandleTypeFlagBits handleType;
+} VkMemoryGetRemoteAddressInfoNV;
+
+typedef struct VkPhysicalDeviceExternalMemoryRDMAFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 externalMemoryRDMA;
+} VkPhysicalDeviceExternalMemoryRDMAFeaturesNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryRemoteAddressNV)(VkDevice device, const VkMemoryGetRemoteAddressInfoNV* getMemoryRemoteAddressInfo, VkRemoteAddressNV* pAddress);
 
 #define VK_EXT_extended_dynamic_state2 1
 #define VK_EXT_EXTENDED_DYNAMIC_STATE_2_SPEC_VERSION 1
@@ -12835,8 +12872,9 @@ PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
 PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
 PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
 PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
-PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
 PFN_vkCmdSubpassShadingHUAWEI vkCmdSubpassShadingHUAWEI;
+PFN_vkGetMemoryRemoteAddressNV vkGetMemoryRemoteAddressNV;
 PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT;
 PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT;
 PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
@@ -13360,8 +13398,9 @@ typedef struct
     PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
     PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
-    PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+    PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
     PFN_vkCmdSubpassShadingHUAWEI vkCmdSubpassShadingHUAWEI;
+    PFN_vkGetMemoryRemoteAddressNV vkGetMemoryRemoteAddressNV;
     PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT;
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT;
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT;
@@ -14046,8 +14085,9 @@ VkResult vkbBindGlobalAPI()
     vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBlitImage2KHR");
     vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResolveImage2KHR");
     vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetVertexInputEXT");
-    vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
     vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkCmdSubpassShadingHUAWEI");
+    vkGetMemoryRemoteAddressNV = (PFN_vkGetMemoryRemoteAddressNV)vkb_dlsym(g_vkbVulkanSO, "vkGetMemoryRemoteAddressNV");
     vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPatchControlPointsEXT");
     vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetRasterizerDiscardEnableEXT");
     vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDepthBiasEnableEXT");
@@ -14600,8 +14640,9 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdBlitImage2KHR = vkCmdBlitImage2KHR;
         pAPI->vkCmdResolveImage2KHR = vkCmdResolveImage2KHR;
         pAPI->vkCmdSetVertexInputEXT = vkCmdSetVertexInputEXT;
-        pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+        pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
         pAPI->vkCmdSubpassShadingHUAWEI = vkCmdSubpassShadingHUAWEI;
+        pAPI->vkGetMemoryRemoteAddressNV = vkGetMemoryRemoteAddressNV;
         pAPI->vkCmdSetPatchControlPointsEXT = vkCmdSetPatchControlPointsEXT;
         pAPI->vkCmdSetRasterizerDiscardEnableEXT = vkCmdSetRasterizerDiscardEnableEXT;
         pAPI->vkCmdSetDepthBiasEnableEXT = vkCmdSetDepthBiasEnableEXT;
@@ -15151,8 +15192,9 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkGetInstanceProcAddr(instance, "vkCmdResolveImage2KHR");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)vkGetInstanceProcAddr(instance, "vkCmdSetVertexInputEXT");
-    pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)vkGetInstanceProcAddr(instance, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)vkGetInstanceProcAddr(instance, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
     pAPI->vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)vkGetInstanceProcAddr(instance, "vkCmdSubpassShadingHUAWEI");
+    pAPI->vkGetMemoryRemoteAddressNV = (PFN_vkGetMemoryRemoteAddressNV)vkGetInstanceProcAddr(instance, "vkGetMemoryRemoteAddressNV");
     pAPI->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)vkGetInstanceProcAddr(instance, "vkCmdSetPatchControlPointsEXT");
     pAPI->vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetRasterizerDiscardEnableEXT");
     pAPI->vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetDepthBiasEnableEXT");
@@ -15618,8 +15660,9 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResolveImage2KHR");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetVertexInputEXT");
-    pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetSubpassShadingMaxWorkgroupSizeHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkGetSubpassShadingMaxWorkgroupSizeHUAWEI");
+    pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
     pAPI->vkCmdSubpassShadingHUAWEI = (PFN_vkCmdSubpassShadingHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkCmdSubpassShadingHUAWEI");
+    pAPI->vkGetMemoryRemoteAddressNV = (PFN_vkGetMemoryRemoteAddressNV)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryRemoteAddressNV");
     pAPI->vkCmdSetPatchControlPointsEXT = (PFN_vkCmdSetPatchControlPointsEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPatchControlPointsEXT");
     pAPI->vkCmdSetRasterizerDiscardEnableEXT = (PFN_vkCmdSetRasterizerDiscardEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetRasterizerDiscardEnableEXT");
     pAPI->vkCmdSetDepthBiasEnableEXT = (PFN_vkCmdSetDepthBiasEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDepthBiasEnableEXT");
@@ -16128,8 +16171,9 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBlitImage2KHR = pAPI->vkCmdBlitImage2KHR;
     vkCmdResolveImage2KHR = pAPI->vkCmdResolveImage2KHR;
     vkCmdSetVertexInputEXT = pAPI->vkCmdSetVertexInputEXT;
-    vkGetSubpassShadingMaxWorkgroupSizeHUAWEI = pAPI->vkGetSubpassShadingMaxWorkgroupSizeHUAWEI;
+    vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
     vkCmdSubpassShadingHUAWEI = pAPI->vkCmdSubpassShadingHUAWEI;
+    vkGetMemoryRemoteAddressNV = pAPI->vkGetMemoryRemoteAddressNV;
     vkCmdSetPatchControlPointsEXT = pAPI->vkCmdSetPatchControlPointsEXT;
     vkCmdSetRasterizerDiscardEnableEXT = pAPI->vkCmdSetRasterizerDiscardEnableEXT;
     vkCmdSetDepthBiasEnableEXT = pAPI->vkCmdSetDepthBiasEnableEXT;
