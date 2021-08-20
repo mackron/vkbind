@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.187.0 - 2021-08-03
+vkbind - v1.2.189.0 - 2021-08-21
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 187
+#define VK_HEADER_VERSION 189
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -2224,6 +2224,7 @@ typedef enum
     VK_ATTACHMENT_LOAD_OP_LOAD = 0,
     VK_ATTACHMENT_LOAD_OP_CLEAR = 1,
     VK_ATTACHMENT_LOAD_OP_DONT_CARE = 2,
+    VK_ATTACHMENT_LOAD_OP_NONE_EXT = 1000400000,
     VK_ATTACHMENT_LOAD_OP_MAX_ENUM = 0x7FFFFFFF
 } VkAttachmentLoadOp;
 
@@ -2231,7 +2232,8 @@ typedef enum
 {
     VK_ATTACHMENT_STORE_OP_STORE = 0,
     VK_ATTACHMENT_STORE_OP_DONT_CARE = 1,
-    VK_ATTACHMENT_STORE_OP_NONE_QCOM = 1000301000,
+    VK_ATTACHMENT_STORE_OP_NONE_EXT = 1000301000,
+    VK_ATTACHMENT_STORE_OP_NONE_QCOM = VK_ATTACHMENT_STORE_OP_NONE_EXT,
     VK_ATTACHMENT_STORE_OP_MAX_ENUM = 0x7FFFFFFF
 } VkAttachmentStoreOp;
 
@@ -4535,6 +4537,7 @@ typedef enum
     VK_DRIVER_ID_MOLTENVK = 14,
     VK_DRIVER_ID_COREAVI_PROPRIETARY = 15,
     VK_DRIVER_ID_JUICE_PROPRIETARY = 16,
+    VK_DRIVER_ID_VERISILICON_PROPRIETARY = 17,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -7434,7 +7437,7 @@ typedef struct VkPipelineCoverageToColorStateCreateInfoNV
 
 
 #define VK_KHR_acceleration_structure 1
-#define VK_KHR_ACCELERATION_STRUCTURE_SPEC_VERSION 11
+#define VK_KHR_ACCELERATION_STRUCTURE_SPEC_VERSION 12
 #define VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME "VK_KHR_acceleration_structure"
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkAccelerationStructureKHR)
@@ -7506,9 +7509,10 @@ typedef enum
 typedef enum
 {
     VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR = 0x00000001,
-    VK_GEOMETRY_INSTANCE_TRIANGLE_FRONT_COUNTERCLOCKWISE_BIT_KHR = 0x00000002,
+    VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR = 0x00000002,
     VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR = 0x00000004,
     VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR = 0x00000008,
+    VK_GEOMETRY_INSTANCE_TRIANGLE_FRONT_COUNTERCLOCKWISE_BIT_KHR = VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR,
     VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR,
     VK_GEOMETRY_INSTANCE_TRIANGLE_FRONT_COUNTERCLOCKWISE_BIT_NV = VK_GEOMETRY_INSTANCE_TRIANGLE_FRONT_COUNTERCLOCKWISE_BIT_KHR,
     VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_NV = VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR,
@@ -11197,6 +11201,11 @@ typedef struct VkMultiDrawIndexedInfoEXT
 
 typedef void (VKAPI_PTR *PFN_vkCmdDrawMultiEXT)(VkCommandBuffer commandBuffer, uint32_t drawCount, const VkMultiDrawInfoEXT* pVertexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride);
 typedef void (VKAPI_PTR *PFN_vkCmdDrawMultiIndexedEXT)(VkCommandBuffer commandBuffer, uint32_t drawCount, const VkMultiDrawIndexedInfoEXT* pIndexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride, const int32_t* pVertexOffset);
+
+#define VK_EXT_load_store_op_none 1
+#define VK_EXT_LOAD_STORE_OP_NONE_SPEC_VERSION 1
+#define VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME "VK_EXT_load_store_op_none"
+
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
