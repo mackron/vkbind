@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.189.0 - 2021-08-21
+vkbind - v1.2.190.0 - 2021-08-30
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 189
+#define VK_HEADER_VERSION 190
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -757,6 +757,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_FEATURES_NV = 1000277007,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INHERITED_VIEWPORT_SCISSOR_FEATURES_NV = 1000278000,
     VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_VIEWPORT_SCISSOR_INFO_NV = 1000278001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR = 1000280000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_PROPERTIES_KHR = 1000280001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT = 1000281000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT = 1000281001,
     VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM = 1000282000,
@@ -823,6 +825,7 @@ typedef enum
     VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT = 1000352001,
     VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT = 1000352002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT = 1000353000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT = 1000356000,
     VK_STRUCTURE_TYPE_IMPORT_MEMORY_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364000,
     VK_STRUCTURE_TYPE_MEMORY_ZIRCON_HANDLE_PROPERTIES_FUCHSIA = 1000364001,
     VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364002,
@@ -1806,11 +1809,6 @@ typedef enum
     VK_IMAGE_VIEW_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkImageViewType;
 
-
-typedef enum
-{
-    VK_SHADER_MODULE_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
-} VkShaderModuleCreateFlagBits;
 typedef VkFlags VkShaderModuleCreateFlags;
 
 typedef enum
@@ -10141,6 +10139,55 @@ typedef struct VkCommandBufferInheritanceViewportScissorInfoNV
 
 
 
+#define VK_KHR_shader_integer_dot_product 1
+#define VK_KHR_SHADER_INTEGER_DOT_PRODUCT_SPEC_VERSION 1
+#define VK_KHR_SHADER_INTEGER_DOT_PRODUCT_EXTENSION_NAME "VK_KHR_shader_integer_dot_product"
+
+typedef struct VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderIntegerDotProduct;
+} VkPhysicalDeviceShaderIntegerDotProductFeaturesKHR;
+
+typedef struct VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 integerDotProduct8BitUnsignedAccelerated;
+    VkBool32 integerDotProduct8BitSignedAccelerated;
+    VkBool32 integerDotProduct8BitMixedSignednessAccelerated;
+    VkBool32 integerDotProduct4x8BitPackedUnsignedAccelerated;
+    VkBool32 integerDotProduct4x8BitPackedSignedAccelerated;
+    VkBool32 integerDotProduct4x8BitPackedMixedSignednessAccelerated;
+    VkBool32 integerDotProduct16BitUnsignedAccelerated;
+    VkBool32 integerDotProduct16BitSignedAccelerated;
+    VkBool32 integerDotProduct16BitMixedSignednessAccelerated;
+    VkBool32 integerDotProduct32BitUnsignedAccelerated;
+    VkBool32 integerDotProduct32BitSignedAccelerated;
+    VkBool32 integerDotProduct32BitMixedSignednessAccelerated;
+    VkBool32 integerDotProduct64BitUnsignedAccelerated;
+    VkBool32 integerDotProduct64BitSignedAccelerated;
+    VkBool32 integerDotProduct64BitMixedSignednessAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating8BitUnsignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating8BitSignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating8BitMixedSignednessAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating4x8BitPackedUnsignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating4x8BitPackedSignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating4x8BitPackedMixedSignednessAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating16BitUnsignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating16BitSignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating16BitMixedSignednessAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating32BitUnsignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating32BitSignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating32BitMixedSignednessAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating64BitUnsignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating64BitSignedAccelerated;
+    VkBool32 integerDotProductAccumulatingSaturating64BitMixedSignednessAccelerated;
+} VkPhysicalDeviceShaderIntegerDotProductPropertiesKHR;
+
+
+
 #define VK_EXT_texel_buffer_alignment 1
 #define VK_EXT_TEXEL_BUFFER_ALIGNMENT_SPEC_VERSION 1
 #define VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME "VK_EXT_texel_buffer_alignment"
@@ -11031,6 +11078,20 @@ typedef struct VkPhysicalDeviceDrmPropertiesEXT
     int64_t renderMajor;
     int64_t renderMinor;
 } VkPhysicalDeviceDrmPropertiesEXT;
+
+
+
+#define VK_EXT_primitive_topology_list_restart 1
+#define VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_SPEC_VERSION 1
+#define VK_EXT_PRIMITIVE_TOPOLOGY_LIST_RESTART_EXTENSION_NAME "VK_EXT_primitive_topology_list_restart"
+
+typedef struct VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 primitiveTopologyListRestart;
+    VkBool32 primitiveTopologyPatchListRestart;
+} VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT;
 
 
 
