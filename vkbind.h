@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.190.0 - 2021-08-30
+vkbind - v1.2.191.0 - 2021-09-07
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 190
+#define VK_HEADER_VERSION 191
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -845,6 +845,7 @@ typedef enum
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_EXT = 1000388001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT = 1000392000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT = 1000392001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT = 1000412000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO_KHR = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
@@ -11267,6 +11268,20 @@ typedef void (VKAPI_PTR *PFN_vkCmdDrawMultiIndexedEXT)(VkCommandBuffer commandBu
 #define VK_EXT_LOAD_STORE_OP_NONE_SPEC_VERSION 1
 #define VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME "VK_EXT_load_store_op_none"
 
+
+#define VK_EXT_pageable_device_local_memory 1
+#define VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_SPEC_VERSION 1
+#define VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME "VK_EXT_pageable_device_local_memory"
+
+typedef struct VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 pageableDeviceLocalMemory;
+} VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkSetDeviceMemoryPriorityEXT)(VkDevice device, VkDeviceMemory memory, float priority);
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
 
@@ -11968,7 +11983,6 @@ typedef VkFlags VkVideoCodingControlFlagsKHR;
 
 typedef enum
 {
-    VK_VIDEO_CODING_QUALITY_PRESET_DEFAULT_BIT_KHR = 0,
     VK_VIDEO_CODING_QUALITY_PRESET_NORMAL_BIT_KHR = 0x00000001,
     VK_VIDEO_CODING_QUALITY_PRESET_POWER_BIT_KHR = 0x00000002,
     VK_VIDEO_CODING_QUALITY_PRESET_QUALITY_BIT_KHR = 0x00000004,
@@ -13034,6 +13048,7 @@ PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT;
 PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
 PFN_vkCmdDrawMultiEXT vkCmdDrawMultiEXT;
 PFN_vkCmdDrawMultiIndexedEXT vkCmdDrawMultiIndexedEXT;
+PFN_vkSetDeviceMemoryPriorityEXT vkSetDeviceMemoryPriorityEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -13562,6 +13577,7 @@ typedef struct
     PFN_vkCmdSetColorWriteEnableEXT vkCmdSetColorWriteEnableEXT;
     PFN_vkCmdDrawMultiEXT vkCmdDrawMultiEXT;
     PFN_vkCmdDrawMultiIndexedEXT vkCmdDrawMultiIndexedEXT;
+    PFN_vkSetDeviceMemoryPriorityEXT vkSetDeviceMemoryPriorityEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -14251,6 +14267,7 @@ VkResult vkbBindGlobalAPI()
     vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetColorWriteEnableEXT");
     vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMultiEXT");
     vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMultiIndexedEXT");
+    vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetDeviceMemoryPriorityEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -14808,6 +14825,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkCmdSetColorWriteEnableEXT = vkCmdSetColorWriteEnableEXT;
         pAPI->vkCmdDrawMultiEXT = vkCmdDrawMultiEXT;
         pAPI->vkCmdDrawMultiIndexedEXT = vkCmdDrawMultiIndexedEXT;
+        pAPI->vkSetDeviceMemoryPriorityEXT = vkSetDeviceMemoryPriorityEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
         pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
         pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -15362,6 +15380,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)vkGetInstanceProcAddr(instance, "vkCmdSetColorWriteEnableEXT");
     pAPI->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMultiEXT");
     pAPI->vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMultiIndexedEXT");
+    pAPI->vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)vkGetInstanceProcAddr(instance, "vkSetDeviceMemoryPriorityEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -15832,6 +15851,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetColorWriteEnableEXT = (PFN_vkCmdSetColorWriteEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetColorWriteEnableEXT");
     pAPI->vkCmdDrawMultiEXT = (PFN_vkCmdDrawMultiEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMultiEXT");
     pAPI->vkCmdDrawMultiIndexedEXT = (PFN_vkCmdDrawMultiIndexedEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMultiIndexedEXT");
+    pAPI->vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetDeviceMemoryPriorityEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -16345,6 +16365,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetColorWriteEnableEXT = pAPI->vkCmdSetColorWriteEnableEXT;
     vkCmdDrawMultiEXT = pAPI->vkCmdDrawMultiEXT;
     vkCmdDrawMultiIndexedEXT = pAPI->vkCmdDrawMultiIndexedEXT;
+    vkSetDeviceMemoryPriorityEXT = pAPI->vkSetDeviceMemoryPriorityEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
