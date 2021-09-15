@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.191.0 - 2021-09-07
+vkbind - v1.2.192.0 - 2021-09-15
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 191
+#define VK_HEADER_VERSION 192
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -5940,8 +5940,8 @@ typedef struct VkPhysicalDeviceASTCDecodeFeaturesEXT
 
 
 #define VK_KHR_maintenance1 1
-#define VK_KHR_MAINTENANCE1_SPEC_VERSION 2
-#define VK_KHR_MAINTENANCE1_EXTENSION_NAME "VK_KHR_maintenance1"
+#define VK_KHR_MAINTENANCE_1_SPEC_VERSION 2
+#define VK_KHR_MAINTENANCE_1_EXTENSION_NAME "VK_KHR_maintenance1"
 
 typedef VkCommandPoolTrimFlags VkCommandPoolTrimFlagsKHR;
 typedef void (VKAPI_PTR *PFN_vkTrimCommandPoolKHR)(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFlags flags);
@@ -6415,8 +6415,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetPastPresentationTimingGOOGLE)(VkDevice dev
 
 
 #define VK_NV_viewport_array2 1
-#define VK_NV_VIEWPORT_ARRAY2_SPEC_VERSION 1
-#define VK_NV_VIEWPORT_ARRAY2_EXTENSION_NAME "VK_NV_viewport_array2"
+#define VK_NV_VIEWPORT_ARRAY_2_SPEC_VERSION 1
+#define VK_NV_VIEWPORT_ARRAY_2_EXTENSION_NAME "VK_NV_viewport_array2"
 
 
 #define VK_NVX_multiview_per_view_attributes 1
@@ -6831,8 +6831,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkAcquireProfilingLockKHR)(VkDevice device, con
 typedef void (VKAPI_PTR *PFN_vkReleaseProfilingLockKHR)(VkDevice device);
 
 #define VK_KHR_maintenance2 1
-#define VK_KHR_MAINTENANCE2_SPEC_VERSION 1
-#define VK_KHR_MAINTENANCE2_EXTENSION_NAME "VK_KHR_maintenance2"
+#define VK_KHR_MAINTENANCE_2_SPEC_VERSION 1
+#define VK_KHR_MAINTENANCE_2_EXTENSION_NAME "VK_KHR_maintenance2"
 
 typedef VkPointClippingBehavior VkPointClippingBehaviorKHR;
 typedef VkTessellationDomainOrigin VkTessellationDomainOriginKHR;
@@ -8393,8 +8393,8 @@ typedef struct VkPipelineRepresentativeFragmentTestStateCreateInfoNV
 
 
 #define VK_KHR_maintenance3 1
-#define VK_KHR_MAINTENANCE3_SPEC_VERSION 1
-#define VK_KHR_MAINTENANCE3_EXTENSION_NAME "VK_KHR_maintenance3"
+#define VK_KHR_MAINTENANCE_3_SPEC_VERSION 1
+#define VK_KHR_MAINTENANCE_3_EXTENSION_NAME "VK_KHR_maintenance3"
 
 typedef VkPhysicalDeviceMaintenance3Properties VkPhysicalDeviceMaintenance3PropertiesKHR;
 
@@ -9110,8 +9110,8 @@ typedef VkPhysicalDeviceScalarBlockLayoutFeatures VkPhysicalDeviceScalarBlockLay
 
 
 #define VK_GOOGLE_hlsl_functionality1 1
-#define VK_GOOGLE_HLSL_FUNCTIONALITY1_SPEC_VERSION 1
-#define VK_GOOGLE_HLSL_FUNCTIONALITY1_EXTENSION_NAME "VK_GOOGLE_hlsl_functionality1"
+#define VK_GOOGLE_HLSL_FUNCTIONALITY_1_SPEC_VERSION 1
+#define VK_GOOGLE_HLSL_FUNCTIONALITY_1_EXTENSION_NAME "VK_GOOGLE_hlsl_functionality1"
 
 
 #define VK_GOOGLE_decorate_string 1
