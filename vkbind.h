@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.193.0 - 2021-09-25
+vkbind - v1.2.194.0 - 2021-09-29
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 193
+#define VK_HEADER_VERSION 194
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -831,6 +831,16 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000364002,
     VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365000,
     VK_STRUCTURE_TYPE_SEMAPHORE_GET_ZIRCON_HANDLE_INFO_FUCHSIA = 1000365001,
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CREATE_INFO_FUCHSIA = 1000366000,
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_BUFFER_COLLECTION_FUCHSIA = 1000366001,
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_IMAGE_CREATE_INFO_FUCHSIA = 1000366002,
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_PROPERTIES_FUCHSIA = 1000366003,
+    VK_STRUCTURE_TYPE_BUFFER_CONSTRAINTS_INFO_FUCHSIA = 1000366004,
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_BUFFER_CREATE_INFO_FUCHSIA = 1000366005,
+    VK_STRUCTURE_TYPE_IMAGE_CONSTRAINTS_INFO_FUCHSIA = 1000366006,
+    VK_STRUCTURE_TYPE_IMAGE_FORMAT_CONSTRAINTS_INFO_FUCHSIA = 1000366007,
+    VK_STRUCTURE_TYPE_SYSMEM_COLOR_SPACE_FUCHSIA = 1000366008,
+    VK_STRUCTURE_TYPE_BUFFER_COLLECTION_CONSTRAINTS_INFO_FUCHSIA = 1000366009,
     VK_STRUCTURE_TYPE_SUBPASS_SHADING_PIPELINE_CREATE_INFO_HUAWEI = 1000369000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_FEATURES_HUAWEI = 1000369001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_SHADING_PROPERTIES_HUAWEI = 1000369002,
@@ -1107,6 +1117,7 @@ typedef enum
     VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR = 1000268000,
     VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV = 1000277000,
     VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT = 1000295000,
+    VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA = 1000366000,
     VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
     VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION,
     VK_OBJECT_TYPE_MAX_ENUM = 0x7FFFFFFF
@@ -7127,6 +7138,7 @@ typedef enum
     VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT = 1000085000,
     VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR_EXT = 1000150000,
     VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV_EXT = 1000165000,
+    VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA_EXT = 1000366000,
     VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR_EXT = VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT,
     VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR_EXT = VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_EXT,
     VK_DEBUG_REPORT_OBJECT_TYPE_MAX_ENUM_EXT = 0x7FFFFFFF
@@ -11877,6 +11889,134 @@ typedef struct VkSemaphoreGetZirconHandleInfoFUCHSIA
 
 typedef VkResult (VKAPI_PTR *PFN_vkImportSemaphoreZirconHandleFUCHSIA)(VkDevice device, const VkImportSemaphoreZirconHandleInfoFUCHSIA* pImportSemaphoreZirconHandleInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreZirconHandleFUCHSIA)(VkDevice device, const VkSemaphoreGetZirconHandleInfoFUCHSIA* pGetZirconHandleInfo, zx_handle_t* pZirconHandle);
+
+#define VK_FUCHSIA_buffer_collection 1
+#define VK_FUCHSIA_BUFFER_COLLECTION_SPEC_VERSION 2
+#define VK_FUCHSIA_BUFFER_COLLECTION_EXTENSION_NAME "VK_FUCHSIA_buffer_collection"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferCollectionFUCHSIA)
+
+
+typedef enum
+{
+    VK_IMAGE_FORMAT_CONSTRAINTS_FLAG_BITS_MAX_ENUM_FUCHSIA = 0x7FFFFFFF
+} VkImageFormatConstraintsFlagBitsFUCHSIA;
+typedef VkFlags VkImageFormatConstraintsFlagsFUCHSIA;
+
+typedef enum
+{
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_RARELY_FUCHSIA = 0x00000001,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_READ_OFTEN_FUCHSIA = 0x00000002,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_RARELY_FUCHSIA = 0x00000004,
+    VK_IMAGE_CONSTRAINTS_INFO_CPU_WRITE_OFTEN_FUCHSIA = 0x00000008,
+    VK_IMAGE_CONSTRAINTS_INFO_PROTECTED_OPTIONAL_FUCHSIA = 0x00000010,
+    VK_IMAGE_CONSTRAINTS_INFO_FLAG_BITS_MAX_ENUM_FUCHSIA = 0x7FFFFFFF
+} VkImageConstraintsInfoFlagBitsFUCHSIA;
+typedef VkFlags VkImageConstraintsInfoFlagsFUCHSIA;
+
+typedef struct VkBufferCollectionCreateInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    zx_handle_t collectionToken;
+} VkBufferCollectionCreateInfoFUCHSIA;
+
+typedef struct VkImportMemoryBufferCollectionFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIA collection;
+    uint32_t index;
+} VkImportMemoryBufferCollectionFUCHSIA;
+
+typedef struct VkBufferCollectionImageCreateInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIA collection;
+    uint32_t index;
+} VkBufferCollectionImageCreateInfoFUCHSIA;
+
+typedef struct VkBufferCollectionConstraintsInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t minBufferCount;
+    uint32_t maxBufferCount;
+    uint32_t minBufferCountForCamping;
+    uint32_t minBufferCountForDedicatedSlack;
+    uint32_t minBufferCountForSharedSlack;
+} VkBufferCollectionConstraintsInfoFUCHSIA;
+
+typedef struct VkBufferConstraintsInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCreateInfo createInfo;
+    VkFormatFeatureFlags requiredFormatFeatures;
+    VkBufferCollectionConstraintsInfoFUCHSIA bufferCollectionConstraints;
+} VkBufferConstraintsInfoFUCHSIA;
+
+typedef struct VkBufferCollectionBufferCreateInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferCollectionFUCHSIA collection;
+    uint32_t index;
+} VkBufferCollectionBufferCreateInfoFUCHSIA;
+
+typedef struct VkSysmemColorSpaceFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t colorSpace;
+} VkSysmemColorSpaceFUCHSIA;
+
+typedef struct VkBufferCollectionPropertiesFUCHSIA
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t memoryTypeBits;
+    uint32_t bufferCount;
+    uint32_t createInfoIndex;
+    uint64_t sysmemPixelFormat;
+    VkFormatFeatureFlags formatFeatures;
+    VkSysmemColorSpaceFUCHSIA sysmemColorSpaceIndex;
+    VkComponentMapping samplerYcbcrConversionComponents;
+    VkSamplerYcbcrModelConversion suggestedYcbcrModel;
+    VkSamplerYcbcrRange suggestedYcbcrRange;
+    VkChromaLocation suggestedXChromaOffset;
+    VkChromaLocation suggestedYChromaOffset;
+} VkBufferCollectionPropertiesFUCHSIA;
+
+typedef struct VkImageFormatConstraintsInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageCreateInfo imageCreateInfo;
+    VkFormatFeatureFlags requiredFormatFeatures;
+    VkImageFormatConstraintsFlagsFUCHSIA flags;
+    uint64_t sysmemPixelFormat;
+    uint32_t colorSpaceCount;
+    const VkSysmemColorSpaceFUCHSIA* pColorSpaces;
+} VkImageFormatConstraintsInfoFUCHSIA;
+
+typedef struct VkImageConstraintsInfoFUCHSIA
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t formatConstraintsCount;
+    const VkImageFormatConstraintsInfoFUCHSIA* pFormatConstraints;
+    VkBufferCollectionConstraintsInfoFUCHSIA bufferCollectionConstraints;
+    VkImageConstraintsInfoFlagsFUCHSIA flags;
+} VkImageConstraintsInfoFUCHSIA;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateBufferCollectionFUCHSIA)(VkDevice device, const VkBufferCollectionCreateInfoFUCHSIA* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferCollectionFUCHSIA* pCollection);
+typedef VkResult (VKAPI_PTR *PFN_vkSetBufferCollectionImageConstraintsFUCHSIA)(VkDevice device, VkBufferCollectionFUCHSIA collection, const VkImageConstraintsInfoFUCHSIA* pImageConstraintsInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA)(VkDevice device, VkBufferCollectionFUCHSIA collection, const VkBufferConstraintsInfoFUCHSIA* pBufferConstraintsInfo);
+typedef void (VKAPI_PTR *PFN_vkDestroyBufferCollectionFUCHSIA)(VkDevice device, VkBufferCollectionFUCHSIA collection, const VkAllocationCallbacks* pAllocator);
+typedef VkResult (VKAPI_PTR *PFN_vkGetBufferCollectionPropertiesFUCHSIA)(VkDevice device, VkBufferCollectionFUCHSIA collection, VkBufferCollectionPropertiesFUCHSIA* pProperties);
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 
 #ifdef VK_USE_PLATFORM_GGP
@@ -13112,6 +13252,11 @@ PFN_vkGetMemoryZirconHandleFUCHSIA vkGetMemoryZirconHandleFUCHSIA;
 PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA vkGetMemoryZirconHandlePropertiesFUCHSIA;
 PFN_vkImportSemaphoreZirconHandleFUCHSIA vkImportSemaphoreZirconHandleFUCHSIA;
 PFN_vkGetSemaphoreZirconHandleFUCHSIA vkGetSemaphoreZirconHandleFUCHSIA;
+PFN_vkCreateBufferCollectionFUCHSIA vkCreateBufferCollectionFUCHSIA;
+PFN_vkSetBufferCollectionImageConstraintsFUCHSIA vkSetBufferCollectionImageConstraintsFUCHSIA;
+PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA vkSetBufferCollectionBufferConstraintsFUCHSIA;
+PFN_vkDestroyBufferCollectionFUCHSIA vkDestroyBufferCollectionFUCHSIA;
+PFN_vkGetBufferCollectionPropertiesFUCHSIA vkGetBufferCollectionPropertiesFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
 PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
@@ -13641,6 +13786,11 @@ typedef struct
     PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA vkGetMemoryZirconHandlePropertiesFUCHSIA;
     PFN_vkImportSemaphoreZirconHandleFUCHSIA vkImportSemaphoreZirconHandleFUCHSIA;
     PFN_vkGetSemaphoreZirconHandleFUCHSIA vkGetSemaphoreZirconHandleFUCHSIA;
+    PFN_vkCreateBufferCollectionFUCHSIA vkCreateBufferCollectionFUCHSIA;
+    PFN_vkSetBufferCollectionImageConstraintsFUCHSIA vkSetBufferCollectionImageConstraintsFUCHSIA;
+    PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA vkSetBufferCollectionBufferConstraintsFUCHSIA;
+    PFN_vkDestroyBufferCollectionFUCHSIA vkDestroyBufferCollectionFUCHSIA;
+    PFN_vkGetBufferCollectionPropertiesFUCHSIA vkGetBufferCollectionPropertiesFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
@@ -14331,6 +14481,11 @@ VkResult vkbBindGlobalAPI()
     vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
     vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkImportSemaphoreZirconHandleFUCHSIA");
     vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetSemaphoreZirconHandleFUCHSIA");
+    vkCreateBufferCollectionFUCHSIA = (PFN_vkCreateBufferCollectionFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkCreateBufferCollectionFUCHSIA");
+    vkSetBufferCollectionImageConstraintsFUCHSIA = (PFN_vkSetBufferCollectionImageConstraintsFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkSetBufferCollectionImageConstraintsFUCHSIA");
+    vkSetBufferCollectionBufferConstraintsFUCHSIA = (PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    vkDestroyBufferCollectionFUCHSIA = (PFN_vkDestroyBufferCollectionFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkDestroyBufferCollectionFUCHSIA");
+    vkGetBufferCollectionPropertiesFUCHSIA = (PFN_vkGetBufferCollectionPropertiesFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferCollectionPropertiesFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkb_dlsym(g_vkbVulkanSO, "vkCreateStreamDescriptorSurfaceGGP");
@@ -14889,6 +15044,11 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = vkGetMemoryZirconHandlePropertiesFUCHSIA;
         pAPI->vkImportSemaphoreZirconHandleFUCHSIA = vkImportSemaphoreZirconHandleFUCHSIA;
         pAPI->vkGetSemaphoreZirconHandleFUCHSIA = vkGetSemaphoreZirconHandleFUCHSIA;
+        pAPI->vkCreateBufferCollectionFUCHSIA = vkCreateBufferCollectionFUCHSIA;
+        pAPI->vkSetBufferCollectionImageConstraintsFUCHSIA = vkSetBufferCollectionImageConstraintsFUCHSIA;
+        pAPI->vkSetBufferCollectionBufferConstraintsFUCHSIA = vkSetBufferCollectionBufferConstraintsFUCHSIA;
+        pAPI->vkDestroyBufferCollectionFUCHSIA = vkDestroyBufferCollectionFUCHSIA;
+        pAPI->vkGetBufferCollectionPropertiesFUCHSIA = vkGetBufferCollectionPropertiesFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
         pAPI->vkCreateStreamDescriptorSurfaceGGP = vkCreateStreamDescriptorSurfaceGGP;
@@ -15444,6 +15604,11 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
     pAPI->vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)vkGetInstanceProcAddr(instance, "vkImportSemaphoreZirconHandleFUCHSIA");
     pAPI->vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetSemaphoreZirconHandleFUCHSIA");
+    pAPI->vkCreateBufferCollectionFUCHSIA = (PFN_vkCreateBufferCollectionFUCHSIA)vkGetInstanceProcAddr(instance, "vkCreateBufferCollectionFUCHSIA");
+    pAPI->vkSetBufferCollectionImageConstraintsFUCHSIA = (PFN_vkSetBufferCollectionImageConstraintsFUCHSIA)vkGetInstanceProcAddr(instance, "vkSetBufferCollectionImageConstraintsFUCHSIA");
+    pAPI->vkSetBufferCollectionBufferConstraintsFUCHSIA = (PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA)vkGetInstanceProcAddr(instance, "vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    pAPI->vkDestroyBufferCollectionFUCHSIA = (PFN_vkDestroyBufferCollectionFUCHSIA)vkGetInstanceProcAddr(instance, "vkDestroyBufferCollectionFUCHSIA");
+    pAPI->vkGetBufferCollectionPropertiesFUCHSIA = (PFN_vkGetBufferCollectionPropertiesFUCHSIA)vkGetInstanceProcAddr(instance, "vkGetBufferCollectionPropertiesFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     pAPI->vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkGetInstanceProcAddr(instance, "vkCreateStreamDescriptorSurfaceGGP");
@@ -15894,6 +16059,11 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA = (PFN_vkGetMemoryZirconHandlePropertiesFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryZirconHandlePropertiesFUCHSIA");
     pAPI->vkImportSemaphoreZirconHandleFUCHSIA = (PFN_vkImportSemaphoreZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkImportSemaphoreZirconHandleFUCHSIA");
     pAPI->vkGetSemaphoreZirconHandleFUCHSIA = (PFN_vkGetSemaphoreZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetSemaphoreZirconHandleFUCHSIA");
+    pAPI->vkCreateBufferCollectionFUCHSIA = (PFN_vkCreateBufferCollectionFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkCreateBufferCollectionFUCHSIA");
+    pAPI->vkSetBufferCollectionImageConstraintsFUCHSIA = (PFN_vkSetBufferCollectionImageConstraintsFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkSetBufferCollectionImageConstraintsFUCHSIA");
+    pAPI->vkSetBufferCollectionBufferConstraintsFUCHSIA = (PFN_vkSetBufferCollectionBufferConstraintsFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkSetBufferCollectionBufferConstraintsFUCHSIA");
+    pAPI->vkDestroyBufferCollectionFUCHSIA = (PFN_vkDestroyBufferCollectionFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkDestroyBufferCollectionFUCHSIA");
+    pAPI->vkGetBufferCollectionPropertiesFUCHSIA = (PFN_vkGetBufferCollectionPropertiesFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferCollectionPropertiesFUCHSIA");
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
 #endif /*VK_USE_PLATFORM_GGP*/
@@ -16429,6 +16599,11 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetMemoryZirconHandlePropertiesFUCHSIA = pAPI->vkGetMemoryZirconHandlePropertiesFUCHSIA;
     vkImportSemaphoreZirconHandleFUCHSIA = pAPI->vkImportSemaphoreZirconHandleFUCHSIA;
     vkGetSemaphoreZirconHandleFUCHSIA = pAPI->vkGetSemaphoreZirconHandleFUCHSIA;
+    vkCreateBufferCollectionFUCHSIA = pAPI->vkCreateBufferCollectionFUCHSIA;
+    vkSetBufferCollectionImageConstraintsFUCHSIA = pAPI->vkSetBufferCollectionImageConstraintsFUCHSIA;
+    vkSetBufferCollectionBufferConstraintsFUCHSIA = pAPI->vkSetBufferCollectionBufferConstraintsFUCHSIA;
+    vkDestroyBufferCollectionFUCHSIA = pAPI->vkDestroyBufferCollectionFUCHSIA;
+    vkGetBufferCollectionPropertiesFUCHSIA = pAPI->vkGetBufferCollectionPropertiesFUCHSIA;
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
     vkCreateStreamDescriptorSurfaceGGP = pAPI->vkCreateStreamDescriptorSurfaceGGP;
