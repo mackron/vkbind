@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.2.201.0 - 2021-12-01
+vkbind - v1.2.202.0 - 2021-12-08
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 201
+#define VK_HEADER_VERSION 202
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 2, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -1104,6 +1104,7 @@ typedef enum
     VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT = 0x00000100,
     VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT = 0x00000200,
     VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT = 0x00000400,
+    VK_IMAGE_ASPECT_NONE_KHR = 0,
     VK_IMAGE_ASPECT_PLANE_0_BIT_KHR = VK_IMAGE_ASPECT_PLANE_0_BIT,
     VK_IMAGE_ASPECT_PLANE_1_BIT_KHR = VK_IMAGE_ASPECT_PLANE_1_BIT,
     VK_IMAGE_ASPECT_PLANE_2_BIT_KHR = VK_IMAGE_ASPECT_PLANE_2_BIT,
