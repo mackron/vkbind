@@ -6,9 +6,9 @@
     <a href="https://twitter.com/mackron"><img src="https://img.shields.io/twitter/follow/mackron?style=flat&label=twitter&color=1da1f2&logo=twitter" alt="twitter"></a>
 </p>
 
-vkbind includes a full implementation of the Vulkan headers (auto-generated from the Vulkan spec) so there's no
-need for the offical headers or SDK. Unlike the official headers, the platform-specific sections are all contained
-within the same file.
+vkbind is a Vulkan API loader and includes a full implementation of the Vulkan headers (auto-generated from the
+Vulkan spec) so there's no need for the offical headers or SDK. Unlike the official headers, the platform-specific
+sections are all contained within the same file.
 
 
 Usage
