@@ -122,6 +122,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL OnDebugReport(VkDebugReportFlagsEXT flags, VkDebu
     (void)location;
     (void)messageCode;
     (void)pLayerPrefix;
+    (void)pUserData;
 
     return VK_FALSE;
 }

@@ -273,6 +273,7 @@ struct vkbBuildType
     std::string category;
     std::string alias;
     std::string requires;
+    std::string bitvalues;
     std::string returnedonly;
     std::string parent;
 
@@ -635,6 +636,7 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
         const char* category = pChildElement->Attribute("category");
         const char* alias = pChildElement->Attribute("alias");
         const char* requires = pChildElement->Attribute("requires");
+        const char* bitvalues = pChildElement->Attribute("bitvalues");
         const char* returnedonly = pChildElement->Attribute("returnedonly");
         const char* parent = pChildElement->Attribute("parent");
 
@@ -643,6 +645,7 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
         type.category = (category != NULL) ? vkbTrim(category) : "";
         type.alias = (alias != NULL) ? vkbTrim(alias) : "";
         type.requires = (requires != NULL) ? vkbTrim(requires) : "";
+        type.bitvalues = (bitvalues != NULL) ? vkbTrim(bitvalues) : "";
         type.returnedonly = (returnedonly != NULL) ? returnedonly : "";
         type.parent = (parent != NULL) ? parent : "";
 
@@ -1149,6 +1152,68 @@ bool vkbBuildFindEnumByName(vkbBuild &context, const char* name, size_t* pIndexO
     return false;
 }
 
+bool vkbBuildFindEnumValue(vkbBuild &context, const std::string &name, vkbBuildEnum &value)
+{
+    /* Search through every enum. */
+    for (size_t iEnum = 0; iEnum < context.enums.size(); ++iEnum) {
+        /* Check each item in the enum. */
+        for (auto item : context.enums[iEnum].enums) {
+            if (item.name == name) {
+                /* Found the item. If it's aliased, search recursively. Otherwise return the value. */
+                if (item.alias == "") {
+                    value = item;
+                    return true;
+                } else {
+                    return vkbBuildFindEnumValue(context, item.alias, value);
+                }
+            }
+        }
+    }
+
+    /* Getting here means we couldn't find the enum from the base list. We'll need to check features and extensions. */
+
+    /* Features. */
+    for (auto feature : context.features) {
+        for (auto requires : feature.requires) {
+            for (auto enumValue : requires.enums) {
+                if (enumValue.name == name) {
+                    if (enumValue.alias == "") {
+                        value.name   = enumValue.name;
+                        value.alias  = "";
+                        value.value  = enumValue.value;
+                        value.bitpos = enumValue.bitpos;
+                        return true;
+                    } else {
+                        return vkbBuildFindEnumValue(context, enumValue.alias, value);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Extensions. */
+    for (auto extension : context.extensions) {
+        for (auto requires : extension.requires) {
+            for (auto enumValue : requires.enums) {
+                if (enumValue.name == name) {
+                    if (enumValue.alias == "") {
+                        value.name   = enumValue.name;
+                        value.alias  = "";
+                        value.value  = enumValue.value;
+                        value.bitpos = enumValue.bitpos;
+                        return true;
+                    } else {
+                        return vkbBuildFindEnumValue(context, enumValue.alias, value);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Getting here means we couldn't find anything. */
+    return false;
+}
+
 bool vkbBuildFindCommandByName(vkbBuild &context, const char* name, size_t* pIndexOut)
 {
     if (name == NULL) {
@@ -1296,6 +1361,9 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
         if (type.requires.length() > 0) {
             vkbBuildAddTypeDependencies(context, type.requires.c_str(), typeIndicesOut, enumIndicesOut);
         }
+        if (type.bitvalues.length() > 0) {
+            vkbBuildAddTypeDependencies(context, type.bitvalues.c_str(), typeIndicesOut, enumIndicesOut);
+        }
     } else if (type.category == "struct" || type.category == "union") {
         for (size_t iMember = 0; iMember < type.structData.members.size(); ++iMember) {
             if (type.structData.members[iMember].type == typeName) {
@@ -1316,7 +1384,12 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
             vkbBuildAddTypeDependencies(context, type.funcpointer.params[iParam].type.c_str(), typeIndicesOut, enumIndicesOut);
         }
     } else if (type.category == "") {
-        vkbBuildAddTypeDependencies(context, type.requires.c_str(), typeIndicesOut, enumIndicesOut);
+        if (type.requires.length() > 0) {
+            vkbBuildAddTypeDependencies(context, type.requires.c_str(), typeIndicesOut, enumIndicesOut);
+        }
+        if (type.bitvalues.length() > 0) {
+            vkbBuildAddTypeDependencies(context, type.bitvalues.c_str(), typeIndicesOut, enumIndicesOut);
+        }
     }
 
     // Getting here means we found the base type. We need to recursively add the dependencies of each referenced type. If
@@ -1375,7 +1448,26 @@ std::string vkbBuildBitPosToHexString(int bitpos)
     if (bitpos < 32) {
         snprintf(buffer, sizeof(buffer), "0x%08x", (1 << bitpos));
     } else {
-        snprintf(buffer, sizeof(buffer), "0x%16x", (1 << bitpos));
+        snprintf(buffer, sizeof(buffer), "0x%016llx", ((long long)1 << bitpos));
+    }
+
+    return buffer;
+}
+
+std::string vkbBuildBitPosToHexStringEx(int bitpos, const std::string &typeName)
+{
+    char buffer[1024];
+
+    assert(bitpos >= 0);
+    assert(bitpos <= 63);
+
+
+    if (bitpos < 32) {
+        snprintf(buffer, sizeof(buffer), "0x%08x", (1 << bitpos));
+    } else {
+        /* Strange syntax is for VC6 compatibility. */
+        long long value = ((long long)1 << bitpos);
+        snprintf(buffer, sizeof(buffer), "(%s)(((%s)0x%08x << 32) | (0x%08x))", typeName.c_str(), typeName.c_str(), (int)((value & 0xFFFFFFFF00000000) >> 32), (int)(value & 0x00000000FFFFFFFF));
     }
 
     return buffer;
@@ -1725,28 +1817,69 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                         codeOut += "typedef " + type.alias + " " + type.name + ";\n";
                     } else {
                         if (type.category == "bitmask") {
-                            if (type.requires.length() > 0) {
+                            if (type.requires.length() > 0 || type.bitvalues.length() > 0) {
                                 size_t iEnums;
-                                if (vkbBuildFindEnumByName(context, type.requires.c_str(), &iEnums)) {
+                                bool enumsFound;
+                                
+                                if (type.requires.length() > 0) {
+                                    enumsFound = vkbBuildFindEnumByName(context, type.requires.c_str(), &iEnums);
+                                } else {
+                                    assert(type.bitvalues.length() > 0);
+                                    enumsFound = vkbBuildFindEnumByName(context, type.bitvalues.c_str(), &iEnums);
+                                }
+
+                                if (enumsFound) {
                                     vkbBuildEnums &enums = context.enums[iEnums];
                                     uint32_t enumValueCount = 0;
                                     std::vector<std::string> outputEnums;
+                                    std::string enumValuePrefix;
+                                    bool using64BitFlags;
 
                                     codeOut += '\n';
-                                    codeOut += "typedef enum\n";
-                                    codeOut += "{\n";
+
+                                    if (type.bitvalues.length() == 0) {
+                                        /* 32-bit enums. Use an enum. */
+                                        using64BitFlags = false;
+                                        codeOut += "typedef enum\n";
+                                        codeOut += "{\n";
+                                        enumValuePrefix = "    ";
+                                    } else {
+                                        /* 64-bit enums. Cannot use an enum. */
+                                        using64BitFlags = true;
+                                        codeOut += "typedef "; codeOut += type.type; codeOut += " "; codeOut += enums.name; codeOut += ";\n";
+                                        enumValuePrefix = "static const "; enumValuePrefix += enums.name; enumValuePrefix += " ";
+                                    }
+                                    
                                     for (size_t iEnumValue = 0; iEnumValue < enums.enums.size(); ++iEnumValue) {
-                                        if (iEnumValue > 0) {
+                                        if (!using64BitFlags && iEnumValue > 0) {
                                             codeOut += ",\n";
                                         }
-                                        if (enums.enums[iEnumValue].bitpos.length() > 0) {
-                                            codeOut += "    " + enums.enums[iEnumValue].name + " = " + vkbBuildBitPosToHexString(atoi(enums.enums[iEnumValue].bitpos.c_str()));
-                                        } else {
-                                            if (enums.enums[iEnumValue].alias != "") {
-                                                codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].alias;
-                                            } else {
-                                                codeOut += "    " + enums.enums[iEnumValue].name + " = " + enums.enums[iEnumValue].value;
+
+                                        /*
+                                        When outputting 64-bit flags we can't assign to aliased types in case some compilers
+                                        complain about it not being const. We therefore need to evaluate the aliased types.
+                                        */
+                                        vkbBuildEnum enumValue;
+                                        if (using64BitFlags && enums.enums[iEnumValue].alias != "") {
+                                            if (!vkbBuildFindEnumValue(context, enums.enums[iEnumValue].alias, enumValue)) {
+                                                /* Couldn't find the aliased type. */
+                                                enumValue = enums.enums[iEnumValue];
                                             }
+                                        } else {
+                                            enumValue = enums.enums[iEnumValue];
+                                        }
+
+                                        if (enumValue.bitpos.length() > 0) {
+                                            codeOut += enumValuePrefix + enums.enums[iEnumValue].name + " = " + vkbBuildBitPosToHexStringEx(atoi(enumValue.bitpos.c_str()), enums.name);
+                                        } else {
+                                            if (enumValue.alias != "") {
+                                                codeOut += enumValuePrefix + enums.enums[iEnumValue].name + " = " + enumValue.alias;
+                                            } else {
+                                                codeOut += enumValuePrefix + enums.enums[iEnumValue].name + " = " + enumValue.value;
+                                            }
+                                        }
+                                        if (using64BitFlags) {
+                                            codeOut += ";\n";
                                         }
                                         outputEnums.push_back(enums.enums[iEnumValue].name);
 
@@ -1762,13 +1895,16 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                        if (enumValueCount > 0) {
+                                                        if (!using64BitFlags && enumValueCount > 0) {
                                                             codeOut += ",\n";
                                                         }
                                                         if (otherRequireEnum.bitpos.length() > 0) {
-                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + vkbBuildBitPosToHexStringEx(atoi(otherRequireEnum.bitpos.c_str()), otherRequireEnum.extends);
                                                         } else {
-                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        }
+                                                        if (using64BitFlags) {
+                                                            codeOut += ";\n";
                                                         }
                                                         outputEnums.push_back(otherRequireEnum.name);
                                                     
@@ -1787,13 +1923,16 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias == "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                        if (enumValueCount > 0) {
+                                                        if (!using64BitFlags && enumValueCount > 0) {
                                                             codeOut += ",\n";
                                                         }
                                                         if (otherRequireEnum.bitpos.length() > 0) {
-                                                            codeOut += "    " + otherRequireEnum.name + " = " + vkbBuildBitPosToHexString(atoi(otherRequireEnum.bitpos.c_str()));
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + vkbBuildBitPosToHexStringEx(atoi(otherRequireEnum.bitpos.c_str()), otherRequireEnum.extends);
                                                         } else {
-                                                            codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.value;
+                                                        }
+                                                        if (using64BitFlags) {
+                                                            codeOut += ";\n";
                                                         }
                                                         outputEnums.push_back(otherRequireEnum.name);
 
@@ -1814,10 +1953,28 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                        if (enumValueCount > 0) {
+                                                        if (!using64BitFlags && enumValueCount > 0) {
                                                             codeOut += ",\n";
                                                         }
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+
+                                                        if (using64BitFlags) {
+                                                            vkbBuildEnum enumValue;
+                                                            if (vkbBuildFindEnumValue(context, otherRequireEnum.alias, enumValue)) {
+                                                                if (enumValue.bitpos.length() > 0) {
+                                                                    codeOut += enumValuePrefix + otherRequireEnum.name + " = " + vkbBuildBitPosToHexStringEx(atoi(enumValue.bitpos.c_str()), otherRequireEnum.extends);
+                                                                } else {
+                                                                    codeOut += enumValuePrefix + otherRequireEnum.name + " = " + enumValue.value;
+                                                                }
+
+                                                                codeOut += ";\n";
+                                                            } else {
+                                                                /* Couldn't find the aliased type. */
+                                                                codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.alias + ";\n";
+                                                            }
+                                                        } else {
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        }
+                                                        
                                                         outputEnums.push_back(otherRequireEnum.name);
                                                         enumValueCount += 1;
                                                     }
@@ -1834,10 +1991,28 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                                 vkbBuildRequireEnum &otherRequireEnum = otherRequire.enums[iOtherEnum];
                                                 if (otherRequireEnum.extends == enums.name) {
                                                     if (otherRequireEnum.alias != "" && !vkbContains(outputEnums, otherRequireEnum.name)) {
-                                                        if (enumValueCount > 0) {
+                                                        if (!using64BitFlags && enumValueCount > 0) {
                                                             codeOut += ",\n";
                                                         }
-                                                        codeOut += "    " + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+
+                                                        if (using64BitFlags) {
+                                                            vkbBuildEnum enumValue;
+                                                            if (vkbBuildFindEnumValue(context, otherRequireEnum.alias, enumValue)) {
+                                                                if (enumValue.bitpos.length() > 0) {
+                                                                    codeOut += enumValuePrefix + otherRequireEnum.name + " = " + vkbBuildBitPosToHexStringEx(atoi(enumValue.bitpos.c_str()), otherRequireEnum.extends);
+                                                                } else {
+                                                                    codeOut += enumValuePrefix + otherRequireEnum.name + " = " + enumValue.value;
+                                                                }
+
+                                                                codeOut += ";\n";
+                                                            } else {
+                                                                /* Couldn't find the aliased type. */
+                                                                codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.alias + ";\n";
+                                                            }
+                                                        } else {
+                                                            codeOut += enumValuePrefix + otherRequireEnum.name + " = " + otherRequireEnum.alias;
+                                                        }
+
                                                         outputEnums.push_back(otherRequireEnum.name);
                                                         enumValueCount += 1;
                                                     }
@@ -1847,12 +2022,15 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
                                     }
 
                                     /* We need to do the _ENUM_MAX[_VENDOR] part. */
-                                    if (enumValueCount > 0) {
-                                        codeOut += ",\n";
-                                    }
-                                    codeOut += "    " + vkbGenerateMaxEnumToken(context, enums.name) + " = 0x7FFFFFFF";
+                                    if (!using64BitFlags) {
+                                        if (enumValueCount > 0) {
+                                            codeOut += ",\n";
+                                        }
+                                        codeOut += "    " + vkbGenerateMaxEnumToken(context, enums.name) + " = 0x7FFFFFFF";
 
-                                    codeOut += "\n} " + enums.name + ";\n";
+                                        codeOut += "\n} " + enums.name + ";\n";
+                                    }
+
                                     count += 1;
                                 }
                             }
