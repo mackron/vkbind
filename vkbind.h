@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.214.0 - 2022-05-18
+vkbind - v1.3.218.0 - 2022-06-21
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 214
+#define VK_HEADER_VERSION 218
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -255,6 +255,12 @@ typedef enum
     VK_ERROR_OUT_OF_DATE_KHR = -1000001004,
     VK_ERROR_INCOMPATIBLE_DISPLAY_KHR = -1000003001,
     VK_ERROR_INVALID_SHADER_NV = -1000012000,
+    VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR = -1000023000,
+    VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR = -1000023001,
+    VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR = -1000023002,
+    VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR = -1000023003,
+    VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR = -1000023004,
+    VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR = -1000023005,
     VK_ERROR_VALIDATION_FAILED_EXT = -1000011001,
     VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT = -1000158000,
     VK_ERROR_NOT_PERMITTED_KHR = -1000174001,
@@ -743,7 +749,6 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COMPUTE_SHADER_DERIVATIVES_FEATURES_NV = 1000201000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV = 1000202000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV = 1000202001,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV = 1000203000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_FOOTPRINT_FEATURES_NV = 1000204000,
     VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_EXCLUSIVE_SCISSOR_STATE_CREATE_INFO_NV = 1000205000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXCLUSIVE_SCISSOR_FEATURES_NV = 1000205002,
@@ -841,12 +846,26 @@ typedef enum
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR = 1000299003,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT = 1000311000,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECTS_INFO_EXT = 1000311001,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT = 1000311002,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_COMMAND_QUEUE_INFO_EXT = 1000311003,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_BUFFER_INFO_EXT = 1000311004,
+    VK_STRUCTURE_TYPE_IMPORT_METAL_BUFFER_INFO_EXT = 1000311005,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_TEXTURE_INFO_EXT = 1000311006,
+    VK_STRUCTURE_TYPE_IMPORT_METAL_TEXTURE_INFO_EXT = 1000311007,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_IO_SURFACE_INFO_EXT = 1000311008,
+    VK_STRUCTURE_TYPE_IMPORT_METAL_IO_SURFACE_INFO_EXT = 1000311009,
+    VK_STRUCTURE_TYPE_EXPORT_METAL_SHARED_EVENT_INFO_EXT = 1000311010,
+    VK_STRUCTURE_TYPE_IMPORT_METAL_SHARED_EVENT_INFO_EXT = 1000311011,
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV = 1000314008,
     VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV = 1000314009,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT = 1000320000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT = 1000320001,
     VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT = 1000320002,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_FEATURES_EXT = 1000321000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_FEATURES_AMD = 1000321000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR = 1000203000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR = 1000322000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SUBGROUP_UNIFORM_CONTROL_FLOW_FEATURES_KHR = 1000323000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_PROPERTIES_NV = 1000326000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_ENUMS_FEATURES_NV = 1000326001,
@@ -917,6 +936,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE = 1000420000,
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_BINDING_REFERENCE_VALVE = 1000420001,
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_HOST_MAPPING_INFO_VALVE = 1000420002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_NON_SEAMLESS_CUBE_MAP_FEATURES_EXT = 1000422000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_FEATURES_QCOM = 1000425000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_DENSITY_MAP_OFFSET_PROPERTIES_QCOM = 1000425001,
     VK_STRUCTURE_TYPE_SUBPASS_FRAGMENT_DENSITY_MAP_OFFSET_END_INFO_QCOM = 1000425002,
@@ -924,8 +944,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT = 1000437000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT = 1000458000,
     VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_CONTROL_EXT = 1000458001,
-    VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_INFO_EXT = 1000458002,
-    VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_INFO_EXT = 1000458003,
+    VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_CREATE_INFO_EXT = 1000458002,
+    VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_CREATE_INFO_EXT = 1000458003,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDERING_INFO_KHR = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -1076,6 +1096,7 @@ typedef enum
     VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO_KHR = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
     VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO_KHR = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_NV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ZERO_INITIALIZE_WORKGROUP_MEMORY_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES_EXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ROBUSTNESS_FEATURES,
     VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2_KHR = VK_STRUCTURE_TYPE_COPY_BUFFER_INFO_2,
@@ -2380,6 +2401,7 @@ typedef enum
 {
     VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT = 0x00000001,
     VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT = 0x00000002,
+    VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT = 0x00000004,
     VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkSamplerCreateFlagBits;
 typedef VkFlags VkSamplerCreateFlags;
@@ -9967,19 +9989,6 @@ typedef void (VKAPI_PTR *PFN_vkCmdDrawMeshTasksNV)(VkCommandBuffer commandBuffer
 typedef void (VKAPI_PTR *PFN_vkCmdDrawMeshTasksIndirectNV)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride);
 typedef void (VKAPI_PTR *PFN_vkCmdDrawMeshTasksIndirectCountNV)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer, VkDeviceSize countBufferOffset, uint32_t maxDrawCount, uint32_t stride);
 
-#define VK_NV_fragment_shader_barycentric 1
-#define VK_NV_FRAGMENT_SHADER_BARYCENTRIC_SPEC_VERSION 1
-#define VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME "VK_NV_fragment_shader_barycentric"
-
-typedef struct VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV
-{
-    VkStructureType sType;
-    void* pNext;
-    VkBool32 fragmentShaderBarycentric;
-} VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV;
-
-
-
 #define VK_NV_shader_image_footprint 1
 #define VK_NV_SHADER_IMAGE_FOOTPRINT_SPEC_VERSION 2
 #define VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME "VK_NV_shader_image_footprint"
@@ -11604,13 +11613,40 @@ typedef struct VkGraphicsPipelineLibraryCreateInfoEXT
 #define VK_AMD_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_SPEC_VERSION 1
 #define VK_AMD_SHADER_EARLY_AND_LATE_FRAGMENT_TESTS_EXTENSION_NAME "VK_AMD_shader_early_and_late_fragment_tests"
 
-typedef struct VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesEXT
+typedef struct VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD
 {
     VkStructureType sType;
     void* pNext;
     VkBool32 shaderEarlyAndLateFragmentTests;
-} VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesEXT;
+} VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD;
 
+
+
+#define VK_KHR_fragment_shader_barycentric 1
+#define VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_SPEC_VERSION 1
+#define VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME "VK_KHR_fragment_shader_barycentric"
+
+typedef struct VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 fragmentShaderBarycentric;
+} VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR;
+
+typedef struct VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 triStripVertexOrderIndependentOfProvokingVertex;
+} VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR;
+
+
+
+#define VK_NV_fragment_shader_barycentric 1
+#define VK_NV_FRAGMENT_SHADER_BARYCENTRIC_SPEC_VERSION 1
+#define VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME "VK_NV_fragment_shader_barycentric"
+
+typedef VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR VkPhysicalDeviceFragmentShaderBarycentricFeaturesNV;
 
 
 #define VK_KHR_shader_subgroup_uniform_control_flow 1
@@ -12485,6 +12521,19 @@ typedef struct VkDescriptorSetLayoutHostMappingInfoVALVE
 typedef void (VKAPI_PTR *PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE)(VkDevice device, const VkDescriptorSetBindingReferenceVALVE* pBindingReference, VkDescriptorSetLayoutHostMappingInfoVALVE* pHostMapping);
 typedef void (VKAPI_PTR *PFN_vkGetDescriptorSetHostMappingVALVE)(VkDevice device, VkDescriptorSet descriptorSet, void** ppData);
 
+#define VK_EXT_non_seamless_cube_map 1
+#define VK_EXT_NON_SEAMLESS_CUBE_MAP_SPEC_VERSION 1
+#define VK_EXT_NON_SEAMLESS_CUBE_MAP_EXTENSION_NAME "VK_EXT_non_seamless_cube_map"
+
+typedef struct VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 nonSeamlessCubeMap;
+} VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT;
+
+
+
 #define VK_QCOM_fragment_density_map_offset 1
 #define VK_QCOM_FRAGMENT_DENSITY_MAP_OFFSET_SPEC_VERSION 1
 #define VK_QCOM_FRAGMENT_DENSITY_MAP_OFFSET_EXTENSION_NAME "VK_QCOM_fragment_density_map_offset"
@@ -12545,7 +12594,7 @@ typedef struct VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
 
 
 #define VK_EXT_subpass_merge_feedback 1
-#define VK_EXT_SUBPASS_MERGE_FEEDBACK_SPEC_VERSION 1
+#define VK_EXT_SUBPASS_MERGE_FEEDBACK_SPEC_VERSION 2
 #define VK_EXT_SUBPASS_MERGE_FEEDBACK_EXTENSION_NAME "VK_EXT_subpass_merge_feedback"
 
 typedef enum
@@ -12584,19 +12633,29 @@ typedef struct VkRenderPassCreationControlEXT
 
 typedef struct VkRenderPassCreationFeedbackInfoEXT
 {
-    VkStructureType sType;
-    const void* pNext;
     uint32_t postMergeSubpassCount;
 } VkRenderPassCreationFeedbackInfoEXT;
 
-typedef struct VkRenderPassSubpassFeedbackInfoEXT
+typedef struct VkRenderPassCreationFeedbackCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
+    VkRenderPassCreationFeedbackInfoEXT* pRenderPassFeedback;
+} VkRenderPassCreationFeedbackCreateInfoEXT;
+
+typedef struct VkRenderPassSubpassFeedbackInfoEXT
+{
     VkSubpassMergeStatusEXT subpassMergeStatus;
     char description[VK_MAX_DESCRIPTION_SIZE];
     uint32_t postMergeIndex;
 } VkRenderPassSubpassFeedbackInfoEXT;
+
+typedef struct VkRenderPassSubpassFeedbackCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkRenderPassSubpassFeedbackInfoEXT* pSubpassFeedback;
+} VkRenderPassSubpassFeedbackCreateInfoEXT;
 
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -13110,7 +13169,6 @@ typedef VkResult (VKAPI_PTR *PFN_vkCreateMacOSSurfaceMVK)(VkInstance instance, c
 #define VK_EXT_METAL_SURFACE_SPEC_VERSION 1
 #define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
 
-
 #ifdef __OBJC__
 @class CAMetalLayer;
 #else
@@ -13128,6 +13186,151 @@ typedef struct VkMetalSurfaceCreateInfoEXT
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkCreateMetalSurfaceEXT)(VkInstance instance, const VkMetalSurfaceCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
+
+#define VK_EXT_metal_objects 1
+#define VK_EXT_METAL_OBJECTS_SPEC_VERSION 1
+#define VK_EXT_METAL_OBJECTS_EXTENSION_NAME "VK_EXT_metal_objects"
+
+#ifdef __OBJC__
+@protocol MTLDevice;
+typedef id<MTLDevice> MTLDevice_id;
+#else
+typedef void* MTLDevice_id;
+#endif
+#ifdef __OBJC__
+@protocol MTLCommandQueue;
+typedef id<MTLCommandQueue> MTLCommandQueue_id;
+#else
+typedef void* MTLCommandQueue_id;
+#endif
+#ifdef __OBJC__
+@protocol MTLBuffer;
+typedef id<MTLBuffer> MTLBuffer_id;
+#else
+typedef void* MTLBuffer_id;
+#endif
+#ifdef __OBJC__
+@protocol MTLTexture;
+typedef id<MTLTexture> MTLTexture_id;
+#else
+typedef void* MTLTexture_id;
+#endif
+typedef struct __IOSurface* IOSurfaceRef;
+#ifdef __OBJC__
+@protocol MTLSharedEvent;
+typedef id<MTLSharedEvent> MTLSharedEvent_id;
+#else
+typedef void* MTLSharedEvent_id;
+#endif
+
+
+typedef enum
+{
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_DEVICE_BIT_EXT = 0x00000001,
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_COMMAND_QUEUE_BIT_EXT = 0x00000002,
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_BUFFER_BIT_EXT = 0x00000004,
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_TEXTURE_BIT_EXT = 0x00000008,
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_IOSURFACE_BIT_EXT = 0x00000010,
+    VK_EXPORT_METAL_OBJECT_TYPE_METAL_SHARED_EVENT_BIT_EXT = 0x00000020,
+    VK_EXPORT_METAL_OBJECT_TYPE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkExportMetalObjectTypeFlagBitsEXT;
+typedef VkFlags VkExportMetalObjectTypeFlagsEXT;
+
+typedef struct VkExportMetalObjectCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkExportMetalObjectTypeFlagBitsEXT exportObjectType;
+} VkExportMetalObjectCreateInfoEXT;
+
+typedef struct VkExportMetalObjectsInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+} VkExportMetalObjectsInfoEXT;
+
+typedef struct VkExportMetalDeviceInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    MTLDevice_id mtlDevice;
+} VkExportMetalDeviceInfoEXT;
+
+typedef struct VkExportMetalCommandQueueInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkQueue queue;
+    MTLCommandQueue_id mtlCommandQueue;
+} VkExportMetalCommandQueueInfoEXT;
+
+typedef struct VkExportMetalBufferInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemory memory;
+    MTLBuffer_id mtlBuffer;
+} VkExportMetalBufferInfoEXT;
+
+typedef struct VkImportMetalBufferInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    MTLBuffer_id mtlBuffer;
+} VkImportMetalBufferInfoEXT;
+
+typedef struct VkExportMetalTextureInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage image;
+    VkImageView imageView;
+    VkBufferView bufferView;
+    VkImageAspectFlagBits plane;
+    MTLTexture_id mtlTexture;
+} VkExportMetalTextureInfoEXT;
+
+typedef struct VkImportMetalTextureInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageAspectFlagBits plane;
+    MTLTexture_id mtlTexture;
+} VkImportMetalTextureInfoEXT;
+
+typedef struct VkExportMetalIOSurfaceInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage image;
+    IOSurfaceRef ioSurface;
+} VkExportMetalIOSurfaceInfoEXT;
+
+typedef struct VkImportMetalIOSurfaceInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    IOSurfaceRef ioSurface;
+} VkImportMetalIOSurfaceInfoEXT;
+
+typedef struct VkExportMetalSharedEventInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    VkEvent event;
+    MTLSharedEvent_id mtlSharedEvent;
+} VkExportMetalSharedEventInfoEXT;
+
+typedef struct VkImportMetalSharedEventInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    MTLSharedEvent_id mtlSharedEvent;
+} VkImportMetalSharedEventInfoEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkExportMetalObjectsEXT)(VkDevice device, VkExportMetalObjectsInfoEXT* pMetalObjectsInfo);
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 
 #ifdef VK_USE_PLATFORM_FUCHSIA
@@ -13372,7 +13575,7 @@ typedef struct VkPresentFrameTokenGGP
 #include <vk_video/vulkan_video_codec_h265std_decode.h>
 
 #define VK_KHR_video_queue 1
-#define VK_KHR_VIDEO_QUEUE_SPEC_VERSION 3
+#define VK_KHR_VIDEO_QUEUE_SPEC_VERSION 4
 #define VK_KHR_VIDEO_QUEUE_EXTENSION_NAME "VK_KHR_video_queue"
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkVideoSessionKHR)
@@ -13458,7 +13661,7 @@ typedef struct VkQueueFamilyQueryResultStatusProperties2KHR
 {
     VkStructureType sType;
     void* pNext;
-    VkBool32 supported;
+    VkBool32 queryResultStatusSupport;
 } VkQueueFamilyQueryResultStatusProperties2KHR;
 
 typedef struct VkVideoQueueFamilyProperties2KHR
@@ -13471,7 +13674,7 @@ typedef struct VkVideoQueueFamilyProperties2KHR
 typedef struct VkVideoProfileKHR
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     VkVideoCodecOperationFlagBitsKHR videoCodecOperation;
     VkVideoChromaSubsamplingFlagsKHR chromaSubsampling;
     VkVideoComponentBitDepthFlagsKHR lumaBitDepth;
@@ -13481,7 +13684,7 @@ typedef struct VkVideoProfileKHR
 typedef struct VkVideoProfilesKHR
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     uint32_t profileCount;
     const VkVideoProfileKHR* pProfiles;
 } VkVideoProfilesKHR;
@@ -13506,7 +13709,6 @@ typedef struct VkPhysicalDeviceVideoFormatInfoKHR
     VkStructureType sType;
     void* pNext;
     VkImageUsageFlags imageUsage;
-    const VkVideoProfilesKHR* pVideoProfiles;
 } VkPhysicalDeviceVideoFormatInfoKHR;
 
 typedef struct VkVideoFormatPropertiesKHR
@@ -13514,6 +13716,11 @@ typedef struct VkVideoFormatPropertiesKHR
     VkStructureType sType;
     void* pNext;
     VkFormat format;
+    VkComponentMapping componentMapping;
+    VkImageCreateFlags imageCreateFlags;
+    VkImageType imageType;
+    VkImageTiling imageTiling;
+    VkImageUsageFlags imageUsageFlags;
 } VkVideoFormatPropertiesKHR;
 
 typedef struct VkVideoPictureResourceKHR
@@ -14917,6 +15124,7 @@ PFN_vkCreateMacOSSurfaceMVK vkCreateMacOSSurfaceMVK;
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
 PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
+PFN_vkExportMetalObjectsEXT vkExportMetalObjectsEXT;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
 PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
@@ -15498,6 +15706,7 @@ typedef struct
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
     PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT;
+    PFN_vkExportMetalObjectsEXT vkExportMetalObjectsEXT;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     PFN_vkCreateImagePipeSurfaceFUCHSIA vkCreateImagePipeSurfaceFUCHSIA;
@@ -16242,6 +16451,7 @@ VkResult vkbBindGlobalAPI()
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
     vkCreateMetalSurfaceEXT = (PFN_vkCreateMetalSurfaceEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateMetalSurfaceEXT");
+    vkExportMetalObjectsEXT = (PFN_vkExportMetalObjectsEXT)vkb_dlsym(g_vkbVulkanSO, "vkExportMetalObjectsEXT");
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkb_dlsym(g_vkbVulkanSO, "vkCreateImagePipeSurfaceFUCHSIA");
@@ -16852,6 +17062,7 @@ VkResult vkbInit(VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
         pAPI->vkCreateMetalSurfaceEXT = vkCreateMetalSurfaceEXT;
+        pAPI->vkExportMetalObjectsEXT = vkExportMetalObjectsEXT;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
         pAPI->vkCreateImagePipeSurfaceFUCHSIA = vkCreateImagePipeSurfaceFUCHSIA;
@@ -17459,6 +17670,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
     pAPI->vkCreateMetalSurfaceEXT = (PFN_vkCreateMetalSurfaceEXT)vkGetInstanceProcAddr(instance, "vkCreateMetalSurfaceEXT");
+    pAPI->vkExportMetalObjectsEXT = (PFN_vkExportMetalObjectsEXT)vkGetInstanceProcAddr(instance, "vkExportMetalObjectsEXT");
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     pAPI->vkCreateImagePipeSurfaceFUCHSIA = (PFN_vkCreateImagePipeSurfaceFUCHSIA)vkGetInstanceProcAddr(instance, "vkCreateImagePipeSurfaceFUCHSIA");
@@ -17961,6 +18173,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_MACOS_MVK
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
+    pAPI->vkExportMetalObjectsEXT = (PFN_vkExportMetalObjectsEXT)pAPI->vkGetDeviceProcAddr(device, "vkExportMetalObjectsEXT");
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     pAPI->vkGetMemoryZirconHandleFUCHSIA = (PFN_vkGetMemoryZirconHandleFUCHSIA)pAPI->vkGetDeviceProcAddr(device, "vkGetMemoryZirconHandleFUCHSIA");
@@ -18547,6 +18760,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_MACOS_MVK*/
 #ifdef VK_USE_PLATFORM_METAL_EXT
     vkCreateMetalSurfaceEXT = pAPI->vkCreateMetalSurfaceEXT;
+    vkExportMetalObjectsEXT = pAPI->vkExportMetalObjectsEXT;
 #endif /*VK_USE_PLATFORM_METAL_EXT*/
 #ifdef VK_USE_PLATFORM_FUCHSIA
     vkCreateImagePipeSurfaceFUCHSIA = pAPI->vkCreateImagePipeSurfaceFUCHSIA;
