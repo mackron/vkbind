@@ -973,7 +973,9 @@ vkbResult vkbBuildParseRequire(vkbBuildRequire &require, tinyxml2::XMLElement* p
 
     for (tinyxml2::XMLNode* pChild = pRequireElement->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
-        assert(pChildElement != NULL);
+        if (pChildElement == NULL) {
+            continue;
+        }
 
         if (strcmp(pChildElement->Name(), "type") == 0) {
             vkbBuildRequireType type;
