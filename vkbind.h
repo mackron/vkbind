@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.227.0 - 2022-09-08
+vkbind - v1.3.229.0 - 2022-09-23
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 227
+#define VK_HEADER_VERSION 229
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -568,7 +568,6 @@ typedef enum
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_EXT = 1000039010,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_EXT = 1000040000,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PICTURE_INFO_EXT = 1000040001,
-    VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_MVC_INFO_EXT = 1000040002,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_PROFILE_INFO_EXT = 1000040003,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_EXT = 1000040004,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_ADD_INFO_EXT = 1000040005,
@@ -894,8 +893,6 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT = 1000340000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RGBA10X6_FORMATS_FEATURES_EXT = 1000344000,
     VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT = 1000346000,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE = 1000351000,
-    VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE = 1000351002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_INPUT_DYNAMIC_STATE_FEATURES_EXT = 1000352000,
     VK_STRUCTURE_TYPE_VERTEX_INPUT_BINDING_DESCRIPTION_2_EXT = 1000352001,
     VK_STRUCTURE_TYPE_VERTEX_INPUT_ATTRIBUTE_DESCRIPTION_2_EXT = 1000352002,
@@ -970,6 +967,8 @@ typedef enum
     VK_STRUCTURE_TYPE_TILE_PROPERTIES_QCOM = 1000484001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC = 1000485000,
     VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC = 1000485001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT = 1000351000,
+    VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT = 1000351002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDERING_INFO_KHR = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -1141,6 +1140,8 @@ typedef enum
     VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
     VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT,
+    VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkStructureType;
 
@@ -2460,8 +2461,9 @@ typedef enum
 {
     VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT = 0x00000001,
     VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT = 0x00000002,
-    VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_VALVE = 0x00000004,
+    VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT = 0x00000004,
     VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT,
+    VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_VALVE = VK_DESCRIPTOR_POOL_CREATE_HOST_ONLY_BIT_EXT,
     VK_DESCRIPTOR_POOL_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkDescriptorPoolCreateFlagBits;
 typedef VkFlags VkDescriptorPoolCreateFlags;
@@ -2481,10 +2483,11 @@ typedef enum
     VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK = 1000138000,
     VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR = 1000150000,
     VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV = 1000165000,
-    VK_DESCRIPTOR_TYPE_MUTABLE_VALVE = 1000351000,
     VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM = 1000440000,
     VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM = 1000440001,
+    VK_DESCRIPTOR_TYPE_MUTABLE_EXT = 1000351000,
     VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT = VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK,
+    VK_DESCRIPTOR_TYPE_MUTABLE_VALVE = VK_DESCRIPTOR_TYPE_MUTABLE_EXT,
     VK_DESCRIPTOR_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkDescriptorType;
 
@@ -2494,8 +2497,9 @@ typedef enum
 {
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT = 0x00000002,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR = 0x00000001,
-    VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE = 0x00000004,
+    VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT = 0x00000004,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+    VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkDescriptorSetLayoutCreateFlagBits;
 typedef VkFlags VkDescriptorSetLayoutCreateFlags;
@@ -12226,33 +12230,6 @@ typedef struct VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT
 
 
 
-#define VK_VALVE_mutable_descriptor_type 1
-#define VK_VALVE_MUTABLE_DESCRIPTOR_TYPE_SPEC_VERSION 1
-#define VK_VALVE_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME "VK_VALVE_mutable_descriptor_type"
-
-typedef struct VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE
-{
-    VkStructureType sType;
-    void* pNext;
-    VkBool32 mutableDescriptorType;
-} VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE;
-
-typedef struct VkMutableDescriptorTypeListVALVE
-{
-    uint32_t descriptorTypeCount;
-    const VkDescriptorType* pDescriptorTypes;
-} VkMutableDescriptorTypeListVALVE;
-
-typedef struct VkMutableDescriptorTypeCreateInfoVALVE
-{
-    VkStructureType sType;
-    const void* pNext;
-    uint32_t mutableDescriptorTypeListCount;
-    const VkMutableDescriptorTypeListVALVE* pMutableDescriptorTypeLists;
-} VkMutableDescriptorTypeCreateInfoVALVE;
-
-
-
 #define VK_EXT_vertex_input_dynamic_state 1
 #define VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_SPEC_VERSION 2
 #define VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME "VK_EXT_vertex_input_dynamic_state"
@@ -12787,7 +12764,7 @@ typedef struct VkPhysicalDeviceLinearColorAttachmentFeaturesNV
 
 
 #define VK_GOOGLE_surfaceless_query 1
-#define VK_GOOGLE_SURFACELESS_QUERY_SPEC_VERSION 1
+#define VK_GOOGLE_SURFACELESS_QUERY_SPEC_VERSION 2
 #define VK_GOOGLE_SURFACELESS_QUERY_EXTENSION_NAME "VK_GOOGLE_surfaceless_query"
 
 
@@ -13022,6 +12999,44 @@ typedef struct VkAmigoProfilingSubmitInfoSEC
     uint64_t swapBufferTimestamp;
 } VkAmigoProfilingSubmitInfoSEC;
 
+
+
+#define VK_EXT_mutable_descriptor_type 1
+#define VK_EXT_MUTABLE_DESCRIPTOR_TYPE_SPEC_VERSION 1
+#define VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME "VK_EXT_mutable_descriptor_type"
+
+typedef struct VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 mutableDescriptorType;
+} VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT;
+
+typedef struct VkMutableDescriptorTypeListEXT
+{
+    uint32_t descriptorTypeCount;
+    const VkDescriptorType* pDescriptorTypes;
+} VkMutableDescriptorTypeListEXT;
+
+typedef struct VkMutableDescriptorTypeCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t mutableDescriptorTypeListCount;
+    const VkMutableDescriptorTypeListEXT* pMutableDescriptorTypeLists;
+} VkMutableDescriptorTypeCreateInfoEXT;
+
+
+
+#define VK_VALVE_mutable_descriptor_type 1
+#define VK_VALVE_MUTABLE_DESCRIPTOR_TYPE_SPEC_VERSION 1
+#define VK_VALVE_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME "VK_VALVE_mutable_descriptor_type"
+
+typedef VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE;
+
+typedef VkMutableDescriptorTypeListEXT VkMutableDescriptorTypeListVALVE;
+
+typedef VkMutableDescriptorTypeCreateInfoEXT VkMutableDescriptorTypeCreateInfoVALVE;
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #include <X11/Xlib.h>
@@ -13940,7 +13955,7 @@ typedef struct VkPresentFrameTokenGGP
 #include <vk_video/vulkan_video_codec_h265std_decode.h>
 
 #define VK_KHR_video_queue 1
-#define VK_KHR_VIDEO_QUEUE_SPEC_VERSION 5
+#define VK_KHR_VIDEO_QUEUE_SPEC_VERSION 6
 #define VK_KHR_VIDEO_QUEUE_EXTENSION_NAME "VK_KHR_video_queue"
 
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkVideoSessionKHR)
@@ -14050,14 +14065,14 @@ typedef struct VkVideoCapabilitiesKHR
 {
     VkStructureType sType;
     void* pNext;
-    VkVideoCapabilityFlagsKHR capabilityFlags;
+    VkVideoCapabilityFlagsKHR flags;
     VkDeviceSize minBitstreamBufferOffsetAlignment;
     VkDeviceSize minBitstreamBufferSizeAlignment;
-    VkExtent2D videoPictureExtentGranularity;
-    VkExtent2D minExtent;
-    VkExtent2D maxExtent;
-    uint32_t maxReferencePicturesSlotsCount;
-    uint32_t maxReferencePicturesActiveCount;
+    VkExtent2D pictureAccessGranularity;
+    VkExtent2D minCodedExtent;
+    VkExtent2D maxCodedExtent;
+    uint32_t maxDpbSlots;
+    uint32_t maxActiveReferencePictures;
     VkExtensionProperties stdHeaderVersion;
 } VkVideoCapabilitiesKHR;
 
@@ -14125,9 +14140,9 @@ typedef struct VkVideoSessionCreateInfoKHR
     const VkVideoProfileInfoKHR* pVideoProfile;
     VkFormat pictureFormat;
     VkExtent2D maxCodedExtent;
-    VkFormat referencePicturesFormat;
-    uint32_t maxReferencePicturesSlotsCount;
-    uint32_t maxReferencePicturesActiveCount;
+    VkFormat referencePictureFormat;
+    uint32_t maxDpbSlots;
+    uint32_t maxActiveReferencePictures;
     const VkExtensionProperties* pStdHeaderVersion;
 } VkVideoSessionCreateInfoKHR;
 
@@ -14239,10 +14254,10 @@ typedef struct VkVideoDecodeInfoKHR
 } VkVideoDecodeInfoKHR;
 
 
-typedef void (VKAPI_PTR *PFN_vkCmdDecodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoDecodeInfoKHR* pFrameInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdDecodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoDecodeInfoKHR* pDecodeInfo);
 
 #define VK_EXT_video_encode_h264 1
-#define VK_EXT_VIDEO_ENCODE_H264_SPEC_VERSION 8
+#define VK_EXT_VIDEO_ENCODE_H264_SPEC_VERSION 9
 #define VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME "VK_EXT_video_encode_h264"
 
 
@@ -14324,18 +14339,18 @@ typedef struct VkVideoEncodeH264SessionParametersAddInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t spsStdCount;
-    const StdVideoH264SequenceParameterSet* pSpsStd;
-    uint32_t ppsStdCount;
-    const StdVideoH264PictureParameterSet* pPpsStd;
+    uint32_t stdSPSCount;
+    const StdVideoH264SequenceParameterSet* pStdSPSs;
+    uint32_t stdPPSCount;
+    const StdVideoH264PictureParameterSet* pStdPPSs;
 } VkVideoEncodeH264SessionParametersAddInfoEXT;
 
 typedef struct VkVideoEncodeH264SessionParametersCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t maxSpsStdCount;
-    uint32_t maxPpsStdCount;
+    uint32_t maxStdSPSCount;
+    uint32_t maxStdPPSCount;
     const VkVideoEncodeH264SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoEncodeH264SessionParametersCreateInfoEXT;
 
@@ -14437,7 +14452,7 @@ typedef struct VkVideoEncodeH264RateControlLayerInfoEXT
 
 
 #define VK_EXT_video_encode_h265 1
-#define VK_EXT_VIDEO_ENCODE_H265_SPEC_VERSION 8
+#define VK_EXT_VIDEO_ENCODE_H265_SPEC_VERSION 9
 #define VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME "VK_EXT_video_encode_h265"
 
 
@@ -14548,21 +14563,21 @@ typedef struct VkVideoEncodeH265SessionParametersAddInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t vpsStdCount;
-    const StdVideoH265VideoParameterSet* pVpsStd;
-    uint32_t spsStdCount;
-    const StdVideoH265SequenceParameterSet* pSpsStd;
-    uint32_t ppsStdCount;
-    const StdVideoH265PictureParameterSet* pPpsStd;
+    uint32_t stdVPSCount;
+    const StdVideoH265VideoParameterSet* pStdVPSs;
+    uint32_t stdSPSCount;
+    const StdVideoH265SequenceParameterSet* pStdSPSs;
+    uint32_t stdPPSCount;
+    const StdVideoH265PictureParameterSet* pStdPPSs;
 } VkVideoEncodeH265SessionParametersAddInfoEXT;
 
 typedef struct VkVideoEncodeH265SessionParametersCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t maxVpsStdCount;
-    uint32_t maxSpsStdCount;
-    uint32_t maxPpsStdCount;
+    uint32_t maxStdVPSCount;
+    uint32_t maxStdSPSCount;
+    uint32_t maxStdPPSCount;
     const VkVideoEncodeH265SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoEncodeH265SessionParametersCreateInfoEXT;
 
@@ -14666,7 +14681,7 @@ typedef struct VkVideoEncodeH265RateControlLayerInfoEXT
 
 
 #define VK_EXT_video_decode_h264 1
-#define VK_EXT_VIDEO_DECODE_H264_SPEC_VERSION 6
+#define VK_EXT_VIDEO_DECODE_H264_SPEC_VERSION 7
 #define VK_EXT_VIDEO_DECODE_H264_EXTENSION_NAME "VK_EXT_video_decode_h264"
 
 
@@ -14684,14 +14699,14 @@ typedef struct VkVideoDecodeH264ProfileInfoEXT
     VkStructureType sType;
     const void* pNext;
     StdVideoH264ProfileIdc stdProfileIdc;
-    VkVideoDecodeH264PictureLayoutFlagsEXT pictureLayout;
+    VkVideoDecodeH264PictureLayoutFlagBitsEXT pictureLayout;
 } VkVideoDecodeH264ProfileInfoEXT;
 
 typedef struct VkVideoDecodeH264CapabilitiesEXT
 {
     VkStructureType sType;
     void* pNext;
-    StdVideoH264Level maxLevel;
+    StdVideoH264LevelIdc maxLevelIdc;
     VkOffset2D fieldOffsetGranularity;
 } VkVideoDecodeH264CapabilitiesEXT;
 
@@ -14699,18 +14714,18 @@ typedef struct VkVideoDecodeH264SessionParametersAddInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t spsStdCount;
-    const StdVideoH264SequenceParameterSet* pSpsStd;
-    uint32_t ppsStdCount;
-    const StdVideoH264PictureParameterSet* pPpsStd;
+    uint32_t stdSPSCount;
+    const StdVideoH264SequenceParameterSet* pStdSPSs;
+    uint32_t stdPPSCount;
+    const StdVideoH264PictureParameterSet* pStdPPSs;
 } VkVideoDecodeH264SessionParametersAddInfoEXT;
 
 typedef struct VkVideoDecodeH264SessionParametersCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t maxSpsStdCount;
-    uint32_t maxPpsStdCount;
+    uint32_t maxStdSPSCount;
+    uint32_t maxStdPPSCount;
     const VkVideoDecodeH264SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoDecodeH264SessionParametersCreateInfoEXT;
 
@@ -14719,16 +14734,9 @@ typedef struct VkVideoDecodeH264PictureInfoEXT
     VkStructureType sType;
     const void* pNext;
     const StdVideoDecodeH264PictureInfo* pStdPictureInfo;
-    uint32_t slicesCount;
-    const uint32_t* pSlicesDataOffsets;
+    uint32_t sliceCount;
+    const uint32_t* pSliceOffsets;
 } VkVideoDecodeH264PictureInfoEXT;
-
-typedef struct VkVideoDecodeH264MvcInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    const StdVideoDecodeH264Mvc* pStdMvc;
-} VkVideoDecodeH264MvcInfoEXT;
 
 typedef struct VkVideoDecodeH264DpbSlotInfoEXT
 {
@@ -14774,7 +14782,7 @@ typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
 
 
 #define VK_EXT_video_decode_h265 1
-#define VK_EXT_VIDEO_DECODE_H265_SPEC_VERSION 4
+#define VK_EXT_VIDEO_DECODE_H265_SPEC_VERSION 5
 #define VK_EXT_VIDEO_DECODE_H265_EXTENSION_NAME "VK_EXT_video_decode_h265"
 
 typedef struct VkVideoDecodeH265ProfileInfoEXT
@@ -14788,28 +14796,28 @@ typedef struct VkVideoDecodeH265CapabilitiesEXT
 {
     VkStructureType sType;
     void* pNext;
-    StdVideoH265Level maxLevel;
+    StdVideoH265LevelIdc maxLevelIdc;
 } VkVideoDecodeH265CapabilitiesEXT;
 
 typedef struct VkVideoDecodeH265SessionParametersAddInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t vpsStdCount;
-    const StdVideoH265VideoParameterSet* pVpsStd;
-    uint32_t spsStdCount;
-    const StdVideoH265SequenceParameterSet* pSpsStd;
-    uint32_t ppsStdCount;
-    const StdVideoH265PictureParameterSet* pPpsStd;
+    uint32_t stdVPSCount;
+    const StdVideoH265VideoParameterSet* pStdVPSs;
+    uint32_t stdSPSCount;
+    const StdVideoH265SequenceParameterSet* pStdSPSs;
+    uint32_t stdPPSCount;
+    const StdVideoH265PictureParameterSet* pStdPPSs;
 } VkVideoDecodeH265SessionParametersAddInfoEXT;
 
 typedef struct VkVideoDecodeH265SessionParametersCreateInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t maxVpsStdCount;
-    uint32_t maxSpsStdCount;
-    uint32_t maxPpsStdCount;
+    uint32_t maxStdVPSCount;
+    uint32_t maxStdSPSCount;
+    uint32_t maxStdPPSCount;
     const VkVideoDecodeH265SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoDecodeH265SessionParametersCreateInfoEXT;
 
@@ -14818,8 +14826,8 @@ typedef struct VkVideoDecodeH265PictureInfoEXT
     VkStructureType sType;
     const void* pNext;
     StdVideoDecodeH265PictureInfo* pStdPictureInfo;
-    uint32_t slicesCount;
-    const uint32_t* pSlicesDataOffsets;
+    uint32_t sliceCount;
+    const uint32_t* pSliceOffsets;
 } VkVideoDecodeH265PictureInfoEXT;
 
 typedef struct VkVideoDecodeH265DpbSlotInfoEXT
