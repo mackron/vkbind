@@ -2419,7 +2419,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int indentation, std::string &codeOut)
+vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int indentation, bool withExtern, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2440,6 +2440,11 @@ vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int i
                                 codeOut += " ";
                             }
                         }
+
+                        if (withExtern) {
+                            codeOut += "extern ";
+                        }
+
                         codeOut += "PFN_" + context.commands[iCommand].name + " " + context.commands[iCommand].name + ";";
 
                         outputCommands.push_back(require.commands[iRequireCommand].name);
@@ -2468,6 +2473,11 @@ vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int i
                                     codeOut += " ";
                                 }
                             }
+
+                            if (withExtern) {
+                                codeOut += "extern ";
+                            }
+
                             codeOut += "PFN_" + context.commands[iCommand].name + " " + context.commands[iCommand].name + ";";
 
                             outputCommands.push_back(requireCommand.name);
@@ -2501,6 +2511,11 @@ vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int i
                                             codeOut += " ";
                                         }
                                     }
+
+                                    if (withExtern) {
+                                        codeOut += "extern ";
+                                    }
+
                                     codeOut += "PFN_" + context.commands[iCommand].name + " " + context.commands[iCommand].name + ";";
 
                                     outputCommands.push_back(requireCommand.name);
@@ -3265,11 +3280,14 @@ vkbResult vkbBuildGenerateCode_C(vkbBuild &context, const char* tag, std::string
     if (strcmp(tag, "/*<<vulkan_main>>*/") == 0) {
         result = vkbBuildGenerateCode_C_Main(context, codeOut);
     }
-    if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, codeOut);
+    if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global:extern>>*/") == 0) {
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, true, codeOut);
     }
     if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global:4>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 4, codeOut);
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 4, false, codeOut);
+    }
+    if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global>>*/") == 0) {
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, false, codeOut);
     }
     if (strcmp(tag, "/*<<load_global_api_funcpointers>>*/") == 0) {
         result = vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(context, codeOut);
@@ -3325,8 +3343,9 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
     // There will be a series of tags that we need to replace with generated code.
     const char* tags[] = {
         "/*<<vulkan_main>>*/",
-        "/*<<vulkan_funcpointers_decl_global>>*/",
+        "/*<<vulkan_funcpointers_decl_global:extern>>*/",
         "/*<<vulkan_funcpointers_decl_global:4>>*/",
+        "/*<<vulkan_funcpointers_decl_global>>*/",
         "/*<<load_global_api_funcpointers>>*/",
         "/*<<set_struct_api_from_global>>*/",
         "/*<<set_global_api_from_struct>>*/",

@@ -132,7 +132,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 
 /*<<vulkan_main>>*/
 
-/*<<vulkan_funcpointers_decl_global>>*/
+/*<<vulkan_funcpointers_decl_global:extern>>*/
 
 typedef struct
 {
@@ -212,6 +212,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI);
 #include <unistd.h>
 #include <dlfcn.h>
 #endif
+
+/*<<vulkan_funcpointers_decl_global>>*/
 
 typedef void* VkbHandle;
 typedef void (* VkbProc)(void);
