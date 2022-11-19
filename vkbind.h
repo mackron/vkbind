@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.234.0 - 2022-11-12
+vkbind - v1.3.235.0 - 2022-11-19
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 234
+#define VK_HEADER_VERSION 235
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -867,6 +867,19 @@ typedef enum
     VK_STRUCTURE_TYPE_IMPORT_METAL_SHARED_EVENT_INFO_EXT = 1000311011,
     VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV = 1000314008,
     VK_STRUCTURE_TYPE_CHECKPOINT_DATA_2_NV = 1000314009,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT = 1000316000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_DENSITY_MAP_PROPERTIES_EXT = 1000316001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT = 1000316002,
+    VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT = 1000316003,
+    VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT = 1000316004,
+    VK_STRUCTURE_TYPE_BUFFER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT = 1000316005,
+    VK_STRUCTURE_TYPE_IMAGE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT = 1000316006,
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_CAPTURE_DESCRIPTOR_DATA_INFO_EXT = 1000316007,
+    VK_STRUCTURE_TYPE_SAMPLER_CAPTURE_DESCRIPTOR_DATA_INFO_EXT = 1000316008,
+    VK_STRUCTURE_TYPE_OPAQUE_CAPTURE_DESCRIPTOR_DATA_CREATE_INFO_EXT = 1000316010,
+    VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT = 1000316011,
+    VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_PUSH_DESCRIPTOR_BUFFER_HANDLE_EXT = 1000316012,
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CAPTURE_DESCRIPTOR_DATA_INFO_EXT = 1000316009,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT = 1000320000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_PROPERTIES_EXT = 1000320001,
     VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_LIBRARY_CREATE_INFO_EXT = 1000320002,
@@ -1746,6 +1759,7 @@ typedef enum
     VK_IMAGE_CREATE_CORNER_SAMPLED_BIT_NV = 0x00002000,
     VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT = 0x00001000,
     VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT = 0x00004000,
+    VK_IMAGE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT = 0x00010000,
     VK_IMAGE_CREATE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT = 0x00040000,
     VK_IMAGE_CREATE_2D_VIEW_COMPATIBLE_BIT_EXT = 0x00020000,
     VK_IMAGE_CREATE_FRAGMENT_DENSITY_MAP_OFFSET_BIT_QCOM = 0x00008000,
@@ -2010,6 +2024,7 @@ typedef enum
     VK_BUFFER_CREATE_SPARSE_ALIASED_BIT = 0x00000004,
     VK_BUFFER_CREATE_PROTECTED_BIT = 0x00000008,
     VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT = 0x00000010,
+    VK_BUFFER_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT = 0x00000020,
     VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR = VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
     VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_EXT = VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
     VK_BUFFER_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
@@ -2038,6 +2053,9 @@ typedef enum
     VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR = 0x00000400,
     VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 0x00008000,
     VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 0x00010000,
+    VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT = 0x00200000,
+    VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT = 0x00400000,
+    VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT = 0x04000000,
     VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT = 0x00800000,
     VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT = 0x01000000,
     VK_BUFFER_USAGE_RAY_TRACING_BIT_NV = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
@@ -2070,6 +2088,7 @@ typedef enum
 typedef enum
 {
     VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT = 0x00000001,
+    VK_IMAGE_VIEW_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT = 0x00000004,
     VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DEFERRED_BIT_EXT = 0x00000002,
     VK_IMAGE_VIEW_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkImageViewCreateFlagBits;
@@ -2222,6 +2241,7 @@ typedef enum
     VK_PIPELINE_CREATE_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR = 0x00000080,
     VK_PIPELINE_CREATE_INDIRECT_BINDABLE_BIT_NV = 0x00040000,
     VK_PIPELINE_CREATE_LIBRARY_BIT_KHR = 0x00000800,
+    VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT = 0x20000000,
     VK_PIPELINE_CREATE_RETAIN_LINK_TIME_OPTIMIZATION_INFO_BIT_EXT = 0x00800000,
     VK_PIPELINE_CREATE_LINK_TIME_OPTIMIZATION_BIT_EXT = 0x00000400,
     VK_PIPELINE_CREATE_RAY_TRACING_ALLOW_MOTION_BIT_NV = 0x00100000,
@@ -2522,6 +2542,7 @@ typedef enum
 {
     VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT = 0x00000001,
     VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT = 0x00000002,
+    VK_SAMPLER_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT = 0x00000008,
     VK_SAMPLER_CREATE_NON_SEAMLESS_CUBE_MAP_BIT_EXT = 0x00000004,
     VK_SAMPLER_CREATE_IMAGE_PROCESSING_BIT_QCOM = 0x00000010,
     VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
@@ -2575,6 +2596,8 @@ typedef enum
 {
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT = 0x00000002,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR = 0x00000001,
+    VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT = 0x00000010,
+    VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT = 0x00000020,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT = 0x00000004,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT,
@@ -4923,6 +4946,7 @@ typedef enum
     VK_DRIVER_ID_SAMSUNG_PROPRIETARY = 21,
     VK_DRIVER_ID_MESA_VENUS = 22,
     VK_DRIVER_ID_MESA_DOZEN = 23,
+    VK_DRIVER_ID_MESA_NVK = 24,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -5805,6 +5829,7 @@ static const VkAccessFlagBits2 VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR =
 static const VkAccessFlagBits2 VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR = 0x00400000;
 static const VkAccessFlagBits2 VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT = 0x01000000;
 static const VkAccessFlagBits2 VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT = 0x00080000;
+static const VkAccessFlagBits2 VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT = (VkAccessFlagBits2)(((VkAccessFlagBits2)0x00000200 << 32) | (0x00000000));
 static const VkAccessFlagBits2 VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI = (VkAccessFlagBits2)(((VkAccessFlagBits2)0x00000080 << 32) | (0x00000000));
 static const VkAccessFlagBits2 VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR = (VkAccessFlagBits2)(((VkAccessFlagBits2)0x00000100 << 32) | (0x00000000));
 static const VkAccessFlagBits2 VK_ACCESS_2_MICROMAP_READ_BIT_EXT = (VkAccessFlagBits2)(((VkAccessFlagBits2)0x00001000 << 32) | (0x00000000));
@@ -8892,6 +8917,7 @@ typedef VkFlags VkGeometryInstanceFlagsKHR;
 typedef enum
 {
     VK_ACCELERATION_STRUCTURE_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR = 0x00000001,
+    VK_ACCELERATION_STRUCTURE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT = 0x00000008,
     VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV = 0x00000004,
     VK_ACCELERATION_STRUCTURE_CREATE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
 } VkAccelerationStructureCreateFlagBitsKHR;
@@ -11804,6 +11830,168 @@ typedef void (VKAPI_PTR *PFN_vkCmdWriteTimestamp2KHR)(VkCommandBuffer commandBuf
 typedef VkResult (VKAPI_PTR *PFN_vkQueueSubmit2KHR)(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence);
 typedef void (VKAPI_PTR *PFN_vkCmdWriteBufferMarker2AMD)(VkCommandBuffer commandBuffer, VkPipelineStageFlags2 stage, VkBuffer dstBuffer, VkDeviceSize dstOffset, uint32_t marker);
 typedef void (VKAPI_PTR *PFN_vkGetQueueCheckpointData2NV)(VkQueue queue, uint32_t* pCheckpointDataCount, VkCheckpointData2NV* pCheckpointData);
+
+#define VK_EXT_descriptor_buffer 1
+#define VK_EXT_DESCRIPTOR_BUFFER_SPEC_VERSION 1
+#define VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME "VK_EXT_descriptor_buffer"
+
+typedef struct VkPhysicalDeviceDescriptorBufferPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 combinedImageSamplerDescriptorSingleArray;
+    VkBool32 bufferlessPushDescriptors;
+    VkBool32 allowSamplerImageViewPostSubmitCreation;
+    VkDeviceSize descriptorBufferOffsetAlignment;
+    uint32_t maxDescriptorBufferBindings;
+    uint32_t maxResourceDescriptorBufferBindings;
+    uint32_t maxSamplerDescriptorBufferBindings;
+    uint32_t maxEmbeddedImmutableSamplerBindings;
+    uint32_t maxEmbeddedImmutableSamplers;
+    size_t bufferCaptureReplayDescriptorDataSize;
+    size_t imageCaptureReplayDescriptorDataSize;
+    size_t imageViewCaptureReplayDescriptorDataSize;
+    size_t samplerCaptureReplayDescriptorDataSize;
+    size_t accelerationStructureCaptureReplayDescriptorDataSize;
+    size_t samplerDescriptorSize;
+    size_t combinedImageSamplerDescriptorSize;
+    size_t sampledImageDescriptorSize;
+    size_t storageImageDescriptorSize;
+    size_t uniformTexelBufferDescriptorSize;
+    size_t robustUniformTexelBufferDescriptorSize;
+    size_t storageTexelBufferDescriptorSize;
+    size_t robustStorageTexelBufferDescriptorSize;
+    size_t uniformBufferDescriptorSize;
+    size_t robustUniformBufferDescriptorSize;
+    size_t storageBufferDescriptorSize;
+    size_t robustStorageBufferDescriptorSize;
+    size_t inputAttachmentDescriptorSize;
+    size_t accelerationStructureDescriptorSize;
+    VkDeviceSize maxSamplerDescriptorBufferRange;
+    VkDeviceSize maxResourceDescriptorBufferRange;
+    VkDeviceSize samplerDescriptorBufferAddressSpaceSize;
+    VkDeviceSize resourceDescriptorBufferAddressSpaceSize;
+    VkDeviceSize descriptorBufferAddressSpaceSize;
+} VkPhysicalDeviceDescriptorBufferPropertiesEXT;
+
+typedef struct VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    size_t combinedImageSamplerDensityMapDescriptorSize;
+} VkPhysicalDeviceDescriptorBufferDensityMapPropertiesEXT;
+
+typedef struct VkPhysicalDeviceDescriptorBufferFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 descriptorBuffer;
+    VkBool32 descriptorBufferCaptureReplay;
+    VkBool32 descriptorBufferImageLayoutIgnored;
+    VkBool32 descriptorBufferPushDescriptors;
+} VkPhysicalDeviceDescriptorBufferFeaturesEXT;
+
+typedef struct VkDescriptorAddressInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceAddress address;
+    VkDeviceSize range;
+    VkFormat format;
+} VkDescriptorAddressInfoEXT;
+
+typedef struct VkDescriptorBufferBindingInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceAddress address;
+    VkBufferUsageFlags usage;
+} VkDescriptorBufferBindingInfoEXT;
+
+typedef struct VkDescriptorBufferBindingPushDescriptorBufferHandleEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBuffer buffer;
+} VkDescriptorBufferBindingPushDescriptorBufferHandleEXT;
+
+typedef union VkDescriptorDataEXT
+{
+    const VkSampler* pSampler;
+    const VkDescriptorImageInfo* pCombinedImageSampler;
+    const VkDescriptorImageInfo* pInputAttachmentImage;
+    const VkDescriptorImageInfo* pSampledImage;
+    const VkDescriptorImageInfo* pStorageImage;
+    const VkDescriptorAddressInfoEXT* pUniformTexelBuffer;
+    const VkDescriptorAddressInfoEXT* pStorageTexelBuffer;
+    const VkDescriptorAddressInfoEXT* pUniformBuffer;
+    const VkDescriptorAddressInfoEXT* pStorageBuffer;
+    VkDeviceAddress accelerationStructure;
+} VkDescriptorDataEXT;
+
+typedef struct VkDescriptorGetInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDescriptorType type;
+    VkDescriptorDataEXT data;
+} VkDescriptorGetInfoEXT;
+
+typedef struct VkBufferCaptureDescriptorDataInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBuffer buffer;
+} VkBufferCaptureDescriptorDataInfoEXT;
+
+typedef struct VkImageCaptureDescriptorDataInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage image;
+} VkImageCaptureDescriptorDataInfoEXT;
+
+typedef struct VkImageViewCaptureDescriptorDataInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImageView imageView;
+} VkImageViewCaptureDescriptorDataInfoEXT;
+
+typedef struct VkSamplerCaptureDescriptorDataInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSampler sampler;
+} VkSamplerCaptureDescriptorDataInfoEXT;
+
+typedef struct VkOpaqueCaptureDescriptorDataCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    const void* opaqueCaptureDescriptorData;
+} VkOpaqueCaptureDescriptorDataCreateInfoEXT;
+
+typedef struct VkAccelerationStructureCaptureDescriptorDataInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkAccelerationStructureKHR accelerationStructure;
+    VkAccelerationStructureNV accelerationStructureNV;
+} VkAccelerationStructureCaptureDescriptorDataInfoEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkGetDescriptorSetLayoutSizeEXT)(VkDevice device, VkDescriptorSetLayout layout, VkDeviceSize* pLayoutSizeInBytes);
+typedef void (VKAPI_PTR *PFN_vkGetDescriptorSetLayoutBindingOffsetEXT)(VkDevice device, VkDescriptorSetLayout layout, uint32_t binding, VkDeviceSize* pOffset);
+typedef void (VKAPI_PTR *PFN_vkGetDescriptorEXT)(VkDevice device, const VkDescriptorGetInfoEXT* pDescriptorInfo, size_t dataSize, void* pDescriptor);
+typedef void (VKAPI_PTR *PFN_vkCmdBindDescriptorBuffersEXT)(VkCommandBuffer commandBuffer, uint32_t bufferCount, const VkDescriptorBufferBindingInfoEXT* pBindingInfos);
+typedef void (VKAPI_PTR *PFN_vkCmdSetDescriptorBufferOffsetsEXT)(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t firstSet, uint32_t setCount, const uint32_t* pBufferIndices, const VkDeviceSize* pOffsets);
+typedef void (VKAPI_PTR *PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT)(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t set);
+typedef VkResult (VKAPI_PTR *PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT)(VkDevice device, const VkBufferCaptureDescriptorDataInfoEXT* pInfo, void* pData);
+typedef VkResult (VKAPI_PTR *PFN_vkGetImageOpaqueCaptureDescriptorDataEXT)(VkDevice device, const VkImageCaptureDescriptorDataInfoEXT* pInfo, void* pData);
+typedef VkResult (VKAPI_PTR *PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT)(VkDevice device, const VkImageViewCaptureDescriptorDataInfoEXT* pInfo, void* pData);
+typedef VkResult (VKAPI_PTR *PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT)(VkDevice device, const VkSamplerCaptureDescriptorDataInfoEXT* pInfo, void* pData);
+typedef VkResult (VKAPI_PTR *PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT)(VkDevice device, const VkAccelerationStructureCaptureDescriptorDataInfoEXT* pInfo, void* pData);
 
 #define VK_EXT_graphics_pipeline_library 1
 #define VK_EXT_GRAPHICS_PIPELINE_LIBRARY_SPEC_VERSION 1
@@ -16258,6 +16446,17 @@ extern PFN_vkCmdWriteTimestamp2KHR vkCmdWriteTimestamp2KHR;
 extern PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
 extern PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
 extern PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
+extern PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSizeEXT;
+extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffsetEXT;
+extern PFN_vkGetDescriptorEXT vkGetDescriptorEXT;
+extern PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffersEXT;
+extern PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsetsEXT;
+extern PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+extern PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT vkGetBufferOpaqueCaptureDescriptorDataEXT;
+extern PFN_vkGetImageOpaqueCaptureDescriptorDataEXT vkGetImageOpaqueCaptureDescriptorDataEXT;
+extern PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+extern PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+extern PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
 extern PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
 extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT;
 extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirectEXT;
@@ -16902,6 +17101,17 @@ typedef struct
     PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
     PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
     PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
+    PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSizeEXT;
+    PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffsetEXT;
+    PFN_vkGetDescriptorEXT vkGetDescriptorEXT;
+    PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffersEXT;
+    PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsetsEXT;
+    PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+    PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT vkGetBufferOpaqueCaptureDescriptorDataEXT;
+    PFN_vkGetImageOpaqueCaptureDescriptorDataEXT vkGetImageOpaqueCaptureDescriptorDataEXT;
+    PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+    PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+    PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
     PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
     PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT;
     PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirectEXT;
@@ -17630,6 +17840,17 @@ PFN_vkCmdWriteTimestamp2KHR vkCmdWriteTimestamp2KHR;
 PFN_vkQueueSubmit2KHR vkQueueSubmit2KHR;
 PFN_vkCmdWriteBufferMarker2AMD vkCmdWriteBufferMarker2AMD;
 PFN_vkGetQueueCheckpointData2NV vkGetQueueCheckpointData2NV;
+PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSizeEXT;
+PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffsetEXT;
+PFN_vkGetDescriptorEXT vkGetDescriptorEXT;
+PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffersEXT;
+PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsetsEXT;
+PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT vkGetBufferOpaqueCaptureDescriptorDataEXT;
+PFN_vkGetImageOpaqueCaptureDescriptorDataEXT vkGetImageOpaqueCaptureDescriptorDataEXT;
+PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
 PFN_vkCmdSetFragmentShadingRateEnumNV vkCmdSetFragmentShadingRateEnumNV;
 PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT;
 PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirectEXT;
@@ -18351,6 +18572,17 @@ VkResult vkbBindGlobalAPI()
     vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)vkb_dlsym(g_vkbVulkanSO, "vkQueueSubmit2KHR");
     vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vkb_dlsym(g_vkbVulkanSO, "vkCmdWriteBufferMarker2AMD");
     vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointData2NV");
+    vkGetDescriptorSetLayoutSizeEXT = (PFN_vkGetDescriptorSetLayoutSizeEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorSetLayoutSizeEXT");
+    vkGetDescriptorSetLayoutBindingOffsetEXT = (PFN_vkGetDescriptorSetLayoutBindingOffsetEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorSetLayoutBindingOffsetEXT");
+    vkGetDescriptorEXT = (PFN_vkGetDescriptorEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorEXT");
+    vkCmdBindDescriptorBuffersEXT = (PFN_vkCmdBindDescriptorBuffersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindDescriptorBuffersEXT");
+    vkCmdSetDescriptorBufferOffsetsEXT = (PFN_vkCmdSetDescriptorBufferOffsetsEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDescriptorBufferOffsetsEXT");
+    vkCmdBindDescriptorBufferEmbeddedSamplersEXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT");
+    vkGetBufferOpaqueCaptureDescriptorDataEXT = (PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetBufferOpaqueCaptureDescriptorDataEXT");
+    vkGetImageOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageOpaqueCaptureDescriptorDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetImageOpaqueCaptureDescriptorDataEXT");
+    vkGetImageViewOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetImageViewOpaqueCaptureDescriptorDataEXT");
+    vkGetSamplerOpaqueCaptureDescriptorDataEXT = (PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetSamplerOpaqueCaptureDescriptorDataEXT");
+    vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT = (PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT");
     vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetFragmentShadingRateEnumNV");
     vkCmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMeshTasksEXT");
     vkCmdDrawMeshTasksIndirectEXT = (PFN_vkCmdDrawMeshTasksIndirectEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMeshTasksIndirectEXT");
@@ -19024,6 +19256,17 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkQueueSubmit2KHR = vkQueueSubmit2KHR;
         pAPI->vkCmdWriteBufferMarker2AMD = vkCmdWriteBufferMarker2AMD;
         pAPI->vkGetQueueCheckpointData2NV = vkGetQueueCheckpointData2NV;
+        pAPI->vkGetDescriptorSetLayoutSizeEXT = vkGetDescriptorSetLayoutSizeEXT;
+        pAPI->vkGetDescriptorSetLayoutBindingOffsetEXT = vkGetDescriptorSetLayoutBindingOffsetEXT;
+        pAPI->vkGetDescriptorEXT = vkGetDescriptorEXT;
+        pAPI->vkCmdBindDescriptorBuffersEXT = vkCmdBindDescriptorBuffersEXT;
+        pAPI->vkCmdSetDescriptorBufferOffsetsEXT = vkCmdSetDescriptorBufferOffsetsEXT;
+        pAPI->vkCmdBindDescriptorBufferEmbeddedSamplersEXT = vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+        pAPI->vkGetBufferOpaqueCaptureDescriptorDataEXT = vkGetBufferOpaqueCaptureDescriptorDataEXT;
+        pAPI->vkGetImageOpaqueCaptureDescriptorDataEXT = vkGetImageOpaqueCaptureDescriptorDataEXT;
+        pAPI->vkGetImageViewOpaqueCaptureDescriptorDataEXT = vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+        pAPI->vkGetSamplerOpaqueCaptureDescriptorDataEXT = vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+        pAPI->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT = vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
         pAPI->vkCmdSetFragmentShadingRateEnumNV = vkCmdSetFragmentShadingRateEnumNV;
         pAPI->vkCmdDrawMeshTasksEXT = vkCmdDrawMeshTasksEXT;
         pAPI->vkCmdDrawMeshTasksIndirectEXT = vkCmdDrawMeshTasksIndirectEXT;
@@ -19694,6 +19937,17 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)vkGetInstanceProcAddr(instance, "vkQueueSubmit2KHR");
     pAPI->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)vkGetInstanceProcAddr(instance, "vkCmdWriteBufferMarker2AMD");
     pAPI->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointData2NV");
+    pAPI->vkGetDescriptorSetLayoutSizeEXT = (PFN_vkGetDescriptorSetLayoutSizeEXT)vkGetInstanceProcAddr(instance, "vkGetDescriptorSetLayoutSizeEXT");
+    pAPI->vkGetDescriptorSetLayoutBindingOffsetEXT = (PFN_vkGetDescriptorSetLayoutBindingOffsetEXT)vkGetInstanceProcAddr(instance, "vkGetDescriptorSetLayoutBindingOffsetEXT");
+    pAPI->vkGetDescriptorEXT = (PFN_vkGetDescriptorEXT)vkGetInstanceProcAddr(instance, "vkGetDescriptorEXT");
+    pAPI->vkCmdBindDescriptorBuffersEXT = (PFN_vkCmdBindDescriptorBuffersEXT)vkGetInstanceProcAddr(instance, "vkCmdBindDescriptorBuffersEXT");
+    pAPI->vkCmdSetDescriptorBufferOffsetsEXT = (PFN_vkCmdSetDescriptorBufferOffsetsEXT)vkGetInstanceProcAddr(instance, "vkCmdSetDescriptorBufferOffsetsEXT");
+    pAPI->vkCmdBindDescriptorBufferEmbeddedSamplersEXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT)vkGetInstanceProcAddr(instance, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT");
+    pAPI->vkGetBufferOpaqueCaptureDescriptorDataEXT = (PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT)vkGetInstanceProcAddr(instance, "vkGetBufferOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetImageOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageOpaqueCaptureDescriptorDataEXT)vkGetInstanceProcAddr(instance, "vkGetImageOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetImageViewOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT)vkGetInstanceProcAddr(instance, "vkGetImageViewOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetSamplerOpaqueCaptureDescriptorDataEXT = (PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT)vkGetInstanceProcAddr(instance, "vkGetSamplerOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT = (PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT)vkGetInstanceProcAddr(instance, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT");
     pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)vkGetInstanceProcAddr(instance, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMeshTasksEXT");
     pAPI->vkCmdDrawMeshTasksIndirectEXT = (PFN_vkCmdDrawMeshTasksIndirectEXT)vkGetInstanceProcAddr(instance, "vkCmdDrawMeshTasksIndirectEXT");
@@ -20279,6 +20533,17 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkQueueSubmit2KHR = (PFN_vkQueueSubmit2KHR)pAPI->vkGetDeviceProcAddr(device, "vkQueueSubmit2KHR");
     pAPI->vkCmdWriteBufferMarker2AMD = (PFN_vkCmdWriteBufferMarker2AMD)pAPI->vkGetDeviceProcAddr(device, "vkCmdWriteBufferMarker2AMD");
     pAPI->vkGetQueueCheckpointData2NV = (PFN_vkGetQueueCheckpointData2NV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointData2NV");
+    pAPI->vkGetDescriptorSetLayoutSizeEXT = (PFN_vkGetDescriptorSetLayoutSizeEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutSizeEXT");
+    pAPI->vkGetDescriptorSetLayoutBindingOffsetEXT = (PFN_vkGetDescriptorSetLayoutBindingOffsetEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutBindingOffsetEXT");
+    pAPI->vkGetDescriptorEXT = (PFN_vkGetDescriptorEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorEXT");
+    pAPI->vkCmdBindDescriptorBuffersEXT = (PFN_vkCmdBindDescriptorBuffersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorBuffersEXT");
+    pAPI->vkCmdSetDescriptorBufferOffsetsEXT = (PFN_vkCmdSetDescriptorBufferOffsetsEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDescriptorBufferOffsetsEXT");
+    pAPI->vkCmdBindDescriptorBufferEmbeddedSamplersEXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorBufferEmbeddedSamplersEXT");
+    pAPI->vkGetBufferOpaqueCaptureDescriptorDataEXT = (PFN_vkGetBufferOpaqueCaptureDescriptorDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetBufferOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetImageOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageOpaqueCaptureDescriptorDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetImageOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetImageViewOpaqueCaptureDescriptorDataEXT = (PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetImageViewOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetSamplerOpaqueCaptureDescriptorDataEXT = (PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetSamplerOpaqueCaptureDescriptorDataEXT");
+    pAPI->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT = (PFN_vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT");
     pAPI->vkCmdSetFragmentShadingRateEnumNV = (PFN_vkCmdSetFragmentShadingRateEnumNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetFragmentShadingRateEnumNV");
     pAPI->vkCmdDrawMeshTasksEXT = (PFN_vkCmdDrawMeshTasksEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT");
     pAPI->vkCmdDrawMeshTasksIndirectEXT = (PFN_vkCmdDrawMeshTasksIndirectEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectEXT");
@@ -20907,6 +21172,17 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkQueueSubmit2KHR = pAPI->vkQueueSubmit2KHR;
     vkCmdWriteBufferMarker2AMD = pAPI->vkCmdWriteBufferMarker2AMD;
     vkGetQueueCheckpointData2NV = pAPI->vkGetQueueCheckpointData2NV;
+    vkGetDescriptorSetLayoutSizeEXT = pAPI->vkGetDescriptorSetLayoutSizeEXT;
+    vkGetDescriptorSetLayoutBindingOffsetEXT = pAPI->vkGetDescriptorSetLayoutBindingOffsetEXT;
+    vkGetDescriptorEXT = pAPI->vkGetDescriptorEXT;
+    vkCmdBindDescriptorBuffersEXT = pAPI->vkCmdBindDescriptorBuffersEXT;
+    vkCmdSetDescriptorBufferOffsetsEXT = pAPI->vkCmdSetDescriptorBufferOffsetsEXT;
+    vkCmdBindDescriptorBufferEmbeddedSamplersEXT = pAPI->vkCmdBindDescriptorBufferEmbeddedSamplersEXT;
+    vkGetBufferOpaqueCaptureDescriptorDataEXT = pAPI->vkGetBufferOpaqueCaptureDescriptorDataEXT;
+    vkGetImageOpaqueCaptureDescriptorDataEXT = pAPI->vkGetImageOpaqueCaptureDescriptorDataEXT;
+    vkGetImageViewOpaqueCaptureDescriptorDataEXT = pAPI->vkGetImageViewOpaqueCaptureDescriptorDataEXT;
+    vkGetSamplerOpaqueCaptureDescriptorDataEXT = pAPI->vkGetSamplerOpaqueCaptureDescriptorDataEXT;
+    vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT = pAPI->vkGetAccelerationStructureOpaqueCaptureDescriptorDataEXT;
     vkCmdSetFragmentShadingRateEnumNV = pAPI->vkCmdSetFragmentShadingRateEnumNV;
     vkCmdDrawMeshTasksEXT = pAPI->vkCmdDrawMeshTasksEXT;
     vkCmdDrawMeshTasksIndirectEXT = pAPI->vkCmdDrawMeshTasksIndirectEXT;
