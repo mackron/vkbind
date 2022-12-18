@@ -132,7 +132,9 @@ will be added later. Let me know what isn't supported properly and I'll look int
 
 /*<<vulkan_main>>*/
 
+#ifndef VKBIND_NO_GLOBAL_API
 /*<<vulkan_funcpointers_decl_global:extern>>*/
+#endif /*VKBIND_NO_GLOBAL_API*/
 
 typedef struct
 {
@@ -213,12 +215,14 @@ VkResult vkbBindAPI(const VkbAPI* pAPI);
 #include <dlfcn.h>
 #endif
 
+#ifndef VKBIND_NO_GLOBAL_API
 /*<<vulkan_funcpointers_decl_global>>*/
+#endif /*VKBIND_NO_GLOBAL_API*/
 
 typedef void* VkbHandle;
 typedef void (* VkbProc)(void);
 
-VkbHandle vkb_dlopen(const char* filename)
+static VkbHandle vkb_dlopen(const char* filename)
 {
 #ifdef _WIN32
     return (VkbHandle)LoadLibraryA(filename);
@@ -227,7 +231,7 @@ VkbHandle vkb_dlopen(const char* filename)
 #endif
 }
 
-void vkb_dlclose(VkbHandle handle)
+static void vkb_dlclose(VkbHandle handle)
 {
 #ifdef _WIN32
     FreeLibrary((HMODULE)handle);
@@ -236,7 +240,7 @@ void vkb_dlclose(VkbHandle handle)
 #endif
 }
 
-VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
+static VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 {
 #ifdef _WIN32
     return (VkbProc)GetProcAddress((HMODULE)handle, symbol);
@@ -292,7 +296,7 @@ static VkResult vkbLoadVulkanSO()
     return VK_ERROR_INCOMPATIBLE_DRIVER;
 }
 
-VkResult vkbBindGlobalAPI()
+static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
 {
     /*<<load_global_api_funcpointers>>*/
 
@@ -300,7 +304,7 @@ VkResult vkbBindGlobalAPI()
     We can only safely guarantee that vkGetInstanceProcAddr was successfully returned from dlsym(). The Vulkan specification lists some APIs
     that should always work with vkGetInstanceProcAddr(), so I'm going ahead and doing that here just for robustness.
     */
-    if (vkGetInstanceProcAddr == NULL) {
+    if (pAPI->vkGetInstanceProcAddr == NULL) {
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -309,23 +313,70 @@ VkResult vkbBindGlobalAPI()
     return VK_SUCCESS;
 }
 
+#ifndef VKBIND_NO_GLOBAL_API
+static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
+{
+    /*<<set_struct_api_from_global>>*/
+}
+#endif /*VKBIND_NO_GLOBAL_API*/
+
 VkResult vkbInit(VkbAPI* pAPI)
 {
+    VkResult result;
+
+    /* If the Vulkan SO has not been loaded, do that first thing. */
     if (g_vkbInitCount == 0) {
-        VkResult result = vkbLoadVulkanSO();
-        if (result != VK_SUCCESS) {
-            return result;
-        }
-
-        result = vkbBindGlobalAPI();
+        result = vkbLoadVulkanSO();
         if (result != VK_SUCCESS) {
             return result;
         }
     }
 
-    if (pAPI != NULL) {
-        /*<<set_struct_api_from_global>>*/
+    #if defined(VKBIND_NO_GLOBAL_API)
+    {
+        /* Getting here means the global API has been disabled. Therefore the caller *must* provide a VkbAPI object. */
+        if (pAPI == NULL) {
+            return VK_ERROR_INITIALIZATION_FAILED;
+        } else {
+            /* Since we don't have global function pointers we'll have to use dlsym() every time we initialize. */
+            result = vkbLoadVulkanSymbols(pAPI);
+            if (result != VK_SUCCESS) {
+                return result;
+            }
+        }
     }
+    #else
+    {
+        if (pAPI == NULL) {
+            if (g_vkbInitCount == 0) {
+                VkbAPI api;
+                result = vkbInit(&api);
+                if (result != VK_SUCCESS) {
+                    return result;
+                }
+
+                /* The call to vkbInit() will have incremented the reference counter. Bring it back down since we're just going to increment it again later. */
+            } else {
+                /* The global API has already been bound. No need to do anything here. */
+            }
+        } else {
+            if (g_vkbInitCount == 0) {
+                result = vkbLoadVulkanSymbols(pAPI);
+                if (result != VK_SUCCESS) {
+                    return result;
+                }
+
+                result = vkbBindAPI(pAPI);
+                if (result != VK_SUCCESS) {
+                    return result;
+                }
+            } else {
+                /* The global API has already been bound. We need only retrieve the pointers from the globals. Using dlsym() would be too inefficient. */
+                vkbInitFromGlobalAPI(pAPI);
+            }
+        }
+    }
+    #endif
 
     g_vkbInitCount += 1;    /* <-- Only increment the init counter on success. */
     return VK_SUCCESS;
@@ -354,7 +405,22 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
-    pAPI->vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+    /*
+    We need an instance of vkGetInstanceProcAddr(). If it's not available in pAPI we'll try pulling it
+    from global scope.
+    */
+    if (pAPI->vkGetInstanceProcAddr == NULL) {
+        #if !defined(VKBIND_NO_GLOBAL_API)
+        {
+            pAPI->vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+        }
+        #endif
+    }
+
+    if (pAPI->vkGetInstanceProcAddr == NULL) {
+        return VK_ERROR_INITIALIZATION_FAILED;  /* We don't have a vkGetInstanceProcAddr(). We need to abort. */
+    }
+
     /*<<load_instance_api>>*/
 
     return VK_SUCCESS;
@@ -372,7 +438,11 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 
     /* We need to handle vkGetDeviceProcAddr() in a special way to ensure it's using the device-specific version instead of the per-instance version. */
     if (pAPI->vkGetDeviceProcAddr == NULL) {
-        pAPI->vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+        #if !defined(VKBIND_NO_GLOBAL_API)
+        {
+            pAPI->vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+        }
+        #endif
     }
 
     if (pAPI->vkGetDeviceProcAddr == NULL) {
@@ -387,17 +457,17 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 
 VkResult vkbBindAPI(const VkbAPI* pAPI)
 {
-    if (g_vkbInitCount == 0) {
-        return VK_ERROR_INITIALIZATION_FAILED;  /* vkbind not initialized. */
-    }
-
     if (pAPI == NULL) {
-        return vkbBindGlobalAPI();
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
+#if defined(VKBIND_NO_GLOBAL_API)
+    return VK_ERROR_INITIALIZATION_FAILED;  /* The global API has been disabled. */
+#else
     /*<<set_global_api_from_struct>>*/
 
     return VK_SUCCESS;
+#endif
 }
 
 #endif  /* VKBIND_IMPLEMENTATION */

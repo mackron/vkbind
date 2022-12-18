@@ -2532,7 +2532,7 @@ vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int i
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(vkbBuild &context, std::string &codeOut)
+vkbResult vkbBuildGenerateCode_C_LoadVulkanFuncPointers(vkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2550,7 +2550,7 @@ vkbResult vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(vkbBuild &context, st
                         if (outputCommands.size() > 0) {
                             codeOut += "\n    ";
                         }
-                        codeOut += context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
+                        codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
 
                         outputCommands.push_back(require.commands[iRequireCommand].name);
                     }
@@ -2575,7 +2575,7 @@ vkbResult vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(vkbBuild &context, st
                             if (outputCommands.size() > 0) {
                                 codeOut += "\n    ";
                             }
-                            codeOut += context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
+                            codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
                             outputCommands.push_back(requireCommand.name);
                         }
                     }
@@ -2604,7 +2604,7 @@ vkbResult vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(vkbBuild &context, st
                                     if (outputCommands.size() > 0) {
                                         codeOut += "\n    ";
                                     }
-                                    codeOut += context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
+                                    codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkb_dlsym(g_vkbVulkanSO, \"" + context.commands[iCommand].name + "\");";
 
                                     outputCommands.push_back(requireCommand.name);
                                 }
@@ -2636,7 +2636,7 @@ vkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vkbBuild &context, std::
                     if (!vkbContains(outputCommands, require.commands[iRequireCommand].name)) {
                         // New line if required.
                         if (outputCommands.size() > 0) {
-                            codeOut += "\n        ";
+                            codeOut += "\n    ";
                         }
                         codeOut += "pAPI->" + context.commands[iCommand].name + " = " + context.commands[iCommand].name + ";";
 
@@ -2661,7 +2661,7 @@ vkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vkbBuild &context, std::
                         if (!vkbContains(outputCommands, requireCommand.name)) {
                             // New line if required.
                             if (outputCommands.size() > 0) {
-                                codeOut += "\n        ";
+                                codeOut += "\n    ";
                             }
                             codeOut += "pAPI->" + context.commands[iCommand].name + " = " + context.commands[iCommand].name + ";";
 
@@ -2691,7 +2691,7 @@ vkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vkbBuild &context, std::
                                 if (!vkbContains(outputCommands, requireCommand.name)) {
                                     // New line if required.
                                     if (outputCommands.size() > 0) {
-                                        codeOut += "\n        ";
+                                        codeOut += "\n    ";
                                     }
                                     codeOut += "pAPI->" + context.commands[iCommand].name + " = " + context.commands[iCommand].name + ";";
 
@@ -2818,7 +2818,7 @@ vkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(vkbBuild &context, std::string 
                         if (outputCommands.size() > 1) {
                             codeOut += "\n    ";
                         }
-                        codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
+                        codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")pAPI->vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
                         outputCommands.push_back(requireCommand.name);
                     }
                 }
@@ -2841,7 +2841,7 @@ vkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(vkbBuild &context, std::string 
                             if (outputCommands.size() > 1) {
                                 codeOut += "\n    ";
                             }
-                            codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
+                            codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")pAPI->vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
                             outputCommands.push_back(requireCommand.name);
                         }
                     }
@@ -2869,7 +2869,7 @@ vkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(vkbBuild &context, std::string 
                                     if (outputCommands.size() > 1) {
                                         codeOut += "\n    ";
                                     }
-                                    codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
+                                    codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")pAPI->vkGetInstanceProcAddr(instance, \"" + context.commands[iCommand].name + "\");";
                                     outputCommands.push_back(requireCommand.name);
                                 }
                             }
@@ -3076,7 +3076,7 @@ vkbResult vkbBuildGenerateCode_C_LoadDeviceAPI(vkbBuild &context, std::string &c
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadSafeGlobalAPI(vkbBuild &context, std::string &codeOut)
+vkbResult vkbBuildGenerateCode_C_LoadSafeVulkanAPI(vkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -3096,7 +3096,7 @@ vkbResult vkbBuildGenerateCode_C_LoadSafeGlobalAPI(vkbBuild &context, std::strin
                         if (outputCommands.size() > 1) {
                             codeOut += "\n    ";
                         }
-                        codeOut += context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")vkGetInstanceProcAddr(NULL, \"" + context.commands[iCommand].name + "\");";
+                        codeOut += "pAPI->" + context.commands[iCommand].name + " = (PFN_" + context.commands[iCommand].name + ")pAPI->vkGetInstanceProcAddr(NULL, \"" + context.commands[iCommand].name + "\");";
                         outputCommands.push_back(requireCommand.name);
                     }
                 }
@@ -3290,7 +3290,7 @@ vkbResult vkbBuildGenerateCode_C(vkbBuild &context, const char* tag, std::string
         result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, false, codeOut);
     }
     if (strcmp(tag, "/*<<load_global_api_funcpointers>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadGlobalAPIFuncPointers(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadVulkanFuncPointers(context, codeOut);
     }
     if (strcmp(tag, "/*<<set_struct_api_from_global>>*/") == 0) {
         result = vkbBuildGenerateCode_C_SetStructAPIFromGlobal(context, codeOut);
@@ -3305,7 +3305,7 @@ vkbResult vkbBuildGenerateCode_C(vkbBuild &context, const char* tag, std::string
         result = vkbBuildGenerateCode_C_LoadDeviceAPI(context, codeOut);
     }
     if (strcmp(tag, "/*<<load_safe_global_api>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadSafeGlobalAPI(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadSafeVulkanAPI(context, codeOut);
     }
     if (strcmp(tag, "<<safe_global_api_docs>>") == 0) {
         result = vkbBuildGenerateCode_C_SafeGlobalAPIDocs(context, codeOut);
