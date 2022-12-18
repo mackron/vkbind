@@ -518,7 +518,7 @@ int main(int argc, char** argv)
 
             /*
             We want to use double buffering which means we'll need to retrieve the capabilities of the surface and check
-            the minImageCount property.
+            the maxImageCount property.
             */
             VkSurfaceCapabilitiesKHR surfaceCaps;
             result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(pPhysicalDevices[iPhysicalDevice], surface, &surfaceCaps);

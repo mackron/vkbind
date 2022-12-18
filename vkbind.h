@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.235.0 - 2022-11-19
+vkbind - v1.3.237.0 - 2022-12-18
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -165,7 +165,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 235
+#define VK_HEADER_VERSION 237
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -819,6 +819,15 @@ typedef enum
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR = 1000269004,
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR = 1000269005,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT = 1000273000,
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT = 1000274000,
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT = 1000274001,
+    VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_COMPATIBILITY_EXT = 1000274002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT = 1000275000,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT = 1000275001,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_EXT = 1000275002,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_EXT = 1000275003,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT = 1000275004,
+    VK_STRUCTURE_TYPE_RELEASE_SWAPCHAIN_IMAGES_INFO_EXT = 1000275005,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV = 1000277000,
     VK_STRUCTURE_TYPE_GRAPHICS_SHADER_GROUP_CREATE_INFO_NV = 1000277001,
     VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_SHADER_GROUPS_CREATE_INFO_NV = 1000277002,
@@ -994,6 +1003,8 @@ typedef enum
     VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_CONTROL_EXT = 1000458001,
     VK_STRUCTURE_TYPE_RENDER_PASS_CREATION_FEEDBACK_CREATE_INFO_EXT = 1000458002,
     VK_STRUCTURE_TYPE_RENDER_PASS_SUBPASS_FEEDBACK_CREATE_INFO_EXT = 1000458003,
+    VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_INFO_LUNARG = 1000459000,
+    VK_STRUCTURE_TYPE_DIRECT_DRIVER_LOADING_LIST_LUNARG = 1000459001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_FEATURES_EXT = 1000462000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_MODULE_IDENTIFIER_PROPERTIES_EXT = 1000462001,
     VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_MODULE_IDENTIFIER_CREATE_INFO_EXT = 1000462002,
@@ -1012,6 +1023,7 @@ typedef enum
     VK_STRUCTURE_TYPE_TILE_PROPERTIES_QCOM = 1000484001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC = 1000485000,
     VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC = 1000485001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_VIEWPORTS_FEATURES_QCOM = 1000488000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_NV = 1000490000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_NV = 1000490001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT = 1000351000,
@@ -6662,6 +6674,7 @@ typedef enum
     VK_SWAPCHAIN_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR = 0x00000001,
     VK_SWAPCHAIN_CREATE_PROTECTED_BIT_KHR = 0x00000002,
     VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR = 0x00000004,
+    VK_SWAPCHAIN_CREATE_DEFERRED_MEMORY_ALLOCATION_BIT_EXT = 0x00000008,
     VK_SWAPCHAIN_CREATE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
 } VkSwapchainCreateFlagBitsKHR;
 typedef VkFlags VkSwapchainCreateFlagsKHR;
@@ -11298,6 +11311,113 @@ typedef struct VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT
 
 
 
+#define VK_EXT_surface_maintenance1 1
+#define VK_EXT_SURFACE_MAINTENANCE_1_SPEC_VERSION 1
+#define VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME "VK_EXT_surface_maintenance1"
+
+
+typedef enum
+{
+    VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT = 0x00000001,
+    VK_PRESENT_SCALING_ASPECT_RATIO_STRETCH_BIT_EXT = 0x00000002,
+    VK_PRESENT_SCALING_STRETCH_BIT_EXT = 0x00000004,
+    VK_PRESENT_SCALING_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkPresentScalingFlagBitsEXT;
+typedef VkFlags VkPresentScalingFlagsEXT;
+
+typedef enum
+{
+    VK_PRESENT_GRAVITY_MIN_BIT_EXT = 0x00000001,
+    VK_PRESENT_GRAVITY_MAX_BIT_EXT = 0x00000002,
+    VK_PRESENT_GRAVITY_CENTERED_BIT_EXT = 0x00000004,
+    VK_PRESENT_GRAVITY_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkPresentGravityFlagBitsEXT;
+typedef VkFlags VkPresentGravityFlagsEXT;
+
+typedef struct VkSurfacePresentModeEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkPresentModeKHR presentMode;
+} VkSurfacePresentModeEXT;
+
+typedef struct VkSurfacePresentScalingCapabilitiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkPresentScalingFlagsEXT supportedPresentScaling;
+    VkPresentGravityFlagsEXT supportedPresentGravityX;
+    VkPresentGravityFlagsEXT supportedPresentGravityY;
+    VkExtent2D minScaledImageExtent;
+    VkExtent2D maxScaledImageExtent;
+} VkSurfacePresentScalingCapabilitiesEXT;
+
+typedef struct VkSurfacePresentModeCompatibilityEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t presentModeCount;
+    VkPresentModeKHR* pPresentModes;
+} VkSurfacePresentModeCompatibilityEXT;
+
+
+
+#define VK_EXT_swapchain_maintenance1 1
+#define VK_EXT_SWAPCHAIN_MAINTENANCE_1_SPEC_VERSION 1
+#define VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME "VK_EXT_swapchain_maintenance1"
+
+typedef struct VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 swapchainMaintenance1;
+} VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT;
+
+typedef struct VkSwapchainPresentFenceInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t swapchainCount;
+    const VkFence* pFences;
+} VkSwapchainPresentFenceInfoEXT;
+
+typedef struct VkSwapchainPresentModesCreateInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t presentModeCount;
+    const VkPresentModeKHR* pPresentModes;
+} VkSwapchainPresentModesCreateInfoEXT;
+
+typedef struct VkSwapchainPresentModeInfoEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t swapchainCount;
+    const VkPresentModeKHR* pPresentModes;
+} VkSwapchainPresentModeInfoEXT;
+
+typedef struct VkSwapchainPresentScalingCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPresentScalingFlagsEXT scalingBehavior;
+    VkPresentGravityFlagsEXT presentGravityX;
+    VkPresentGravityFlagsEXT presentGravityY;
+} VkSwapchainPresentScalingCreateInfoEXT;
+
+typedef struct VkReleaseSwapchainImagesInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSwapchainKHR swapchain;
+    uint32_t imageIndexCount;
+    const uint32_t* pImageIndices;
+} VkReleaseSwapchainImagesInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkReleaseSwapchainImagesEXT)(VkDevice device, const VkReleaseSwapchainImagesInfoEXT* pReleaseInfo);
+
 #define VK_EXT_shader_demote_to_helper_invocation 1
 #define VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_SPEC_VERSION 1
 #define VK_EXT_SHADER_DEMOTE_TO_HELPER_INVOCATION_EXTENSION_NAME "VK_EXT_shader_demote_to_helper_invocation"
@@ -13676,6 +13796,40 @@ typedef struct VkRenderPassSubpassFeedbackCreateInfoEXT
 
 
 
+#define VK_LUNARG_direct_driver_loading 1
+#define VK_LUNARG_DIRECT_DRIVER_LOADING_SPEC_VERSION 1
+#define VK_LUNARG_DIRECT_DRIVER_LOADING_EXTENSION_NAME "VK_LUNARG_direct_driver_loading"
+
+typedef VkFlags VkDirectDriverLoadingFlagsLUNARG;
+typedef enum
+{
+    VK_DIRECT_DRIVER_LOADING_MODE_EXCLUSIVE_LUNARG = 0,
+    VK_DIRECT_DRIVER_LOADING_MODE_INCLUSIVE_LUNARG = 1,
+    VK_DIRECT_DRIVER_LOADING_MODE_MAX_ENUM_LUNARG = 0x7FFFFFFF
+} VkDirectDriverLoadingModeLUNARG;
+
+
+typedef PFN_vkVoidFunction (VKAPI_PTR *PFN_vkGetInstanceProcAddrLUNARG)(VkInstance instance, const char* pName);
+
+typedef struct VkDirectDriverLoadingInfoLUNARG
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDirectDriverLoadingFlagsLUNARG flags;
+    PFN_vkGetInstanceProcAddrLUNARG pfnGetInstanceProcAddr;
+} VkDirectDriverLoadingInfoLUNARG;
+
+typedef struct VkDirectDriverLoadingListLUNARG
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDirectDriverLoadingModeLUNARG mode;
+    uint32_t driverCount;
+    const VkDirectDriverLoadingInfoLUNARG* pDrivers;
+} VkDirectDriverLoadingListLUNARG;
+
+
+
 #define VK_EXT_shader_module_identifier 1
 #define VK_EXT_SHADER_MODULE_IDENTIFIER_SPEC_VERSION 1
 #define VK_EXT_SHADER_MODULE_IDENTIFIER_EXTENSION_NAME "VK_EXT_shader_module_identifier"
@@ -13955,6 +14109,19 @@ typedef struct VkAmigoProfilingSubmitInfoSEC
     uint64_t firstDrawTimestamp;
     uint64_t swapBufferTimestamp;
 } VkAmigoProfilingSubmitInfoSEC;
+
+
+
+#define VK_QCOM_multiview_per_view_viewports 1
+#define VK_QCOM_MULTIVIEW_PER_VIEW_VIEWPORTS_SPEC_VERSION 1
+#define VK_QCOM_MULTIVIEW_PER_VIEW_VIEWPORTS_EXTENSION_NAME "VK_QCOM_multiview_per_view_viewports"
+
+typedef struct VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 multiviewPerViewViewports;
+} VkPhysicalDeviceMultiviewPerViewViewportsFeaturesQCOM;
 
 
 
@@ -15789,7 +15956,7 @@ typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
 
 
 #define VK_EXT_video_decode_h265 1
-#define VK_EXT_VIDEO_DECODE_H265_SPEC_VERSION 5
+#define VK_EXT_VIDEO_DECODE_H265_SPEC_VERSION 6
 #define VK_EXT_VIDEO_DECODE_H265_EXTENSION_NAME "VK_EXT_video_decode_h265"
 
 typedef struct VkVideoDecodeH265ProfileInfoEXT
@@ -15833,8 +16000,8 @@ typedef struct VkVideoDecodeH265PictureInfoEXT
     VkStructureType sType;
     const void* pNext;
     StdVideoDecodeH265PictureInfo* pStdPictureInfo;
-    uint32_t sliceCount;
-    const uint32_t* pSliceOffsets;
+    uint32_t sliceSegmentCount;
+    const uint32_t* pSliceSegmentOffsets;
 } VkVideoDecodeH265PictureInfoEXT;
 
 typedef struct VkVideoDecodeH265DpbSlotInfoEXT
@@ -16426,6 +16593,7 @@ extern PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 extern PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 extern PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 extern PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+extern PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
 extern PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
 extern PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
 extern PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
@@ -17081,6 +17249,7 @@ typedef struct
     PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
     PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
     PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+    PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
     PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
     PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
     PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
@@ -17820,6 +17989,7 @@ PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
 PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
 PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
 PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
@@ -18552,6 +18722,7 @@ VkResult vkbBindGlobalAPI()
     vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutablePropertiesKHR");
     vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableStatisticsKHR");
     vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vkb_dlsym(g_vkbVulkanSO, "vkReleaseSwapchainImagesEXT");
     vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetGeneratedCommandsMemoryRequirementsNV");
     vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdPreprocessGeneratedCommandsNV");
     vkCmdExecuteGeneratedCommandsNV = (PFN_vkCmdExecuteGeneratedCommandsNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdExecuteGeneratedCommandsNV");
@@ -19236,6 +19407,7 @@ VkResult vkbInit(VkbAPI* pAPI)
         pAPI->vkGetPipelineExecutablePropertiesKHR = vkGetPipelineExecutablePropertiesKHR;
         pAPI->vkGetPipelineExecutableStatisticsKHR = vkGetPipelineExecutableStatisticsKHR;
         pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = vkGetPipelineExecutableInternalRepresentationsKHR;
+        pAPI->vkReleaseSwapchainImagesEXT = vkReleaseSwapchainImagesEXT;
         pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = vkGetGeneratedCommandsMemoryRequirementsNV;
         pAPI->vkCmdPreprocessGeneratedCommandsNV = vkCmdPreprocessGeneratedCommandsNV;
         pAPI->vkCmdExecuteGeneratedCommandsNV = vkCmdExecuteGeneratedCommandsNV;
@@ -19917,6 +20089,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)vkGetInstanceProcAddr(instance, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vkGetInstanceProcAddr(instance, "vkReleaseSwapchainImagesEXT");
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)vkGetInstanceProcAddr(instance, "vkGetGeneratedCommandsMemoryRequirementsNV");
     pAPI->vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)vkGetInstanceProcAddr(instance, "vkCmdPreprocessGeneratedCommandsNV");
     pAPI->vkCmdExecuteGeneratedCommandsNV = (PFN_vkCmdExecuteGeneratedCommandsNV)vkGetInstanceProcAddr(instance, "vkCmdExecuteGeneratedCommandsNV");
@@ -20515,6 +20688,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)pAPI->vkGetDeviceProcAddr(device, "vkReleaseSwapchainImagesEXT");
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)pAPI->vkGetDeviceProcAddr(device, "vkGetGeneratedCommandsMemoryRequirementsNV");
     pAPI->vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdPreprocessGeneratedCommandsNV");
     pAPI->vkCmdExecuteGeneratedCommandsNV = (PFN_vkCmdExecuteGeneratedCommandsNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdExecuteGeneratedCommandsNV");
@@ -21152,6 +21326,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetPipelineExecutablePropertiesKHR = pAPI->vkGetPipelineExecutablePropertiesKHR;
     vkGetPipelineExecutableStatisticsKHR = pAPI->vkGetPipelineExecutableStatisticsKHR;
     vkGetPipelineExecutableInternalRepresentationsKHR = pAPI->vkGetPipelineExecutableInternalRepresentationsKHR;
+    vkReleaseSwapchainImagesEXT = pAPI->vkReleaseSwapchainImagesEXT;
     vkGetGeneratedCommandsMemoryRequirementsNV = pAPI->vkGetGeneratedCommandsMemoryRequirementsNV;
     vkCmdPreprocessGeneratedCommandsNV = pAPI->vkCmdPreprocessGeneratedCommandsNV;
     vkCmdExecuteGeneratedCommandsNV = pAPI->vkCmdExecuteGeneratedCommandsNV;
