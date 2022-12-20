@@ -1508,7 +1508,7 @@ int main(int argc, char** argv)
 
 
     /*
-    We'll need a queue before we'll be able to execute any commands. When create created the logical device (VkDevice)
+    We'll need a queue before we'll be able to execute any commands. When we created the logical device (VkDevice)
     we specified how many queues to make available. Here is were we retrieve it. Note that conceptually these queues
     were created internally when we created the device. Here we just retrieve it by an index rather than creating it.
     */
