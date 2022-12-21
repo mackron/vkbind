@@ -5,10 +5,11 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define VKB_BUILD_XML_PATH      "../../resources/vk.xml"
-#define VKB_BUILD_TEMPLATE_PATH "../../source/vkbind_template.h"
+#define VKB_BUILD_XML_PATH_VK       "../../resources/vk.xml"
+#define VKB_BUILD_XML_PATH_VIDEO    "../../resources/video.xml"
+#define VKB_BUILD_TEMPLATE_PATH     "../../source/vkbind_template.h"
 
-typedef int vkbResult;
+typedef int VkbResult;
 #define VKB_SUCCESS                 0
 #define VKB_ERROR                   -1
 #define VKB_INVALID_ARGS            -2
@@ -65,7 +66,7 @@ void vkbReplaceAllInline(std::string &source, const std::string &from, const std
 
 
 
-vkbResult vkbFOpen(const char* filePath, const char* openMode, FILE** ppFile)
+VkbResult vkbFOpen(const char* filePath, const char* openMode, FILE** ppFile)
 {
     if (filePath == NULL || openMode == NULL || ppFile == NULL) {
         return VKB_INVALID_ARGS;
@@ -91,9 +92,9 @@ vkbResult vkbFOpen(const char* filePath, const char* openMode, FILE** ppFile)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbOpenAndReadFileWithExtraData(const char* filePath, size_t* pFileSizeOut, void** ppFileData, size_t extraBytes)
+VkbResult vkbOpenAndReadFileWithExtraData(const char* filePath, size_t* pFileSizeOut, void** ppFileData, size_t extraBytes)
 {
-    vkbResult result;
+    VkbResult result;
     FILE* pFile;
     uint64_t fileSize;
     void* pFileData;
@@ -149,16 +150,16 @@ vkbResult vkbOpenAndReadFileWithExtraData(const char* filePath, size_t* pFileSiz
     return VKB_SUCCESS;
 }
 
-vkbResult vkbOpenAndReadFile(const char* filePath, size_t* pFileSizeOut, void** ppFileData)
+VkbResult vkbOpenAndReadFile(const char* filePath, size_t* pFileSizeOut, void** ppFileData)
 {
     return vkbOpenAndReadFileWithExtraData(filePath, pFileSizeOut, ppFileData, 0);
 }
 
-vkbResult vkbOpenAndReadTextFile(const char* filePath, size_t* pFileSizeOut, char** ppFileData)
+VkbResult vkbOpenAndReadTextFile(const char* filePath, size_t* pFileSizeOut, char** ppFileData)
 {
     size_t fileSize;
     char* pFileData;
-    vkbResult result = vkbOpenAndReadFileWithExtraData(filePath, &fileSize, (void**)&pFileData, 1);
+    VkbResult result = vkbOpenAndReadFileWithExtraData(filePath, &fileSize, (void**)&pFileData, 1);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -178,9 +179,9 @@ vkbResult vkbOpenAndReadTextFile(const char* filePath, size_t* pFileSizeOut, cha
     return VKB_SUCCESS;
 }
 
-vkbResult vkbOpenAndWriteFile(const char* filePath, const void* pData, size_t dataSize)
+VkbResult vkbOpenAndWriteFile(const char* filePath, const void* pData, size_t dataSize)
 {
-    vkbResult result;
+    VkbResult result;
     FILE* pFile;
 
     if (filePath == NULL) {
@@ -203,7 +204,7 @@ vkbResult vkbOpenAndWriteFile(const char* filePath, const void* pData, size_t da
     return VKB_SUCCESS;
 }
 
-vkbResult vkbOpenAndWriteTextFile(const char* filePath, const char* text)
+VkbResult vkbOpenAndWriteTextFile(const char* filePath, const char* text)
 {
     if (text == NULL) {
         text = "";
@@ -367,7 +368,7 @@ struct vkbBuildExtension
     std::vector<vkbBuildRequire> requires;
 };
 
-struct vkbBuild
+struct VkbBuild
 {
     std::vector<vkbBuildPlatform> platforms;
     std::vector<vkbBuildTag> tags;
@@ -376,11 +377,21 @@ struct vkbBuild
     std::vector<vkbBuildCommand> commands;
     std::vector<vkbBuildFeature> features;
     std::vector<vkbBuildExtension> extensions;
+
+    struct CodeGenConfig
+    {
+        public: CodeGenConfig()
+            : treatExtensionsAsSeparateHeaders(false)
+        {
+        }
+
+        bool treatExtensionsAsSeparateHeaders;  /* Will force include guards. */
+    } codegenConfig;
 };
 
 
 // Parses the <platforms> tag.
-vkbResult vkbBuildParsePlatforms(vkbBuild &context, tinyxml2::XMLElement* pPlatformsElement)
+VkbResult vkbBuildParsePlatforms(VkbBuild &context, tinyxml2::XMLElement* pPlatformsElement)
 {
     if (pPlatformsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -405,7 +416,7 @@ vkbResult vkbBuildParsePlatforms(vkbBuild &context, tinyxml2::XMLElement* pPlatf
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseTags(vkbBuild &context, tinyxml2::XMLElement* pTagsElement)
+VkbResult vkbBuildParseTags(VkbBuild &context, tinyxml2::XMLElement* pTagsElement)
 {
     if (pTagsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -425,7 +436,7 @@ vkbResult vkbBuildParseTags(vkbBuild &context, tinyxml2::XMLElement* pTagsElemen
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseTypeNamePair(std::string &typeC, std::string &type, std::string &nameC, std::string &name, std::string &arrayEnum, tinyxml2::XMLElement* pXMLElement)
+VkbResult vkbBuildParseTypeNamePair(std::string &typeC, std::string &type, std::string &nameC, std::string &name, std::string &arrayEnum, tinyxml2::XMLElement* pXMLElement)
 {
     if (pXMLElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -500,7 +511,7 @@ std::string vkbExtractFuncionPointerReturnType(const std::string &value)
     return vkbTrim(value.substr(beg, end-beg));
 }
 
-vkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLElement* pMemberElement)
+VkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLElement* pMemberElement)
 {
     // The type can possible be split over multiple nodes. We just append the values of each node until we find the name node.
     std::string memberTypeC;
@@ -508,7 +519,7 @@ vkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLE
     std::string memberNameC;
     std::string memberName;
     std::string memberArrayEnum;
-    vkbResult result = vkbBuildParseTypeNamePair(memberTypeC, memberType, memberNameC, memberName, memberArrayEnum, pMemberElement);
+    VkbResult result = vkbBuildParseTypeNamePair(memberTypeC, memberType, memberNameC, memberName, memberArrayEnum, pMemberElement);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -517,7 +528,9 @@ vkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLE
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
         if (pChildElement != NULL) {
             if (strcmp(pChildElement->Name(), "comment") == 0) {
-                member.comment = vkbTrim(pChildElement->FirstChild()->Value());
+                if (pChildElement->FirstChild() != NULL) {
+                    member.comment = vkbTrim(pChildElement->FirstChild()->Value());
+                }
             }
         }
     }
@@ -541,7 +554,7 @@ vkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLE
     return VKB_SUCCESS;
 }
 
-void vkbBuildParseFuncPointerParams(vkbBuild &context, const std::string &paramString, vkbBuildType &type)
+void vkbBuildParseFuncPointerParams(VkbBuild &context, const std::string &paramString, vkbBuildType &type)
 {
     (void)context;
 
@@ -617,7 +630,7 @@ void vkbBuildParseFuncPointerParams(vkbBuild &context, const std::string &paramS
     return;
 }
 
-vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsElement)
+VkbResult vkbBuildParseTypes(VkbBuild &context, tinyxml2::XMLElement* pTagsElement)
 {
     if (pTagsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -625,7 +638,9 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
 
     for (tinyxml2::XMLNode* pChild = pTagsElement->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
-        assert(pChildElement != NULL);
+        if (pChildElement == NULL) {
+            continue;
+        }
 
         // Ignore <comment> tags.
         if (strcmp(pChildElement->Name(), "comment") == 0) {
@@ -740,7 +755,7 @@ vkbResult vkbBuildParseTypes(vkbBuild &context, tinyxml2::XMLElement* pTagsEleme
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseEnums(vkbBuild &context, tinyxml2::XMLElement* pEnumsElement)
+VkbResult vkbBuildParseEnums(VkbBuild &context, tinyxml2::XMLElement* pEnumsElement)
 {
     if (pEnumsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -799,7 +814,7 @@ vkbResult vkbBuildParseEnums(vkbBuild &context, tinyxml2::XMLElement* pEnumsElem
 
 
 
-vkbResult vkbBuildParseCommandProto(vkbBuildCommand &command, tinyxml2::XMLElement* pProtoElement)
+VkbResult vkbBuildParseCommandProto(vkbBuildCommand &command, tinyxml2::XMLElement* pProtoElement)
 {
     if (pProtoElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -807,7 +822,7 @@ vkbResult vkbBuildParseCommandProto(vkbBuildCommand &command, tinyxml2::XMLEleme
 
     std::string nameCUnused;
     std::string arrayEnumUnused;
-    vkbResult result = vkbBuildParseTypeNamePair(command.returnTypeC, command.returnType, nameCUnused, command.name, arrayEnumUnused, pProtoElement);
+    VkbResult result = vkbBuildParseTypeNamePair(command.returnTypeC, command.returnType, nameCUnused, command.name, arrayEnumUnused, pProtoElement);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -815,13 +830,13 @@ vkbResult vkbBuildParseCommandProto(vkbBuildCommand &command, tinyxml2::XMLEleme
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseCommandParam(vkbBuildFunctionParameter &param, tinyxml2::XMLElement* pParamElement)
+VkbResult vkbBuildParseCommandParam(vkbBuildFunctionParameter &param, tinyxml2::XMLElement* pParamElement)
 {
     if (pParamElement == NULL) {
         return VKB_INVALID_ARGS;
     }
 
-    vkbResult result = vkbBuildParseTypeNamePair(param.typeC, param.type, param.nameC, param.name, param.arrayEnum, pParamElement);
+    VkbResult result = vkbBuildParseTypeNamePair(param.typeC, param.type, param.nameC, param.name, param.arrayEnum, pParamElement);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -835,7 +850,7 @@ vkbResult vkbBuildParseCommandParam(vkbBuildFunctionParameter &param, tinyxml2::
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseCommand(vkbBuildCommand &command, tinyxml2::XMLElement* pCommandElement)
+VkbResult vkbBuildParseCommand(vkbBuildCommand &command, tinyxml2::XMLElement* pCommandElement)
 {
     if (pCommandElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -877,7 +892,7 @@ vkbResult vkbBuildParseCommand(vkbBuildCommand &command, tinyxml2::XMLElement* p
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseCommands(vkbBuild &context, tinyxml2::XMLElement* pCommandsElement)
+VkbResult vkbBuildParseCommands(VkbBuild &context, tinyxml2::XMLElement* pCommandsElement)
 {
     if (pCommandsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -889,7 +904,7 @@ vkbResult vkbBuildParseCommands(vkbBuild &context, tinyxml2::XMLElement* pComman
 
         if (strcmp(pChildElement->Name(), "command") == 0) {
             vkbBuildCommand command;
-            vkbResult result = vkbBuildParseCommand(command, pChildElement);
+            VkbResult result = vkbBuildParseCommand(command, pChildElement);
             if (result == VKB_SUCCESS) {
                 context.commands.push_back(command);
             }
@@ -900,7 +915,7 @@ vkbResult vkbBuildParseCommands(vkbBuild &context, tinyxml2::XMLElement* pComman
 }
 
 
-vkbResult vkbBuildParseRequireType(vkbBuildRequireType &type, tinyxml2::XMLElement* pRequireTypeElement)
+VkbResult vkbBuildParseRequireType(vkbBuildRequireType &type, tinyxml2::XMLElement* pRequireTypeElement)
 {
     if (pRequireTypeElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -914,7 +929,7 @@ vkbResult vkbBuildParseRequireType(vkbBuildRequireType &type, tinyxml2::XMLEleme
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseRequireEnum(vkbBuildRequireEnum &theEnum, tinyxml2::XMLElement* pRequireEnumElement)
+VkbResult vkbBuildParseRequireEnum(vkbBuildRequireEnum &theEnum, tinyxml2::XMLElement* pRequireEnumElement)
 {
     if (pRequireEnumElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -943,7 +958,7 @@ vkbResult vkbBuildParseRequireEnum(vkbBuildRequireEnum &theEnum, tinyxml2::XMLEl
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseRequireCommand(vkbBuildRequireCommand &command, tinyxml2::XMLElement* pRequireCommandElement)
+VkbResult vkbBuildParseRequireCommand(vkbBuildRequireCommand &command, tinyxml2::XMLElement* pRequireCommandElement)
 {
     if (pRequireCommandElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -957,7 +972,7 @@ vkbResult vkbBuildParseRequireCommand(vkbBuildRequireCommand &command, tinyxml2:
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseRequire(vkbBuildRequire &require, tinyxml2::XMLElement* pRequireElement)
+VkbResult vkbBuildParseRequire(vkbBuildRequire &require, tinyxml2::XMLElement* pRequireElement)
 {
     if (pRequireElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -997,7 +1012,7 @@ vkbResult vkbBuildParseRequire(vkbBuildRequire &require, tinyxml2::XMLElement* p
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseFeature(vkbBuild &context, tinyxml2::XMLElement* pFeatureElement)
+VkbResult vkbBuildParseFeature(VkbBuild &context, tinyxml2::XMLElement* pFeatureElement)
 {
     if (pFeatureElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -1033,7 +1048,7 @@ vkbResult vkbBuildParseFeature(vkbBuild &context, tinyxml2::XMLElement* pFeature
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseExtension(vkbBuild &context, tinyxml2::XMLElement* pExtensionElement)
+VkbResult vkbBuildParseExtension(VkbBuild &context, tinyxml2::XMLElement* pExtensionElement)
 {
     if (pExtensionElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -1099,7 +1114,7 @@ vkbResult vkbBuildParseExtension(vkbBuild &context, tinyxml2::XMLElement* pExten
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildParseExtensions(vkbBuild &context, tinyxml2::XMLElement* pExtensionsElement)
+VkbResult vkbBuildParseExtensions(VkbBuild &context, tinyxml2::XMLElement* pExtensionsElement)
 {
     if (pExtensionsElement == NULL) {
         return VKB_INVALID_ARGS;
@@ -1118,7 +1133,7 @@ vkbResult vkbBuildParseExtensions(vkbBuild &context, tinyxml2::XMLElement* pExte
 }
 
 
-bool vkbBuildFindTypeByName(vkbBuild &context, const char* name, size_t* pIndexOut)
+bool vkbBuildFindTypeByName(VkbBuild &context, const char* name, size_t* pIndexOut)
 {
     if (name == NULL) {
         return false;
@@ -1136,7 +1151,7 @@ bool vkbBuildFindTypeByName(vkbBuild &context, const char* name, size_t* pIndexO
     return false;
 }
 
-bool vkbBuildFindEnumByName(vkbBuild &context, const char* name, size_t* pIndexOut)
+bool vkbBuildFindEnumByName(VkbBuild &context, const char* name, size_t* pIndexOut)
 {
     if (name == NULL) {
         return false;
@@ -1154,7 +1169,7 @@ bool vkbBuildFindEnumByName(vkbBuild &context, const char* name, size_t* pIndexO
     return false;
 }
 
-bool vkbBuildFindEnumValue(vkbBuild &context, const std::string &name, vkbBuildEnum &value)
+bool vkbBuildFindEnumValue(VkbBuild &context, const std::string &name, vkbBuildEnum &value)
 {
     /* Search through every enum. */
     for (size_t iEnum = 0; iEnum < context.enums.size(); ++iEnum) {
@@ -1216,7 +1231,7 @@ bool vkbBuildFindEnumValue(vkbBuild &context, const std::string &name, vkbBuildE
     return false;
 }
 
-bool vkbBuildFindCommandByName(vkbBuild &context, const char* name, size_t* pIndexOut)
+bool vkbBuildFindCommandByName(VkbBuild &context, const char* name, size_t* pIndexOut)
 {
     if (name == NULL) {
         return false;
@@ -1234,7 +1249,7 @@ bool vkbBuildFindCommandByName(vkbBuild &context, const char* name, size_t* pInd
     return false;
 }
 
-bool vkbBuildFindExtensionByName(vkbBuild &context, const char* name, size_t* pIndexOut)
+bool vkbBuildFindExtensionByName(VkbBuild &context, const char* name, size_t* pIndexOut)
 {
     if (name == NULL) {
         return false;
@@ -1319,7 +1334,7 @@ bool vkbPriorFeatureContainsEnum(std::vector<std::vector<size_t>> &enumsPerFeatu
 }
 
 
-vkbResult vkbBuildAddEnumDependencies(vkbBuild &context, const char* enumName, std::vector<size_t> &enumIndicesOut)
+VkbResult vkbBuildAddEnumDependencies(VkbBuild &context, const char* enumName, std::vector<size_t> &enumIndicesOut)
 {
     if (enumName == NULL) {
         return VKB_INVALID_ARGS;
@@ -1338,7 +1353,7 @@ vkbResult vkbBuildAddEnumDependencies(vkbBuild &context, const char* enumName, s
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, std::vector<size_t> &typeIndicesOut, std::vector<size_t> &enumIndicesOut)
+VkbResult vkbBuildAddTypeDependencies(VkbBuild &context, const char* typeName, std::vector<size_t> &typeIndicesOut, std::vector<size_t> &enumIndicesOut)
 {
     if (typeName == NULL) {
         return VKB_INVALID_ARGS;
@@ -1405,7 +1420,7 @@ vkbResult vkbBuildAddTypeDependencies(vkbBuild &context, const char* typeName, s
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildAddCommandDependencies(vkbBuild &context, const char* commandName, std::vector<size_t> &typeIndicesOut, std::vector<size_t> &enumIndicesOut)
+VkbResult vkbBuildAddCommandDependencies(VkbBuild &context, const char* commandName, std::vector<size_t> &typeIndicesOut, std::vector<size_t> &enumIndicesOut)
 {
     if (commandName == NULL) {
         return VKB_INVALID_ARGS;
@@ -1484,12 +1499,12 @@ struct vkbBuildCodeGenDependencies
     std::vector<size_t> typeIndexes;    // An index into the main type list.
     std::vector<size_t> enumIndexes;    // An index into the main enum list.
 
-    vkbResult ParseFeatureDependencies(vkbBuild &context, vkbBuildFeature &feature)
+    VkbResult ParseFeatureDependencies(VkbBuild &context, vkbBuildFeature &feature)
     {
         type = "feature";
 
         for (size_t iRequire = 0; iRequire < feature.requires.size(); ++iRequire) {
-            vkbResult result = ParseRequire(context, feature.requires[iRequire]);
+            VkbResult result = ParseRequire(context, feature.requires[iRequire]);
             if (result != VKB_SUCCESS) {
                 return result;
             }
@@ -1498,12 +1513,12 @@ struct vkbBuildCodeGenDependencies
         return VKB_SUCCESS;
     }
 
-    vkbResult ParseExtensionDependencies(vkbBuild &context, vkbBuildExtension &extension)
+    VkbResult ParseExtensionDependencies(VkbBuild &context, vkbBuildExtension &extension)
     {
         type = "extension";
 
         for (size_t iRequire = 0; iRequire < extension.requires.size(); ++iRequire) {
-            vkbResult result = ParseRequire(context, extension.requires[iRequire]);
+            VkbResult result = ParseRequire(context, extension.requires[iRequire]);
             if (result != VKB_SUCCESS) {
                 return result;
             }
@@ -1512,7 +1527,7 @@ struct vkbBuildCodeGenDependencies
         return VKB_SUCCESS;
     }
 
-    vkbResult ParseRequire(vkbBuild &context, vkbBuildRequire &require)
+    VkbResult ParseRequire(VkbBuild &context, vkbBuildRequire &require)
     {
         for (size_t iRequireType = 0; iRequireType < require.types.size(); ++iRequireType) {
             vkbBuildAddTypeDependencies(context, require.types[iRequireType].name.c_str(), typeIndexes, enumIndexes);
@@ -1572,7 +1587,7 @@ struct vkbBuildCodeGenState
     }
 };
 
-vkbResult vkbBuildGenerateCode_C_DependencyIncludes(vkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_DependencyIncludes(VkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
 {
     const std::vector<size_t> &typeIndices = dependencies.typeIndexes;
 
@@ -1581,6 +1596,16 @@ vkbResult vkbBuildGenerateCode_C_DependencyIncludes(vkbBuild &context, vkbBuildC
 
         // vkbind doesn't want to depend on vk_platform.h so skip it.
         if (type.name == "vk_platform") {
+            continue;
+        }
+
+        // Ignore anything with "vk_video/" in it.
+        if (type.name.find("vk_video/") != std::string::npos) {
+            continue;
+        }
+
+        // Ignore stdint - we include that separately.
+        if (type.name.find("stdint") != std::string::npos) {
             continue;
         }
 
@@ -1595,7 +1620,7 @@ vkbResult vkbBuildGenerateCode_C_DependencyIncludes(vkbBuild &context, vkbBuildC
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_RequireDefineEnums(vkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildRequire &require, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_RequireDefineEnums(VkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildRequire &require, std::string &codeOut)
 {
     (void)context;
 
@@ -1614,7 +1639,7 @@ vkbResult vkbBuildGenerateCode_C_RequireDefineEnums(vkbBuild &context, vkbBuildC
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Function(const std::string &returnTypeC, const std::string &name, const std::vector<vkbBuildFunctionParameter> &parameters, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Function(const std::string &returnTypeC, const std::string &name, const std::vector<vkbBuildFunctionParameter> &parameters, std::string &codeOut)
 {
     /* We want to prefix the name with "PFN_", but sometimes it already is, in which case we don't need to add a prefix explicitly. */
     std::string namePrefix;
@@ -1638,17 +1663,17 @@ vkbResult vkbBuildGenerateCode_C_Function(const std::string &returnTypeC, const 
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Command(vkbBuildCommand &command, const std::string &name, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Command(vkbBuildCommand &command, const std::string &name, std::string &codeOut)
 {
     return vkbBuildGenerateCode_C_Function(command.returnType, name, command.parameters, codeOut);
 }
 
-vkbResult vkbBuildGenerateCode_C_FuncPointer(vkbBuildFunctionPointer &funcpointer, const std::string &name, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_FuncPointer(vkbBuildFunctionPointer &funcpointer, const std::string &name, std::string &codeOut)
 {
     return vkbBuildGenerateCode_C_Function(funcpointer.returnType, name, funcpointer.params, codeOut);
 }
 
-vkbResult vkbBuildGenerateCode_C_RequireCommands(vkbBuild &context, vkbBuildCodeGenState &codegenState, const std::vector<vkbBuildRequireCommand> &commands, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_RequireCommands(VkbBuild &context, vkbBuildCodeGenState &codegenState, const std::vector<vkbBuildRequireCommand> &commands, std::string &codeOut)
 {
     for (size_t iRequireCommand = 0; iRequireCommand < commands.size(); ++iRequireCommand) {
         const vkbBuildRequireCommand &requireCommand = commands[iRequireCommand];
@@ -1677,6 +1702,18 @@ vkbResult vkbBuildGenerateCode_C_RequireCommands(vkbBuild &context, vkbBuildCode
     return VKB_SUCCESS;
 }
 
+std::string vkbToUpper(const std::string &str)
+{
+    /* There's a better way to do this, right? */
+    std::string result;
+
+    for (size_t i = 0; i < str.length(); i += 1) {
+        result += (char)std::toupper(str[i]);
+    }
+
+    return result;
+}
+
 std::string vkbNameToUpperCaseStyle(const std::string &name)
 {
     std::string result = "VK"; // The final result will always start with "VK".
@@ -1694,7 +1731,7 @@ std::string vkbNameToUpperCaseStyle(const std::string &name)
     return result;
 }
 
-std::string vkbExtractTagFromName(vkbBuild &context, const std::string &name)
+std::string vkbExtractTagFromName(VkbBuild &context, const std::string &name)
 {
     for (auto tag : context.tags) {
         if (name.length() > tag.name.length()) {
@@ -1708,7 +1745,7 @@ std::string vkbExtractTagFromName(vkbBuild &context, const std::string &name)
     return "";
 }
 
-std::string vkbGenerateMaxEnumToken(vkbBuild &context, const std::string &enumName)
+std::string vkbGenerateMaxEnumToken(VkbBuild &context, const std::string &enumName)
 {
     // First thing to do is extract the tag, if any. We need to determine thi
     std::string tag = vkbExtractTagFromName(context, enumName);
@@ -1727,7 +1764,7 @@ std::string vkbGenerateMaxEnumToken(vkbBuild &context, const std::string &enumNa
     return result;
 }
 
-vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Dependencies(VkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
 {
     const std::vector<size_t> &typeIndices = dependencies.typeIndexes;
     const std::vector<size_t> &enumIndices = dependencies.enumIndexes;
@@ -2217,12 +2254,12 @@ vkbResult vkbBuildGenerateCode_C_Dependencies(vkbBuild &context, vkbBuildCodeGen
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Feature(vkbBuild &context, vkbBuildCodeGenState &codegenState, size_t iFeature, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Feature(VkbBuild &context, vkbBuildCodeGenState &codegenState, size_t iFeature, std::string &codeOut)
 {
     codeOut += "\n#define " + context.features[iFeature].name + " 1\n";
 
     // Includes.
-    vkbResult result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.featureDependencies[iFeature], codeOut);
+    VkbResult result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.featureDependencies[iFeature], codeOut);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -2258,15 +2295,22 @@ vkbResult vkbBuildGenerateCode_C_Feature(vkbBuild &context, vkbBuildCodeGenState
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Extension(vkbBuild &context, vkbBuildCodeGenState &codegenState, size_t iExtension, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Extension(VkbBuild &context, vkbBuildCodeGenState &codegenState, size_t iExtension, std::string &codeOut)
 {
+    std::string intermediaryCode = "";
+
     vkbBuildExtension &extension = context.extensions[iExtension];
 
+    if (context.codegenConfig.treatExtensionsAsSeparateHeaders) {
+        codeOut += "#ifndef " + vkbToUpper(extension.name) + "_H_\n";
+        codeOut += "#define " + vkbToUpper(extension.name) + "_H_\n\n";
+    }
+
     // Extension-specific stuff. Extensions can define enums in #define style directly within the <require> tag. These need to be handled here.
-    codeOut += "\n#define " + extension.name + " 1\n";
+    intermediaryCode += "\n#define " + extension.name + " 1\n";
 
     // Includes.
-    vkbResult result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.extensionDependencies[iExtension], codeOut);
+    VkbResult result = vkbBuildGenerateCode_C_DependencyIncludes(context, codegenState, codegenState.extensionDependencies[iExtension], intermediaryCode);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -2275,15 +2319,15 @@ vkbResult vkbBuildGenerateCode_C_Extension(vkbBuild &context, vkbBuildCodeGenSta
     {
         for (size_t iRequire = 0; iRequire < extension.requires.size(); ++iRequire) {
             vkbBuildRequire &require = extension.requires[iRequire];
-            result = vkbBuildGenerateCode_C_RequireDefineEnums(context, codegenState, require, codeOut);
+            result = vkbBuildGenerateCode_C_RequireDefineEnums(context, codegenState, require, intermediaryCode);
             if (result != VKB_SUCCESS) {
                 return result;
             }
         }
-        codeOut += "\n";
+        intermediaryCode += "\n";
     }
 
-    result = vkbBuildGenerateCode_C_Dependencies(context, codegenState, codegenState.extensionDependencies[iExtension], codeOut);
+    result = vkbBuildGenerateCode_C_Dependencies(context, codegenState, codegenState.extensionDependencies[iExtension], intermediaryCode);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -2292,17 +2336,25 @@ vkbResult vkbBuildGenerateCode_C_Extension(vkbBuild &context, vkbBuildCodeGenSta
     {
         for (size_t iRequire = 0; iRequire < context.extensions[iExtension].requires.size(); ++iRequire) {
             vkbBuildRequire &require = context.extensions[iExtension].requires[iRequire];
-            result = vkbBuildGenerateCode_C_RequireCommands(context, codegenState, require.commands, codeOut);
+            result = vkbBuildGenerateCode_C_RequireCommands(context, codegenState, require.commands, intermediaryCode);
             if (result != VKB_SUCCESS) {
                 return result;
             }
         }
     }
 
+    codeOut += "\n" + vkbTrim(intermediaryCode) + "\n";
+
+    if (context.codegenConfig.treatExtensionsAsSeparateHeaders) {
+        codeOut += "#endif /* " + vkbToUpper(extension.name) + "_H_ */\n\n";
+    }
+
+    codeOut += "\n";
+
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildReorderExtensions(vkbBuild &context)
+VkbResult vkbBuildReorderExtensions(VkbBuild &context)
 {
     std::vector<vkbBuildExtension> promotedExtensions;
 
@@ -2327,9 +2379,9 @@ vkbResult vkbBuildReorderExtensions(vkbBuild &context)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Main(VkbBuild &context, std::string &codeOut)
 {
-    vkbResult result;
+    VkbResult result;
     vkbBuildCodeGenState codegenState;
 
     // We need to reorder extensions so that any that have been promoted are located _after_ the promoted extension.
@@ -2419,7 +2471,7 @@ vkbResult vkbBuildGenerateCode_C_Main(vkbBuild &context, std::string &codeOut)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int indentation, bool withExtern, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(VkbBuild &context, int indentation, bool withExtern, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2532,7 +2584,7 @@ vkbResult vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vkbBuild &context, int i
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadVulkanFuncPointers(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_LoadVulkanFuncPointers(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2620,7 +2672,7 @@ vkbResult vkbBuildGenerateCode_C_LoadVulkanFuncPointers(vkbBuild &context, std::
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2709,7 +2761,7 @@ vkbResult vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vkbBuild &context, std::
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_SetGlobalAPIFromStruct(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_SetGlobalAPIFromStruct(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2798,7 +2850,7 @@ vkbResult vkbBuildGenerateCode_C_SetGlobalAPIFromStruct(vkbBuild &context, std::
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -2884,7 +2936,7 @@ vkbResult vkbBuildGenerateCode_C_LoadInstanceAPI(vkbBuild &context, std::string 
     return VKB_SUCCESS;
 }
 
-bool vkbBuildIsTypeChildOf(vkbBuild &context, const std::string &parentType, const std::string &childType)
+bool vkbBuildIsTypeChildOf(VkbBuild &context, const std::string &parentType, const std::string &childType)
 {
     if (parentType == childType) {
         return false;   // It's the same type, so is therefore not a child.
@@ -2909,7 +2961,7 @@ bool vkbBuildIsTypeChildOf(vkbBuild &context, const std::string &parentType, con
     return false;
 }
 
-std::string vkbBuildGetDeviceProcAddressGetterByType(vkbBuild &context, const std::string &type)
+std::string vkbBuildGetDeviceProcAddressGetterByType(VkbBuild &context, const std::string &type)
 {
     // If the type is VkDevice or a child of it, we use vkGetDeviceProcAddr(). Otherwise, we use vkGetInstanceProcAddr().
     if (type == "VkDevice" || vkbBuildIsTypeChildOf(context, "VkDevice", type)) {
@@ -2919,7 +2971,7 @@ std::string vkbBuildGetDeviceProcAddressGetterByType(vkbBuild &context, const st
     }
 }
 
-std::string vkbBuildGetDeviceProcAddressGetterByCommand(vkbBuild &context, vkbBuildCommand &command)
+std::string vkbBuildGetDeviceProcAddressGetterByCommand(VkbBuild &context, vkbBuildCommand &command)
 {
     if (command.alias == "") {
         if (command.parameters.size() > 0) {
@@ -2940,7 +2992,7 @@ std::string vkbBuildGetDeviceProcAddressGetterByCommand(vkbBuild &context, vkbBu
     }
 }
 
-bool vkbBuildIsDeviceLevelCommand(vkbBuild &context, vkbBuildCommand &command)
+bool vkbBuildIsDeviceLevelCommand(VkbBuild &context, vkbBuildCommand &command)
 {
     if (command.alias == "") {
         if (command.parameters.size() > 0) {
@@ -2965,7 +3017,7 @@ bool vkbBuildIsDeviceLevelCommand(vkbBuild &context, vkbBuildCommand &command)
     }
 }
 
-bool vkbBuildIsInstanceLevelCommand(vkbBuild &context, vkbBuildCommand &command)
+bool vkbBuildIsInstanceLevelCommand(VkbBuild &context, vkbBuildCommand &command)
 {
     if (command.alias == "") {
         if (command.parameters.size() > 0) {
@@ -2990,7 +3042,7 @@ bool vkbBuildIsInstanceLevelCommand(vkbBuild &context, vkbBuildCommand &command)
     }
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadDeviceAPI(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_LoadDeviceAPI(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -3076,7 +3128,7 @@ vkbResult vkbBuildGenerateCode_C_LoadDeviceAPI(vkbBuild &context, std::string &c
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_LoadSafeVulkanAPI(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_LoadSafeVulkanAPI(VkbBuild &context, std::string &codeOut)
 {
     // This should be in a nice order. Features first, then platform-independent extensions, then platform-specific extensions.
     std::vector<std::string> outputCommands;
@@ -3107,7 +3159,7 @@ vkbResult vkbBuildGenerateCode_C_LoadSafeVulkanAPI(vkbBuild &context, std::strin
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_SafeGlobalAPIDocs(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_SafeGlobalAPIDocs(VkbBuild &context, std::string &codeOut)
 {
     // Features.
     for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
@@ -3150,7 +3202,7 @@ vkbResult vkbBuildGenerateCode_C_SafeGlobalAPIDocs(vkbBuild &context, std::strin
 
 
 
-vkbResult vkbBuildGetVulkanVersion(vkbBuild &context, std::string &versionOut)
+VkbResult vkbBuildGetVulkanVersion(VkbBuild &context, std::string &versionOut)
 {
     // The version can be retrieved from the last "feature" section and the value of VK_HEADER_VERSION.
     versionOut = context.features.back().number;
@@ -3171,10 +3223,10 @@ vkbResult vkbBuildGetVulkanVersion(vkbBuild &context, std::string &versionOut)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_VulkanVersion(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_VulkanVersion(VkbBuild &context, std::string &codeOut)
 {
     std::string version;
-    vkbResult result = vkbBuildGetVulkanVersion(context, version);
+    VkbResult result = vkbBuildGetVulkanVersion(context, version);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -3184,7 +3236,7 @@ vkbResult vkbBuildGenerateCode_C_VulkanVersion(vkbBuild &context, std::string &c
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C_Revision(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Revision(VkbBuild &context, std::string &codeOut)
 {
     // Rules for the revision number:
     // 1) If the Vulkan version has changed, reset the revision to 0, otherwise increment by 1.
@@ -3204,7 +3256,7 @@ vkbResult vkbBuildGenerateCode_C_Revision(vkbBuild &context, std::string &codeOu
             versionBeg += strlen("vkbind - v");
 
             std::string currentVulkanVersion;
-            vkbResult result = vkbBuildGetVulkanVersion(context, currentVulkanVersion);
+            VkbResult result = vkbBuildGetVulkanVersion(context, currentVulkanVersion);
             if (result != VKB_SUCCESS) {
                 return result;
             }
@@ -3250,7 +3302,7 @@ vkbResult vkbBuildGenerateCode_C_Revision(vkbBuild &context, std::string &codeOu
 }
 
 #include <time.h>
-vkbResult vkbBuildGenerateCode_C_Date(vkbBuild &context, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C_Date(VkbBuild &context, std::string &codeOut)
 {
     (void)context;
 
@@ -3270,60 +3322,63 @@ vkbResult vkbBuildGenerateCode_C_Date(vkbBuild &context, std::string &codeOut)
     return VKB_SUCCESS;
 }
 
-vkbResult vkbBuildGenerateCode_C(vkbBuild &context, const char* tag, std::string &codeOut)
+VkbResult vkbBuildGenerateCode_C(VkbBuild &vk, VkbBuild &video, const char* tag, std::string &codeOut)
 {
     if (tag == NULL) {
         return VKB_INVALID_ARGS;
     }
 
-    vkbResult result = VKB_INVALID_ARGS;
+    VkbResult result = VKB_INVALID_ARGS;
+    if (strcmp(tag, "/*<<vk_video>>*/") == 0) {
+        result = vkbBuildGenerateCode_C_Main(video, codeOut);
+    }
     if (strcmp(tag, "/*<<vulkan_main>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_Main(context, codeOut);
+        result = vkbBuildGenerateCode_C_Main(vk, codeOut);
     }
     if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global:extern>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, true, codeOut);
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vk, 0, true, codeOut);
     }
     if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global:4>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 4, false, codeOut);
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vk, 4, false, codeOut);
     }
     if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(context, 0, false, codeOut);
+        result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vk, 0, false, codeOut);
     }
     if (strcmp(tag, "/*<<load_global_api_funcpointers>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadVulkanFuncPointers(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadVulkanFuncPointers(vk, codeOut);
     }
     if (strcmp(tag, "/*<<set_struct_api_from_global>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_SetStructAPIFromGlobal(context, codeOut);
+        result = vkbBuildGenerateCode_C_SetStructAPIFromGlobal(vk, codeOut);
     }
     if (strcmp(tag, "/*<<set_global_api_from_struct>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_SetGlobalAPIFromStruct(context, codeOut);
+        result = vkbBuildGenerateCode_C_SetGlobalAPIFromStruct(vk, codeOut);
     }
     if (strcmp(tag, "/*<<load_instance_api>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadInstanceAPI(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadInstanceAPI(vk, codeOut);
     }
     if (strcmp(tag, "/*<<load_device_api>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadDeviceAPI(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadDeviceAPI(vk, codeOut);
     }
     if (strcmp(tag, "/*<<load_safe_global_api>>*/") == 0) {
-        result = vkbBuildGenerateCode_C_LoadSafeVulkanAPI(context, codeOut);
+        result = vkbBuildGenerateCode_C_LoadSafeVulkanAPI(vk, codeOut);
     }
     if (strcmp(tag, "<<safe_global_api_docs>>") == 0) {
-        result = vkbBuildGenerateCode_C_SafeGlobalAPIDocs(context, codeOut);
+        result = vkbBuildGenerateCode_C_SafeGlobalAPIDocs(vk, codeOut);
     }
     if (strcmp(tag, "<<vulkan_version>>") == 0) {
-        result = vkbBuildGenerateCode_C_VulkanVersion(context, codeOut);
+        result = vkbBuildGenerateCode_C_VulkanVersion(vk, codeOut);
     }
     if (strcmp(tag, "<<revision>>") == 0) {
-        result = vkbBuildGenerateCode_C_Revision(context, codeOut);
+        result = vkbBuildGenerateCode_C_Revision(vk, codeOut);
     }
     if (strcmp(tag, "<<date>>") == 0) {
-        result = vkbBuildGenerateCode_C_Date(context, codeOut);
+        result = vkbBuildGenerateCode_C_Date(vk, codeOut);
     }
 
     return result;
 }
 
-vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
+VkbResult vkbBuildGenerateLib_C(VkbBuild &vk, VkbBuild &video, const char* outputFilePath)
 {
     if (outputFilePath == NULL) {
         return VKB_INVALID_ARGS;
@@ -3332,7 +3387,7 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
     // Before doing anything we need to grab the template.
     size_t templateFileSize;
     char* pTemplateFileData;
-    vkbResult result = vkbOpenAndReadTextFile(VKB_BUILD_TEMPLATE_PATH, &templateFileSize, &pTemplateFileData);
+    VkbResult result = vkbOpenAndReadTextFile(VKB_BUILD_TEMPLATE_PATH, &templateFileSize, &pTemplateFileData);
     if (result != VKB_SUCCESS) {
         return result;
     }
@@ -3342,6 +3397,7 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
 
     // There will be a series of tags that we need to replace with generated code.
     const char* tags[] = {
+        "/*<<vk_video>>*/",
         "/*<<vulkan_main>>*/",
         "/*<<vulkan_funcpointers_decl_global:extern>>*/",
         "/*<<vulkan_funcpointers_decl_global:4>>*/",
@@ -3360,7 +3416,7 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
 
     for (size_t iTag = 0; iTag < sizeof(tags)/sizeof(tags[0]); ++iTag) {
         std::string generatedCode;
-        result = vkbBuildGenerateCode_C(context, tags[iTag], generatedCode);
+        result = vkbBuildGenerateCode_C(vk, video, tags[iTag], generatedCode);
         if (result != VKB_SUCCESS) {
             return result;
         }
@@ -3372,35 +3428,20 @@ vkbResult vkbBuildGenerateLib_C(vkbBuild &context, const char* outputFilePath)
     return VKB_SUCCESS;
 }
 
-#include <io.h>
 
-int main(int argc, char** argv)
+static VkbResult vkbBuildStateInit(const char* pXMLFilePath, VkbBuild &context)
 {
-    (void)argc;
-    (void)argv;
-
-    bool forceDownload = true;
-    if (forceDownload || _access_s(VKB_BUILD_XML_PATH, 04) != 0) {   // 04 = Read access.
-        printf("vk.xml not found. Attempting to download...\n");
-        std::string cmd = "curl -o " VKB_BUILD_XML_PATH " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
-        int result = system(cmd.c_str());
-        if (result != 0) {
-            printf("Failed to download vk.xml\n");
-            return result;
-        }
-    }
-
     tinyxml2::XMLError xmlError;
-
     tinyxml2::XMLDocument doc;
-    xmlError = doc.LoadFile(VKB_BUILD_XML_PATH);
+    tinyxml2::XMLElement* pRoot;
+
+    xmlError = doc.LoadFile(pXMLFilePath);
     if (xmlError != tinyxml2::XML_SUCCESS) {
         printf("Failed to parse vk.xml\n");
         return (int)xmlError;
     }
 
-    // The root node is the <registry> node.
-    tinyxml2::XMLElement* pRoot = doc.RootElement();
+    pRoot = doc.RootElement();
     if (pRoot == NULL) {
         printf("Failed to retrieve root node.\n");
         return -1;
@@ -3411,13 +3452,12 @@ int main(int argc, char** argv)
         return -1;
     }
 
-
-    vkbBuild context;
-
-    // Enumerate over each child of the root node.
+    /* The first stage is the accumulation phase where we just vacuum everything up. */
     for (tinyxml2::XMLNode* pChild = pRoot->FirstChild(); pChild != NULL; pChild = pChild->NextSibling()) {
         tinyxml2::XMLElement* pChildElement = pChild->ToElement();
-        assert(pChildElement != NULL);
+        if (pChildElement == NULL) {
+            continue;
+        }
 
         if (strcmp(pChildElement->Name(), "platforms") == 0) {
             vkbBuildParsePlatforms(context, pChildElement);
@@ -3440,43 +3480,79 @@ int main(int argc, char** argv)
         if (strcmp(pChildElement->Name(), "extensions") == 0) {
             vkbBuildParseExtensions(context, pChildElement);
         }
-
-        //printf("NODE (%d): %s\n", pChild->GetLineNum(), pChild->ToElement()->Name());
     }
 
-#if 1
-    // Platforms.
-    printf("=== PLATFORMS ===\n");
-    for (size_t iPlatform = 0; iPlatform < context.platforms.size(); ++iPlatform) {
-        printf("%s: %s\n", context.platforms[iPlatform].name.c_str(), context.platforms[iPlatform].protect.c_str());
+    return VKB_SUCCESS;
+}
+
+
+#if 0   /* For debugging. */
+static VkbResult GenerateHeaders_Video(VkbBuild &context)
+{
+    /*
+    The video headers are really annoying. They're not properly defined. Each "extension" in the XML is it's own file,
+    but there's no well defined naming sceme used. They mention include guards, but they don't say what the guard should
+    except for some comment.
+    */
+    VkbResult result;
+    std::string code;
+    std::string outputFilePath = "../../vk_video.h";
+
+    result = vkbBuildGenerateCode_C_Main(context, code);
+    if (result != VKB_SUCCESS) {
+        return result;
     }
 
-    // Types.
-    printf("=== TYPES ===\n");
-    for (size_t iType = 0; iType < context.types.size(); ++iType) {
-        printf("%s %s\n", context.types[iType].category.c_str(), context.types[iType].name.c_str());
-    }
-
-    // Commands.
-    printf("=== COMMANDS ===\n");
-    for (size_t iCommand = 0; iCommand < context.commands.size(); ++iCommand) {
-        printf("%s\n", context.commands[iCommand].name.c_str());
-    }
-
-    // Features.
-    printf("=== FEATURES ===\n");
-    for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
-        printf("%s\n", context.features[iFeature].name.c_str());
-    }
-
-    // Extensions.
-    printf("=== EXTENSION ===\n");
-    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
-        printf("%s\n", context.extensions[iExtension].name.c_str());
-    }
+    return vkbOpenAndWriteTextFile(outputFilePath.c_str(), code.c_str());
+}
 #endif
 
-    vkbResult result = vkbBuildGenerateLib_C(context, "../../vkbind.h");
+
+#include <io.h>
+
+int main(int argc, char** argv)
+{
+    VkbResult result;
+    VkbBuild video;
+    VkbBuild vk;
+
+    (void)argc;
+    (void)argv;
+
+    bool forceDownload = false; /* DON'T FORGET TO CHANGES THIS BACK TO TRUE SO A FRESH DOWNLOAD IS MADE! */
+    if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VK, 04) != 0) {   // 04 = Read access.
+        printf("vk.xml not found. Attempting to download...\n");
+        std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VK " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
+        if (system(cmd.c_str()) != 0) {
+            printf("Failed to download vk.xml\n");
+            return -1;
+        }
+    }
+
+    if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VIDEO, 04) != 0) {   // 04 = Read access.
+        printf("video.xml not found. Attempting to download...\n");
+        std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VIDEO " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
+        if (system(cmd.c_str()) != 0) {
+            printf("Failed to download video.xml\n");
+            return -1;
+        }
+    }
+
+
+    result = vkbBuildStateInit(VKB_BUILD_XML_PATH_VIDEO, video);
+    if (result != VKB_SUCCESS) {
+        printf("Failed to build video.xml.");
+        return -1;
+    }
+
+    result = vkbBuildStateInit(VKB_BUILD_XML_PATH_VK, vk);
+    if (result != VKB_SUCCESS) {
+        printf("Failed to build vk.xml.");
+        return -1;
+    }
+
+
+    result = vkbBuildGenerateLib_C(vk, video, "../../vkbind.h");
     if (result != VKB_SUCCESS) {
         printf("Failed to generate C code.\n");
         return result;

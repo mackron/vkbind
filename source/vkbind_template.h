@@ -130,6 +130,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif  /* VK_NO_STDDEF_H */
 
 
+/*<<vk_video>>*/
 /*<<vulkan_main>>*/
 
 #ifndef VKBIND_NO_GLOBAL_API
