@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.238.0 - 2022-12-21
+vkbind - v1.3.239.0 - 2023-01-20
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1268,7 +1268,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 238
+#define VK_HEADER_VERSION 239
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
@@ -2080,6 +2080,8 @@ typedef enum
     VK_STRUCTURE_TYPE_MICROMAP_CREATE_INFO_EXT = 1000396007,
     VK_STRUCTURE_TYPE_MICROMAP_BUILD_SIZES_INFO_EXT = 1000396008,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT = 1000396009,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_FEATURES_HUAWEI = 1000404000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_PROPERTIES_HUAWEI = 1000404001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT = 1000411000,
     VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT = 1000411001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT = 1000412000,
@@ -3094,6 +3096,7 @@ typedef enum
     VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT = 0x00000400,
     VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT = 0x00000800,
     VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT = 0x00001000,
+    VK_QUERY_PIPELINE_STATISTIC_CLUSTER_CULLING_SHADER_INVOCATIONS_BIT_HUAWEI = 0x00002000,
     VK_QUERY_PIPELINE_STATISTIC_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkQueryPipelineStatisticFlagBits;
 typedef VkFlags VkQueryPipelineStatisticFlags;
@@ -3608,6 +3611,7 @@ typedef enum
     VK_SHADER_STAGE_TASK_BIT_EXT = 0x00000040,
     VK_SHADER_STAGE_MESH_BIT_EXT = 0x00000080,
     VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI = 0x00004000,
+    VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI = 0x00080000,
     VK_SHADER_STAGE_RAYGEN_BIT_NV = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
     VK_SHADER_STAGE_ANY_HIT_BIT_NV = VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
     VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
@@ -6062,6 +6066,7 @@ typedef enum
     VK_DRIVER_ID_MESA_VENUS = 22,
     VK_DRIVER_ID_MESA_DOZEN = 23,
     VK_DRIVER_ID_MESA_NVK = 24,
+    VK_DRIVER_ID_IMAGINATION_OPEN_SOURCE_MESA = 25,
     VK_DRIVER_ID_AMD_PROPRIETARY_KHR = VK_DRIVER_ID_AMD_PROPRIETARY,
     VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR = VK_DRIVER_ID_AMD_OPEN_SOURCE,
     VK_DRIVER_ID_MESA_RADV_KHR = VK_DRIVER_ID_MESA_RADV,
@@ -6878,6 +6883,7 @@ static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HU
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_INVOCATION_MASK_BIT_HUAWEI = (VkPipelineStageFlagBits2)(((VkPipelineStageFlagBits2)0x00000100 << 32) | (0x00000000));
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR = 0x10000000;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_MICROMAP_BUILD_BIT_EXT = 0x40000000;
+static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER_BIT_HUAWEI = (VkPipelineStageFlagBits2)(((VkPipelineStageFlagBits2)0x00000200 << 32) | (0x00000000));
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_OPTICAL_FLOW_BIT_NV = 0x20000000;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_SHADING_RATE_IMAGE_BIT_NV = 0x00400000;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_NV = 0x00200000;
@@ -14900,6 +14906,32 @@ typedef void (VKAPI_PTR *PFN_vkGetMicromapBuildSizesEXT)(VkDevice device, VkAcce
 #define VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME "VK_EXT_load_store_op_none"
 
 
+#define VK_HUAWEI_cluster_culling_shader 1
+#define VK_HUAWEI_CLUSTER_CULLING_SHADER_SPEC_VERSION 1
+#define VK_HUAWEI_CLUSTER_CULLING_SHADER_EXTENSION_NAME "VK_HUAWEI_cluster_culling_shader"
+
+typedef struct VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 clustercullingShader;
+    VkBool32 multiviewClusterCullingShader;
+} VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI;
+
+typedef struct VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxWorkGroupCount[3];
+    uint32_t maxWorkGroupSize[3];
+    uint32_t maxOutputClusterCount;
+} VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdDrawClusterHUAWEI)(VkCommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+typedef void (VKAPI_PTR *PFN_vkCmdDrawClusterIndirectHUAWEI)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset);
+
+
 #define VK_EXT_border_color_swizzle 1
 #define VK_EXT_BORDER_COLOR_SWIZZLE_SPEC_VERSION 1
 #define VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME "VK_EXT_border_color_swizzle"
@@ -17807,6 +17839,8 @@ extern PFN_vkCmdCopyMemoryToMicromapEXT vkCmdCopyMemoryToMicromapEXT;
 extern PFN_vkCmdWriteMicromapsPropertiesEXT vkCmdWriteMicromapsPropertiesEXT;
 extern PFN_vkGetDeviceMicromapCompatibilityEXT vkGetDeviceMicromapCompatibilityEXT;
 extern PFN_vkGetMicromapBuildSizesEXT vkGetMicromapBuildSizesEXT;
+extern PFN_vkCmdDrawClusterHUAWEI vkCmdDrawClusterHUAWEI;
+extern PFN_vkCmdDrawClusterIndirectHUAWEI vkCmdDrawClusterIndirectHUAWEI;
 extern PFN_vkSetDeviceMemoryPriorityEXT vkSetDeviceMemoryPriorityEXT;
 extern PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR;
 extern PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
@@ -18464,6 +18498,8 @@ typedef struct
     PFN_vkCmdWriteMicromapsPropertiesEXT vkCmdWriteMicromapsPropertiesEXT;
     PFN_vkGetDeviceMicromapCompatibilityEXT vkGetDeviceMicromapCompatibilityEXT;
     PFN_vkGetMicromapBuildSizesEXT vkGetMicromapBuildSizesEXT;
+    PFN_vkCmdDrawClusterHUAWEI vkCmdDrawClusterHUAWEI;
+    PFN_vkCmdDrawClusterIndirectHUAWEI vkCmdDrawClusterIndirectHUAWEI;
     PFN_vkSetDeviceMemoryPriorityEXT vkSetDeviceMemoryPriorityEXT;
     PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR;
     PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
@@ -19205,6 +19241,8 @@ PFN_vkCmdCopyMemoryToMicromapEXT vkCmdCopyMemoryToMicromapEXT;
 PFN_vkCmdWriteMicromapsPropertiesEXT vkCmdWriteMicromapsPropertiesEXT;
 PFN_vkGetDeviceMicromapCompatibilityEXT vkGetDeviceMicromapCompatibilityEXT;
 PFN_vkGetMicromapBuildSizesEXT vkGetMicromapBuildSizesEXT;
+PFN_vkCmdDrawClusterHUAWEI vkCmdDrawClusterHUAWEI;
+PFN_vkCmdDrawClusterIndirectHUAWEI vkCmdDrawClusterIndirectHUAWEI;
 PFN_vkSetDeviceMemoryPriorityEXT vkSetDeviceMemoryPriorityEXT;
 PFN_vkGetDeviceBufferMemoryRequirementsKHR vkGetDeviceBufferMemoryRequirementsKHR;
 PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
@@ -19939,6 +19977,8 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdWriteMicromapsPropertiesEXT = (PFN_vkCmdWriteMicromapsPropertiesEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdWriteMicromapsPropertiesEXT");
     pAPI->vkGetDeviceMicromapCompatibilityEXT = (PFN_vkGetDeviceMicromapCompatibilityEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceMicromapCompatibilityEXT");
     pAPI->vkGetMicromapBuildSizesEXT = (PFN_vkGetMicromapBuildSizesEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetMicromapBuildSizesEXT");
+    pAPI->vkCmdDrawClusterHUAWEI = (PFN_vkCmdDrawClusterHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawClusterHUAWEI");
+    pAPI->vkCmdDrawClusterIndirectHUAWEI = (PFN_vkCmdDrawClusterIndirectHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawClusterIndirectHUAWEI");
     pAPI->vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetDeviceMemoryPriorityEXT");
     pAPI->vkGetDeviceBufferMemoryRequirementsKHR = (PFN_vkGetDeviceBufferMemoryRequirementsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceBufferMemoryRequirementsKHR");
     pAPI->vkGetDeviceImageMemoryRequirementsKHR = (PFN_vkGetDeviceImageMemoryRequirementsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceImageMemoryRequirementsKHR");
@@ -20612,6 +20652,8 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdWriteMicromapsPropertiesEXT = vkCmdWriteMicromapsPropertiesEXT;
     pAPI->vkGetDeviceMicromapCompatibilityEXT = vkGetDeviceMicromapCompatibilityEXT;
     pAPI->vkGetMicromapBuildSizesEXT = vkGetMicromapBuildSizesEXT;
+    pAPI->vkCmdDrawClusterHUAWEI = vkCmdDrawClusterHUAWEI;
+    pAPI->vkCmdDrawClusterIndirectHUAWEI = vkCmdDrawClusterIndirectHUAWEI;
     pAPI->vkSetDeviceMemoryPriorityEXT = vkSetDeviceMemoryPriorityEXT;
     pAPI->vkGetDeviceBufferMemoryRequirementsKHR = vkGetDeviceBufferMemoryRequirementsKHR;
     pAPI->vkGetDeviceImageMemoryRequirementsKHR = vkGetDeviceImageMemoryRequirementsKHR;
@@ -21368,6 +21410,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdWriteMicromapsPropertiesEXT = (PFN_vkCmdWriteMicromapsPropertiesEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdWriteMicromapsPropertiesEXT");
     pAPI->vkGetDeviceMicromapCompatibilityEXT = (PFN_vkGetDeviceMicromapCompatibilityEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceMicromapCompatibilityEXT");
     pAPI->vkGetMicromapBuildSizesEXT = (PFN_vkGetMicromapBuildSizesEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetMicromapBuildSizesEXT");
+    pAPI->vkCmdDrawClusterHUAWEI = (PFN_vkCmdDrawClusterHUAWEI)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDrawClusterHUAWEI");
+    pAPI->vkCmdDrawClusterIndirectHUAWEI = (PFN_vkCmdDrawClusterIndirectHUAWEI)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDrawClusterIndirectHUAWEI");
     pAPI->vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)pAPI->vkGetInstanceProcAddr(instance, "vkSetDeviceMemoryPriorityEXT");
     pAPI->vkGetDeviceBufferMemoryRequirementsKHR = (PFN_vkGetDeviceBufferMemoryRequirementsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceBufferMemoryRequirementsKHR");
     pAPI->vkGetDeviceImageMemoryRequirementsKHR = (PFN_vkGetDeviceImageMemoryRequirementsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceImageMemoryRequirementsKHR");
@@ -21967,6 +22011,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdWriteMicromapsPropertiesEXT = (PFN_vkCmdWriteMicromapsPropertiesEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdWriteMicromapsPropertiesEXT");
     pAPI->vkGetDeviceMicromapCompatibilityEXT = (PFN_vkGetDeviceMicromapCompatibilityEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceMicromapCompatibilityEXT");
     pAPI->vkGetMicromapBuildSizesEXT = (PFN_vkGetMicromapBuildSizesEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetMicromapBuildSizesEXT");
+    pAPI->vkCmdDrawClusterHUAWEI = (PFN_vkCmdDrawClusterHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawClusterHUAWEI");
+    pAPI->vkCmdDrawClusterIndirectHUAWEI = (PFN_vkCmdDrawClusterIndirectHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawClusterIndirectHUAWEI");
     pAPI->vkSetDeviceMemoryPriorityEXT = (PFN_vkSetDeviceMemoryPriorityEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetDeviceMemoryPriorityEXT");
     pAPI->vkGetDeviceBufferMemoryRequirementsKHR = (PFN_vkGetDeviceBufferMemoryRequirementsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceBufferMemoryRequirementsKHR");
     pAPI->vkGetDeviceImageMemoryRequirementsKHR = (PFN_vkGetDeviceImageMemoryRequirementsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceImageMemoryRequirementsKHR");
@@ -22608,6 +22654,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdWriteMicromapsPropertiesEXT = pAPI->vkCmdWriteMicromapsPropertiesEXT;
     vkGetDeviceMicromapCompatibilityEXT = pAPI->vkGetDeviceMicromapCompatibilityEXT;
     vkGetMicromapBuildSizesEXT = pAPI->vkGetMicromapBuildSizesEXT;
+    vkCmdDrawClusterHUAWEI = pAPI->vkCmdDrawClusterHUAWEI;
+    vkCmdDrawClusterIndirectHUAWEI = pAPI->vkCmdDrawClusterIndirectHUAWEI;
     vkSetDeviceMemoryPriorityEXT = pAPI->vkSetDeviceMemoryPriorityEXT;
     vkGetDeviceBufferMemoryRequirementsKHR = pAPI->vkGetDeviceBufferMemoryRequirementsKHR;
     vkGetDeviceImageMemoryRequirementsKHR = pAPI->vkGetDeviceImageMemoryRequirementsKHR;

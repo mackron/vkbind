@@ -3519,7 +3519,7 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    bool forceDownload = false; /* DON'T FORGET TO CHANGES THIS BACK TO TRUE SO A FRESH DOWNLOAD IS MADE! */
+    bool forceDownload = true;
     if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VK, 04) != 0) {   // 04 = Read access.
         printf("vk.xml not found. Attempting to download...\n");
         std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VK " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
@@ -3531,7 +3531,7 @@ int main(int argc, char** argv)
 
     if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VIDEO, 04) != 0) {   // 04 = Read access.
         printf("video.xml not found. Attempting to download...\n");
-        std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VIDEO " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
+        std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VIDEO " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/video.xml";
         if (system(cmd.c_str()) != 0) {
             printf("Failed to download video.xml\n");
             return -1;
