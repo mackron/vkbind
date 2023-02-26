@@ -256,6 +256,7 @@ struct vkbBuildStructMember
     std::string name;
     std::string arrayEnum;      // The name of the enum used for array sizes for array members.
     std::string comment;
+    std::string api;            // Attribute
     std::string values;         // Attribute
     std::string optional;       // Attribute
     std::string noautovalidity; // Attribute
@@ -541,11 +542,13 @@ VkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLE
     member.name  = vkbTrim(memberName);
     member.arrayEnum = vkbTrim(memberArrayEnum);
 
+    const char* api = pMemberElement->Attribute("api");
     const char* values = pMemberElement->Attribute("values");
     const char* optional = pMemberElement->Attribute("optional");
     const char* noautovalidity = pMemberElement->Attribute("noautovalidity");
     const char* len = pMemberElement->Attribute("len");
 
+    member.api = (api != NULL) ? api : "";
     member.values = (values != NULL) ? values : "";
     member.optional = (optional != NULL) ? optional : "";
     member.noautovalidity = (noautovalidity != NULL) ? noautovalidity : "";
@@ -710,7 +713,16 @@ VkbResult vkbBuildParseTypes(VkbBuild &context, tinyxml2::XMLElement* pTagsEleme
 
                     vkbBuildStructMember member;
                     vkbBuildParseStructMember(member, pMemberElement);
-                    type.structData.members.push_back(member);
+
+                    // Don't include duplicate members.
+                    auto it = std::find_if(type.structData.members.begin(), type.structData.members.end(), [member](const vkbBuildStructMember &a)
+                    {
+                        return a.name == member.name;
+                    });
+
+                    if (it == type.structData.members.end()) {
+                        type.structData.members.push_back(member);
+                    }
                 }
             }
         }
@@ -873,7 +885,16 @@ VkbResult vkbBuildParseCommand(vkbBuildCommand &command, tinyxml2::XMLElement* p
         if (strcmp(pChildElement->Name(), "param") == 0) {
             vkbBuildFunctionParameter param;
             vkbBuildParseCommandParam(param, pChildElement);
-            command.parameters.push_back(param);
+
+            // Don't include duplicate parameters. Can happen due to vulkansc specializations.
+            auto it = std::find_if(command.parameters.begin(), command.parameters.end(), [param](const vkbBuildFunctionParameter &a)
+            {
+                return a.name == param.name;
+            });
+
+            if (it == command.parameters.end()) {
+                command.parameters.push_back(param);
+            }
         }
     }
 
