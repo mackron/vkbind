@@ -3234,11 +3234,39 @@ VkbResult vkbBuildGenerateCode_C_SafeGlobalAPIDocs(VkbBuild &context, std::strin
 }
 
 
+std::vector<std::string> vkbSplitString(const std::string &str, const std::string &delimiter)
+{
+    std::vector<std::string> tokens;
+
+    size_t cursor = 0;
+    size_t pos = str.find(delimiter, cursor);
+
+    while (pos != std::string::npos) {
+        tokens.push_back(str.substr(cursor, pos - cursor));
+        cursor = pos + delimiter.length();
+        pos = str.find(delimiter, cursor);
+    }
+
+    // Add the final token to the vector
+    tokens.push_back(str.substr(cursor));
+
+    return tokens;
+}
 
 VkbResult vkbBuildGetVulkanVersion(VkbBuild &context, std::string &versionOut)
 {
-    // The version can be retrieved from the last "feature" section and the value of VK_HEADER_VERSION.
-    versionOut = context.features.back().number;
+    // The version can be retrieved from the last "feature" section that is not VulkanSC and the value of VK_HEADER_VERSION.
+    versionOut = std::find_if(context.features.rbegin(), context.features.rend(), [](const vkbBuildFeature& feature) {
+        /* If the "api" does contains a "vulkan" item, return true. */
+        auto apis = vkbSplitString(feature.api, ",");
+        for (auto api : apis) {
+            if (api == "vulkan") {
+                return true;
+            }
+        }
+
+        return false;
+    })->number;
 
     for (auto type : context.types) {
         if (type.category == "define") {
@@ -3247,7 +3275,7 @@ VkbResult vkbBuildGetVulkanVersion(VkbBuild &context, std::string &versionOut)
                 const char* src = defineValue.c_str();
                 const char* beg = strstr(src, type.name.c_str()) + type.name.length();
 
-                versionOut += "." + vkbTrim(beg);
+                versionOut += "." + vkbTrim((beg != NULL) ? beg : "");
                 break;
             }
         }

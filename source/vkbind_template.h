@@ -142,14 +142,16 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 
 /* We need to vkbind_Display and vkbind_Window */
-#if !defined(VKBIND_NO_XLIB_HEADERS)
-    typedef Display  vkbind_Display;
-    typedef Window   vkbind_Window;
-    typedef VisualID vkbind_VisualID;
-#else
-    typedef void*         vkbind_Display;
-    typedef unsigned long vkbind_Window;
-    typedef unsigned long vkbind_VisualID;
+#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        typedef Display  vkbind_Display;
+        typedef Window   vkbind_Window;
+        typedef VisualID vkbind_VisualID;
+    #else
+        typedef void*         vkbind_Display;
+        typedef unsigned long vkbind_Window;
+        typedef unsigned long vkbind_VisualID;
+    #endif
 #endif
 
 /*<<vk_video>>*/
