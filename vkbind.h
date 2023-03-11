@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.240.0 - 2023-01-26
+vkbind - v1.3.240.1 - 2023-03-11
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -129,6 +129,30 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #include <stddef.h>
 #endif  /* VK_NO_STDDEF_H */
 
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        #include <X11/Xlib.h>
+    #endif
+#endif
+
+#if defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        #include <X11/extensions/Xrandr.h>
+    #endif
+#endif
+
+/* We need to vkbind_Display and vkbind_Window */
+#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        typedef Display       vkbind_Display;
+        typedef Window        vkbind_Window;
+        typedef VisualID      vkbind_VisualID;
+    #else
+        typedef void*         vkbind_Display;
+        typedef unsigned long vkbind_Window;
+        typedef unsigned long vkbind_VisualID;
+    #endif
+#endif
 
 
 #define vulkan_video_codecs_common 1
@@ -15798,7 +15822,6 @@ typedef struct VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT
 } VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT;
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
-#include <X11/Xlib.h>
 
 #define VK_KHR_xlib_surface 1
 #define VK_KHR_XLIB_SURFACE_SPEC_VERSION 6
@@ -15810,25 +15833,24 @@ typedef struct VkXlibSurfaceCreateInfoKHR
     VkStructureType sType;
     const void* pNext;
     VkXlibSurfaceCreateFlagsKHR flags;
-    Display* dpy;
-    Window window;
+    vkbind_Display* dpy;
+    vkbind_Window window;
 } VkXlibSurfaceCreateInfoKHR;
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkCreateXlibSurfaceKHR)(VkInstance instance, const VkXlibSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
-typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, Display* dpy, VisualID visualID);
+typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, vkbind_Display* dpy, vkbind_VisualID visualID);
 
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
-#include <X11/extensions/Xrandr.h>
 
 #define VK_EXT_acquire_xlib_display 1
 #define VK_EXT_ACQUIRE_XLIB_DISPLAY_SPEC_VERSION 1
 #define VK_EXT_ACQUIRE_XLIB_DISPLAY_EXTENSION_NAME "VK_EXT_acquire_xlib_display"
 
-typedef VkResult (VKAPI_PTR *PFN_vkAcquireXlibDisplayEXT)(VkPhysicalDevice physicalDevice, Display* dpy, VkDisplayKHR display);
-typedef VkResult (VKAPI_PTR *PFN_vkGetRandROutputDisplayEXT)(VkPhysicalDevice physicalDevice, Display* dpy, RROutput rrOutput, VkDisplayKHR* pDisplay);
+typedef VkResult (VKAPI_PTR *PFN_vkAcquireXlibDisplayEXT)(VkPhysicalDevice physicalDevice, vkbind_Display* dpy, VkDisplayKHR display);
+typedef VkResult (VKAPI_PTR *PFN_vkGetRandROutputDisplayEXT)(VkPhysicalDevice physicalDevice, vkbind_Display* dpy, RROutput rrOutput, VkDisplayKHR* pDisplay);
 
 #endif /*VK_USE_PLATFORM_XLIB_XRANDR_EXT*/
 
