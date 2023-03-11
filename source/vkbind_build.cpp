@@ -1632,6 +1632,11 @@ VkbResult vkbBuildGenerateCode_C_DependencyIncludes(VkbBuild &context, vkbBuildC
 
         if (type.category == "include") {
             if (!codegenState.HasOutputType(type.name)) {
+                /* Don't output Xlib.h or Xrandr.h - they're included separately in the template. */
+                if (type.name == "X11/Xlib.h" || type.name == "X11/extensions/Xrandr.h") {
+                    continue;
+                }
+
                 codeOut += "#include <" + type.name + ">\n";
                 codegenState.MarkTypeAsOutput(type.name);
             }
@@ -2362,6 +2367,13 @@ VkbResult vkbBuildGenerateCode_C_Extension(VkbBuild &context, vkbBuildCodeGenSta
                 return result;
             }
         }
+    }
+
+    /* We have some custom-named types for the Xlib backend. */
+    if (extension.name == "VK_KHR_xlib_surface" || extension.name == "VK_EXT_acquire_xlib_display") {
+        vkbReplaceAllInline(intermediaryCode, "Display* ", "vkbind_Display* ");
+        vkbReplaceAllInline(intermediaryCode, "Window ", "vkbind_Window ");
+        vkbReplaceAllInline(intermediaryCode, "VisualID ", "vkbind_VisualID ");
     }
 
     codeOut += "\n" + vkbTrim(intermediaryCode) + "\n";

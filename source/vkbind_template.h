@@ -129,6 +129,28 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #include <stddef.h>
 #endif  /* VK_NO_STDDEF_H */
 
+#if defined(VK_USE_PLATFORM_XLIB_KHR)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        #include <X11/Xlib.h>
+    #endif
+#endif
+
+#if defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
+    #if !defined(VKBIND_NO_XLIB_HEADERS)
+        #include <X11/extensions/Xrandr.h>
+    #endif
+#endif
+
+/* We need to vkbind_Display and vkbind_Window */
+#if !defined(VKBIND_NO_XLIB_HEADERS)
+    typedef Display  vkbind_Display;
+    typedef Window   vkbind_Window;
+    typedef VisualID vkbind_VisualID;
+#else
+    typedef void*         vkbind_Display;
+    typedef unsigned long vkbind_Window;
+    typedef unsigned long vkbind_VisualID;
+#endif
 
 /*<<vk_video>>*/
 /*<<vulkan_main>>*/

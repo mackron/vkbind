@@ -46,6 +46,8 @@ platform-specific functionality that you'll need for displaying something in a w
 */
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#else
+#define VK_USE_PLATFORM_XLIB_KHR
 #endif
 
 /*
