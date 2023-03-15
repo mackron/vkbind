@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.240.1 - 2023-03-11
+vkbind - v1.3.243.0 - 2023-03-15
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -522,10 +522,10 @@ typedef struct StdVideoDecodeH264ReferenceInfo
 
 
 #define vulkan_video_codec_h264std_encode 1
-#define VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_API_VERSION_0_9_8
+#define VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_API_VERSION_0_9_9
 #define VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_EXTENSION_NAME "VK_STD_vulkan_video_codec_h264_encode"
 
-#define VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_API_VERSION_0_9_8 VK_MAKE_VIDEO_STD_VERSION(0, 9, 8)
+#define VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_API_VERSION_0_9_9 VK_MAKE_VIDEO_STD_VERSION(0, 9, 9)
 
 typedef struct StdVideoEncodeH264WeightTableFlags
 {
@@ -571,11 +571,11 @@ typedef struct StdVideoEncodeH264ReferenceInfoFlags
     uint32_t used_for_long_term_reference : 1;
 } StdVideoEncodeH264ReferenceInfoFlags;
 
-typedef struct StdVideoEncodeH264RefMgmtFlags
+typedef struct StdVideoEncodeH264ReferenceListsInfoFlags
 {
-    uint32_t ref_pic_list_modification_l0_flag : 1;
-    uint32_t ref_pic_list_modification_l1_flag : 1;
-} StdVideoEncodeH264RefMgmtFlags;
+    uint32_t ref_pic_list_modification_flag_l0 : 1;
+    uint32_t ref_pic_list_modification_flag_l1 : 1;
+} StdVideoEncodeH264ReferenceListsInfoFlags;
 
 typedef struct StdVideoEncodeH264RefListModEntry
 {
@@ -593,22 +593,28 @@ typedef struct StdVideoEncodeH264RefPicMarkingEntry
     uint16_t max_long_term_frame_idx_plus1;
 } StdVideoEncodeH264RefPicMarkingEntry;
 
-typedef struct StdVideoEncodeH264RefMemMgmtCtrlOperations
+typedef struct StdVideoEncodeH264ReferenceListsInfo
 {
-    StdVideoEncodeH264RefMgmtFlags flags;
+    StdVideoEncodeH264ReferenceListsInfoFlags flags;
+    uint8_t refPicList0EntryCount;
+    uint8_t refPicList1EntryCount;
     uint8_t refList0ModOpCount;
-    const StdVideoEncodeH264RefListModEntry* pRefList0ModOperations;
     uint8_t refList1ModOpCount;
-    const StdVideoEncodeH264RefListModEntry* pRefList1ModOperations;
     uint8_t refPicMarkingOpCount;
+    uint8_t reserved1[7];
+    const uint8_t* pRefPicList0Entries;
+    const uint8_t* pRefPicList1Entries;
+    const StdVideoEncodeH264RefListModEntry* pRefList0ModOperations;
+    const StdVideoEncodeH264RefListModEntry* pRefList1ModOperations;
     const StdVideoEncodeH264RefPicMarkingEntry* pRefPicMarkingOperations;
-} StdVideoEncodeH264RefMemMgmtCtrlOperations;
+} StdVideoEncodeH264ReferenceListsInfo;
 
 typedef struct StdVideoEncodeH264PictureInfo
 {
     StdVideoEncodeH264PictureInfoFlags flags;
     uint8_t seq_parameter_set_id;
     uint8_t pic_parameter_set_id;
+    uint16_t reserved1;
     StdVideoH264PictureType pictureType;
     uint32_t frame_num;
     int32_t PicOrderCnt;
@@ -617,6 +623,7 @@ typedef struct StdVideoEncodeH264PictureInfo
 typedef struct StdVideoEncodeH264ReferenceInfo
 {
     StdVideoEncodeH264ReferenceInfoFlags flags;
+    StdVideoH264PictureType pictureType;
     uint32_t FrameNum;
     int32_t PicOrderCnt;
     uint16_t long_term_pic_num;
@@ -635,6 +642,8 @@ typedef struct StdVideoEncodeH264SliceHeader
     StdVideoH264DisableDeblockingFilterIdc disable_deblocking_filter_idc;
     int8_t slice_alpha_c0_offset_div2;
     int8_t slice_beta_offset_div2;
+    uint16_t reserved1;
+    uint32_t reserved2;
     const StdVideoEncodeH264WeightTable* pWeightTable;
 } StdVideoEncodeH264SliceHeader;
 
@@ -1127,10 +1136,10 @@ typedef struct StdVideoDecodeH265ReferenceInfo
 
 
 #define vulkan_video_codec_h265std_encode 1
-#define VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_API_VERSION_0_9_9
+#define VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_API_VERSION_0_9_10
 #define VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_EXTENSION_NAME "VK_STD_vulkan_video_codec_h265_encode"
 
-#define VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_API_VERSION_0_9_9 VK_MAKE_VIDEO_STD_VERSION(0, 9, 9)
+#define VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_API_VERSION_0_9_10 VK_MAKE_VIDEO_STD_VERSION(0, 9, 10)
 
 typedef struct StdVideoEncodeH265WeightTableFlags
 {
@@ -1208,20 +1217,23 @@ typedef struct StdVideoEncodeH265SliceSegmentHeader
     const StdVideoEncodeH265WeightTable* pWeightTable;
 } StdVideoEncodeH265SliceSegmentHeader;
 
-typedef struct StdVideoEncodeH265ReferenceModificationFlags
+typedef struct StdVideoEncodeH265ReferenceListsInfoFlags
 {
     uint32_t ref_pic_list_modification_flag_l0 : 1;
     uint32_t ref_pic_list_modification_flag_l1 : 1;
-} StdVideoEncodeH265ReferenceModificationFlags;
+} StdVideoEncodeH265ReferenceListsInfoFlags;
 
-typedef struct StdVideoEncodeH265ReferenceModifications
+typedef struct StdVideoEncodeH265ReferenceListsInfo
 {
-    StdVideoEncodeH265ReferenceModificationFlags flags;
-    uint8_t referenceList0ModificationsCount;
-    const uint8_t* pReferenceList0Modifications;
-    uint8_t referenceList1ModificationsCount;
-    const uint8_t* pReferenceList1Modifications;
-} StdVideoEncodeH265ReferenceModifications;
+    StdVideoEncodeH265ReferenceListsInfoFlags flags;
+    uint8_t num_ref_idx_l0_active_minus1;
+    uint8_t num_ref_idx_l1_active_minus1;
+    uint16_t reserved1;
+    const uint8_t* pRefPicList0Entries;
+    const uint8_t* pRefPicList1Entries;
+    const uint8_t* pRefList0Modifications;
+    const uint8_t* pRefList1Modifications;
+} StdVideoEncodeH265ReferenceListsInfo;
 
 typedef struct StdVideoEncodeH265PictureInfoFlags
 {
@@ -1239,8 +1251,8 @@ typedef struct StdVideoEncodeH265PictureInfo
     uint8_t sps_video_parameter_set_id;
     uint8_t pps_seq_parameter_set_id;
     uint8_t pps_pic_parameter_set_id;
-    int32_t PicOrderCntVal;
     uint8_t TemporalId;
+    int32_t PicOrderCntVal;
 } StdVideoEncodeH265PictureInfo;
 
 typedef struct StdVideoEncodeH265ReferenceInfoFlags
@@ -1252,6 +1264,7 @@ typedef struct StdVideoEncodeH265ReferenceInfoFlags
 typedef struct StdVideoEncodeH265ReferenceInfo
 {
     StdVideoEncodeH265ReferenceInfoFlags flags;
+    StdVideoH265PictureType PictureType;
     int32_t PicOrderCntVal;
     uint8_t TemporalId;
 } StdVideoEncodeH265ReferenceInfo;
@@ -1289,17 +1302,17 @@ typedef struct StdVideoEncodeH265ReferenceInfo
         #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) typedef uint64_t object;
     #endif
 #endif
-#define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
-#define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
+#define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 240
+#define VK_HEADER_VERSION 243
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
-#define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
-#define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
+#define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
+#define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
+#define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12U) & 0x3FFU)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
-#define VK_API_VERSION_VARIANT(version) ((uint32_t)(version) >> 29)
-#define VK_API_VERSION_MAJOR(version) (((uint32_t)(version) >> 22) & 0x7FU)
-#define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
+#define VK_API_VERSION_VARIANT(version) ((uint32_t)(version) >> 29U)
+#define VK_API_VERSION_MAJOR(version) (((uint32_t)(version) >> 22U) & 0x7FU)
+#define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12U) & 0x3FFU)
 #define VK_API_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
 
 #define VK_ATTACHMENT_UNUSED (~0U)
@@ -1376,6 +1389,9 @@ typedef enum
     VK_ERROR_FRAGMENTATION = -1000161000,
     VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS = -1000257000,
     VK_PIPELINE_COMPILE_REQUIRED = 1000297000,
+    VK_ERROR_VALIDATION_FAILED = -1000011001,
+    VK_ERROR_INVALID_PIPELINE_CACHE_DATA = -1000298000,
+    VK_ERROR_NO_PIPELINE_MATCH = -1000298001,
     VK_ERROR_SURFACE_LOST_KHR = -1000000000,
     VK_ERROR_NATIVE_WINDOW_IN_USE_KHR = -1000000001,
     VK_SUBOPTIMAL_KHR = 1000001003,
@@ -1396,6 +1412,7 @@ typedef enum
     VK_THREAD_DONE_KHR = 1000268001,
     VK_OPERATION_DEFERRED_KHR = 1000268002,
     VK_OPERATION_NOT_DEFERRED_KHR = 1000268003,
+    VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR = -1000299000,
     VK_ERROR_COMPRESSION_EXHAUSTED_EXT = -1000338000,
     VK_ERROR_OUT_OF_POOL_MEMORY_KHR = VK_ERROR_OUT_OF_POOL_MEMORY,
     VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = VK_ERROR_INVALID_EXTERNAL_HANDLE,
@@ -1626,6 +1643,15 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES = 1000413001,
     VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS = 1000413002,
     VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS = 1000413003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_SC_1_0_FEATURES = 1000298000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_SC_1_0_PROPERTIES = 1000298001,
+    VK_STRUCTURE_TYPE_DEVICE_OBJECT_RESERVATION_CREATE_INFO = 1000298002,
+    VK_STRUCTURE_TYPE_COMMAND_POOL_MEMORY_RESERVATION_CREATE_INFO = 1000298003,
+    VK_STRUCTURE_TYPE_COMMAND_POOL_MEMORY_CONSUMPTION = 1000298004,
+    VK_STRUCTURE_TYPE_PIPELINE_POOL_SIZE = 1000298005,
+    VK_STRUCTURE_TYPE_FAULT_DATA = 1000298007,
+    VK_STRUCTURE_TYPE_FAULT_CALLBACK_INFO = 1000298008,
+    VK_STRUCTURE_TYPE_PIPELINE_OFFLINE_CREATE_INFO = 1000298010,
     VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
     VK_STRUCTURE_TYPE_PRESENT_INFO_KHR = 1000001001,
     VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_CAPABILITIES_KHR = 1000060007,
@@ -1677,20 +1703,16 @@ typedef enum
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_VCL_FRAME_INFO_EXT = 1000038003,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_DPB_SLOT_INFO_EXT = 1000038004,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_NALU_SLICE_INFO_EXT = 1000038005,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_EMIT_PICTURE_PARAMETERS_INFO_EXT = 1000038006,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_PROFILE_INFO_EXT = 1000038007,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_INFO_EXT = 1000038008,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_RATE_CONTROL_LAYER_INFO_EXT = 1000038009,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_REFERENCE_LISTS_INFO_EXT = 1000038010,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_EXT = 1000039000,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_CREATE_INFO_EXT = 1000039001,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_SESSION_PARAMETERS_ADD_INFO_EXT = 1000039002,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_VCL_FRAME_INFO_EXT = 1000039003,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_DPB_SLOT_INFO_EXT = 1000039004,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_NALU_SLICE_SEGMENT_INFO_EXT = 1000039005,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_EMIT_PICTURE_PARAMETERS_INFO_EXT = 1000039006,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_PROFILE_INFO_EXT = 1000039007,
-    VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_REFERENCE_LISTS_INFO_EXT = 1000039008,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_INFO_EXT = 1000039009,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_RATE_CONTROL_LAYER_INFO_EXT = 1000039010,
     VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR = 1000040000,
@@ -1706,6 +1728,7 @@ typedef enum
     VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_ATTRIBUTES_INFO_NVX = 1000044009,
     VK_STRUCTURE_TYPE_STREAM_DESCRIPTOR_SURFACE_CREATE_INFO_GGP = 1000049000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CORNER_SAMPLED_IMAGE_FEATURES_NV = 1000050000,
+    VK_STRUCTURE_TYPE_PRIVATE_VENDOR_INFO_RESERVED_OFFSET_0_NV = 1000051000,
     VK_STRUCTURE_TYPE_VI_SURFACE_CREATE_INFO_NN = 1000062000,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_ASTC_DECODE_MODE_EXT = 1000067000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ASTC_DECODE_FEATURES_EXT = 1000067001,
@@ -1765,6 +1788,7 @@ typedef enum
     VK_STRUCTURE_TYPE_ACQUIRE_PROFILING_LOCK_INFO_KHR = 1000116004,
     VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR = 1000116005,
     VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR = 1000116006,
+    VK_STRUCTURE_TYPE_PERFORMANCE_QUERY_RESERVATION_INFO_KHR = 1000116007,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR = 1000119000,
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR = 1000119001,
     VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR = 1000119002,
@@ -1987,8 +2011,11 @@ typedef enum
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_RATE_CONTROL_LAYER_INFO_KHR = 1000299002,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR = 1000299003,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_USAGE_INFO_KHR = 1000299004,
+    VK_STRUCTURE_TYPE_QUERY_POOL_VIDEO_ENCODE_FEEDBACK_CREATE_INFO_KHR = 1000299005,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_REFRESH_OBJECT_LIST_KHR = 1000308000,
+    VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV = 1000310000,
     VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT = 1000311000,
     VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECTS_INFO_EXT = 1000311001,
     VK_STRUCTURE_TYPE_EXPORT_METAL_DEVICE_INFO_EXT = 1000311002,
@@ -2080,6 +2107,11 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_RDMA_FEATURES_NV = 1000371001,
     VK_STRUCTURE_TYPE_PIPELINE_PROPERTIES_IDENTIFIER_EXT = 1000372000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROPERTIES_FEATURES_EXT = 1000372001,
+    VK_STRUCTURE_TYPE_IMPORT_MEMORY_SCI_BUF_INFO_NV = 1000374000,
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_SCI_BUF_INFO_NV = 1000374001,
+    VK_STRUCTURE_TYPE_MEMORY_GET_SCI_BUF_INFO_NV = 1000374002,
+    VK_STRUCTURE_TYPE_MEMORY_SCI_BUF_PROPERTIES_NV = 1000374003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCI_BUF_FEATURES_NV = 1000374004,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_FEATURES_EXT = 1000376000,
     VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT = 1000376001,
     VK_STRUCTURE_TYPE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_INFO_EXT = 1000376002,
@@ -2109,6 +2141,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT = 1000411000,
     VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT = 1000411001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT = 1000412000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM = 1000415000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT = 1000418000,
+    VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT = 1000418001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE = 1000420000,
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_BINDING_REFERENCE_VALVE = 1000420001,
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_HOST_MAPPING_INFO_VALVE = 1000420002,
@@ -2122,6 +2157,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_NV = 1000427000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_NV = 1000427001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV = 1000430000,
+    VK_STRUCTURE_TYPE_APPLICATION_PARAMETERS_EXT = 1000435000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT = 1000437000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_FEATURES_QCOM = 1000440000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_PROPERTIES_QCOM = 1000440001,
@@ -2153,6 +2189,18 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC = 1000485000,
     VK_STRUCTURE_TYPE_AMIGO_PROFILING_SUBMIT_INFO_SEC = 1000485001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_VIEWPORTS_FEATURES_QCOM = 1000488000,
+    VK_STRUCTURE_TYPE_SEMAPHORE_SCI_SYNC_POOL_CREATE_INFO_NV = 1000489000,
+    VK_STRUCTURE_TYPE_SEMAPHORE_SCI_SYNC_CREATE_INFO_NV = 1000489001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_SYNC_2_FEATURES_NV = 1000489002,
+    VK_STRUCTURE_TYPE_IMPORT_FENCE_SCI_SYNC_INFO_NV = 1000373000,
+    VK_STRUCTURE_TYPE_EXPORT_FENCE_SCI_SYNC_INFO_NV = 1000373001,
+    VK_STRUCTURE_TYPE_FENCE_GET_SCI_SYNC_INFO_NV = 1000373002,
+    VK_STRUCTURE_TYPE_SCI_SYNC_ATTRIBUTES_INFO_NV = 1000373003,
+    VK_STRUCTURE_TYPE_DEVICE_SEMAPHORE_SCI_SYNC_POOL_RESERVATION_CREATE_INFO_NV = 1000489003,
+    VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_SCI_SYNC_INFO_NV = 1000373004,
+    VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_SCI_SYNC_INFO_NV = 1000373005,
+    VK_STRUCTURE_TYPE_SEMAPHORE_GET_SCI_SYNC_INFO_NV = 1000373006,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_SYNC_FEATURES_NV = 1000373007,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_FEATURES_NV = 1000490000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_INVOCATION_REORDER_PROPERTIES_NV = 1000490001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT = 1000351000,
@@ -2160,6 +2208,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM = 1000497000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM = 1000497001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT = 1000498000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM = 1000510000,
+    VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM = 1000510001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDERING_INFO_KHR = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -2326,6 +2376,7 @@ typedef enum
     VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2,
     VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3,
     VK_STRUCTURE_TYPE_PIPELINE_INFO_EXT = VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_BUF_FEATURES_NV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCI_BUF_FEATURES_NV,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES_KHR = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_4_PROPERTIES,
     VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
@@ -2339,6 +2390,7 @@ typedef enum
 typedef enum
 {
     VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1,
+    VK_PIPELINE_CACHE_HEADER_VERSION_SAFETY_CRITICAL_ONE = 1000298001,
     VK_PIPELINE_CACHE_HEADER_VERSION_MAX_ENUM = 0x7FFFFFFF
 } VkPipelineCacheHeaderVersion;
 
@@ -2495,6 +2547,7 @@ typedef enum
     VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA = 1000366000,
     VK_OBJECT_TYPE_MICROMAP_EXT = 1000396000,
     VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV = 1000464000,
+    VK_OBJECT_TYPE_SEMAPHORE_SCI_SYNC_POOL_NV = 1000489000,
     VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
     VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION,
     VK_OBJECT_TYPE_PRIVATE_DATA_SLOT_EXT = VK_OBJECT_TYPE_PRIVATE_DATA_SLOT,
@@ -2509,6 +2562,7 @@ typedef enum
     VK_VENDOR_ID_CODEPLAY = 0x10004,
     VK_VENDOR_ID_MESA = 0x10005,
     VK_VENDOR_ID_POCL = 0x10006,
+    VK_VENDOR_ID_MOBILEYE = 0x10007,
     VK_VENDOR_ID_MAX_ENUM = 0x7FFFFFFF
 } VkVendorId;
 
@@ -2982,6 +3036,7 @@ typedef enum
 {
     VK_MEMORY_HEAP_DEVICE_LOCAL_BIT = 0x00000001,
     VK_MEMORY_HEAP_MULTI_INSTANCE_BIT = 0x00000002,
+    VK_MEMORY_HEAP_SEU_SAFE_BIT = 0x00000004,
     VK_MEMORY_HEAP_MULTI_INSTANCE_BIT_KHR = VK_MEMORY_HEAP_MULTI_INSTANCE_BIT,
     VK_MEMORY_HEAP_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkMemoryHeapFlagBits;
@@ -3138,7 +3193,7 @@ typedef enum
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR = 1000150001,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_NV = 1000165000,
     VK_QUERY_TYPE_PERFORMANCE_QUERY_INTEL = 1000210000,
-    VK_QUERY_TYPE_VIDEO_ENCODE_BITSTREAM_BUFFER_RANGE_KHR = 1000299000,
+    VK_QUERY_TYPE_VIDEO_ENCODE_FEEDBACK_KHR = 1000299000,
     VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT = 1000328000,
     VK_QUERY_TYPE_PRIMITIVES_GENERATED_EXT = 1000382000,
     VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_BOTTOM_LEVEL_POINTERS_KHR = 1000386000,
@@ -3253,6 +3308,8 @@ typedef VkFlags VkShaderModuleCreateFlags;
 typedef enum
 {
     VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT = 0x00000001,
+    VK_PIPELINE_CACHE_CREATE_READ_ONLY_BIT = 0x00000002,
+    VK_PIPELINE_CACHE_CREATE_USE_APPLICATION_STORAGE_BIT = 0x00000004,
     VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT_EXT = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT,
     VK_PIPELINE_CACHE_CREATE_FLAG_BITS_MAX_ENUM = 0x7FFFFFFF
 } VkPipelineCacheCreateFlagBits;
@@ -3451,10 +3508,13 @@ typedef enum
     VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE = 1000377004,
     VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV = 1000087000,
     VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT = 1000099000,
+    VK_DYNAMIC_STATE_DISCARD_RECTANGLE_ENABLE_EXT = 1000099001,
+    VK_DYNAMIC_STATE_DISCARD_RECTANGLE_MODE_EXT = 1000099002,
     VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT = 1000143000,
     VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR = 1000347000,
     VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV = 1000164004,
     VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV = 1000164006,
+    VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_ENABLE_NV = 1000205000,
     VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV = 1000205001,
     VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR = 1000226000,
     VK_DYNAMIC_STATE_LINE_STIPPLE_EXT = 1000259000,
@@ -5381,6 +5441,7 @@ typedef enum
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT = 0x00000100,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA = 0x00000800,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV = 0x00001000,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCI_BUF_BIT_NV = 0x00002000,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -5410,6 +5471,8 @@ typedef enum
     VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_BIT = 0x00000002,
     VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT = 0x00000004,
     VK_EXTERNAL_FENCE_HANDLE_TYPE_SYNC_FD_BIT = 0x00000008,
+    VK_EXTERNAL_FENCE_HANDLE_TYPE_SCI_SYNC_OBJ_BIT_NV = 0x00000010,
+    VK_EXTERNAL_FENCE_HANDLE_TYPE_SCI_SYNC_FENCE_BIT_NV = 0x00000020,
     VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -5453,6 +5516,7 @@ typedef enum
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_FENCE_BIT = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT = 0x00000010,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ZIRCON_EVENT_BIT_FUCHSIA = 0x00000080,
+    VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SCI_SYNC_OBJ_BIT_NV = 0x00000020,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -7703,6 +7767,213 @@ typedef void (VKAPI_PTR *PFN_vkGetDeviceBufferMemoryRequirements)(VkDevice devic
 typedef void (VKAPI_PTR *PFN_vkGetDeviceImageMemoryRequirements)(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements);
 typedef void (VKAPI_PTR *PFN_vkGetDeviceImageSparseMemoryRequirements)(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements);
 
+#define VKSC_VERSION_1_0 1
+
+#define VKSC_API_VARIANT 1
+#define VKSC_API_VERSION_1_0 VK_MAKE_API_VERSION(VKSC_API_VARIANT, 1, 0, 0)
+
+typedef enum
+{
+    VK_FAULT_LEVEL_UNASSIGNED = 0,
+    VK_FAULT_LEVEL_CRITICAL = 1,
+    VK_FAULT_LEVEL_RECOVERABLE = 2,
+    VK_FAULT_LEVEL_WARNING = 3,
+    VK_FAULT_LEVEL_MAX_ENUM = 0x7FFFFFFF
+} VkFaultLevel;
+
+typedef enum
+{
+    VK_FAULT_TYPE_INVALID = 0,
+    VK_FAULT_TYPE_UNASSIGNED = 1,
+    VK_FAULT_TYPE_IMPLEMENTATION = 2,
+    VK_FAULT_TYPE_SYSTEM = 3,
+    VK_FAULT_TYPE_PHYSICAL_DEVICE = 4,
+    VK_FAULT_TYPE_COMMAND_BUFFER_FULL = 5,
+    VK_FAULT_TYPE_INVALID_API_USAGE = 6,
+    VK_FAULT_TYPE_MAX_ENUM = 0x7FFFFFFF
+} VkFaultType;
+
+typedef enum
+{
+    VK_FAULT_QUERY_BEHAVIOR_GET_AND_CLEAR_ALL_FAULTS = 0,
+    VK_FAULT_QUERY_BEHAVIOR_MAX_ENUM = 0x7FFFFFFF
+} VkFaultQueryBehavior;
+
+typedef enum
+{
+    VK_PIPELINE_MATCH_CONTROL_APPLICATION_UUID_EXACT_MATCH = 0,
+    VK_PIPELINE_MATCH_CONTROL_MAX_ENUM = 0x7FFFFFFF
+} VkPipelineMatchControl;
+
+typedef enum
+{
+    VK_PIPELINE_CACHE_VALIDATION_VERSION_SAFETY_CRITICAL_ONE = 1,
+    VK_PIPELINE_CACHE_VALIDATION_VERSION_MAX_ENUM = 0x7FFFFFFF
+} VkPipelineCacheValidationVersion;
+
+
+typedef struct VkPhysicalDeviceVulkanSC10Features
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderAtomicInstructions;
+} VkPhysicalDeviceVulkanSC10Features;
+
+typedef struct VkPhysicalDeviceVulkanSC10Properties
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 deviceNoDynamicHostAllocations;
+    VkBool32 deviceDestroyFreesMemory;
+    VkBool32 commandPoolMultipleCommandBuffersRecording;
+    VkBool32 commandPoolResetCommandBuffer;
+    VkBool32 commandBufferSimultaneousUse;
+    VkBool32 secondaryCommandBufferNullOrImagelessFramebuffer;
+    VkBool32 recycleDescriptorSetMemory;
+    VkBool32 recyclePipelineMemory;
+    uint32_t maxRenderPassSubpasses;
+    uint32_t maxRenderPassDependencies;
+    uint32_t maxSubpassInputAttachments;
+    uint32_t maxSubpassPreserveAttachments;
+    uint32_t maxFramebufferAttachments;
+    uint32_t maxDescriptorSetLayoutBindings;
+    uint32_t maxQueryFaultCount;
+    uint32_t maxCallbackFaultCount;
+    uint32_t maxCommandPoolCommandBuffers;
+    VkDeviceSize maxCommandBufferSize;
+} VkPhysicalDeviceVulkanSC10Properties;
+
+typedef struct VkPipelinePoolSize
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceSize poolEntrySize;
+    uint32_t poolEntryCount;
+} VkPipelinePoolSize;
+
+typedef struct VkDeviceObjectReservationCreateInfo
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t pipelineCacheCreateInfoCount;
+    const VkPipelineCacheCreateInfo* pPipelineCacheCreateInfos;
+    uint32_t pipelinePoolSizeCount;
+    const VkPipelinePoolSize* pPipelinePoolSizes;
+    uint32_t semaphoreRequestCount;
+    uint32_t commandBufferRequestCount;
+    uint32_t fenceRequestCount;
+    uint32_t deviceMemoryRequestCount;
+    uint32_t bufferRequestCount;
+    uint32_t imageRequestCount;
+    uint32_t eventRequestCount;
+    uint32_t queryPoolRequestCount;
+    uint32_t bufferViewRequestCount;
+    uint32_t imageViewRequestCount;
+    uint32_t layeredImageViewRequestCount;
+    uint32_t pipelineCacheRequestCount;
+    uint32_t pipelineLayoutRequestCount;
+    uint32_t renderPassRequestCount;
+    uint32_t graphicsPipelineRequestCount;
+    uint32_t computePipelineRequestCount;
+    uint32_t descriptorSetLayoutRequestCount;
+    uint32_t samplerRequestCount;
+    uint32_t descriptorPoolRequestCount;
+    uint32_t descriptorSetRequestCount;
+    uint32_t framebufferRequestCount;
+    uint32_t commandPoolRequestCount;
+    uint32_t samplerYcbcrConversionRequestCount;
+    uint32_t surfaceRequestCount;
+    uint32_t swapchainRequestCount;
+    uint32_t displayModeRequestCount;
+    uint32_t subpassDescriptionRequestCount;
+    uint32_t attachmentDescriptionRequestCount;
+    uint32_t descriptorSetLayoutBindingRequestCount;
+    uint32_t descriptorSetLayoutBindingLimit;
+    uint32_t maxImageViewMipLevels;
+    uint32_t maxImageViewArrayLayers;
+    uint32_t maxLayeredImageViewMipLevels;
+    uint32_t maxOcclusionQueriesPerPool;
+    uint32_t maxPipelineStatisticsQueriesPerPool;
+    uint32_t maxTimestampQueriesPerPool;
+    uint32_t maxImmutableSamplersPerDescriptorSetLayout;
+} VkDeviceObjectReservationCreateInfo;
+
+typedef struct VkCommandPoolMemoryReservationCreateInfo
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceSize commandPoolReservedSize;
+    uint32_t commandPoolMaxCommandBuffers;
+} VkCommandPoolMemoryReservationCreateInfo;
+
+typedef struct VkCommandPoolMemoryConsumption
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceSize commandPoolAllocated;
+    VkDeviceSize commandPoolReservedSize;
+    VkDeviceSize commandBufferAllocated;
+} VkCommandPoolMemoryConsumption;
+
+typedef struct VkFaultData
+{
+    VkStructureType sType;
+    void* pNext;
+    VkFaultLevel faultLevel;
+    VkFaultType faultType;
+} VkFaultData;
+
+typedef void (VKAPI_PTR *PFN_vkFaultCallbackFunction)(VkBool32 unrecordedFaults, uint32_t faultCount, const VkFaultData* pFaults);
+
+typedef struct VkFaultCallbackInfo
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t faultCount;
+    VkFaultData* pFaults;
+    PFN_vkFaultCallbackFunction pfnFaultCallback;
+} VkFaultCallbackInfo;
+
+typedef struct VkPipelineOfflineCreateInfo
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint8_t pipelineIdentifier[VK_UUID_SIZE];
+    VkPipelineMatchControl matchControl;
+    VkDeviceSize poolEntrySize;
+} VkPipelineOfflineCreateInfo;
+
+typedef struct VkPipelineCacheStageValidationIndexEntry
+{
+    uint64_t codeSize;
+    uint64_t codeOffset;
+} VkPipelineCacheStageValidationIndexEntry;
+
+typedef struct VkPipelineCacheSafetyCriticalIndexEntry
+{
+    uint8_t pipelineIdentifier[VK_UUID_SIZE];
+    uint64_t pipelineMemorySize;
+    uint64_t jsonSize;
+    uint64_t jsonOffset;
+    uint32_t stageIndexCount;
+    uint32_t stageIndexStride;
+    uint64_t stageIndexOffset;
+} VkPipelineCacheSafetyCriticalIndexEntry;
+
+typedef struct VkPipelineCacheHeaderVersionSafetyCriticalOne
+{
+    VkPipelineCacheHeaderVersionOne headerVersionOne;
+    VkPipelineCacheValidationVersion validationVersion;
+    uint32_t implementationData;
+    uint32_t pipelineIndexCount;
+    uint32_t pipelineIndexStride;
+    uint64_t pipelineIndexOffset;
+} VkPipelineCacheHeaderVersionSafetyCriticalOne;
+
+
+typedef void (VKAPI_PTR *PFN_vkGetCommandPoolMemoryConsumption)(VkDevice device, VkCommandPool commandPool, VkCommandBuffer commandBuffer, VkCommandPoolMemoryConsumption* pConsumption);
+typedef VkResult (VKAPI_PTR *PFN_vkGetFaultData)(VkDevice device, VkFaultQueryBehavior faultQueryBehavior, VkBool32* pUnrecordedFaults, uint32_t* pFaultCount, VkFaultData* pFaults);
+
 #define VK_KHR_surface 1
 #define VK_KHR_SURFACE_SPEC_VERSION 25
 #define VK_KHR_SURFACE_EXTENSION_NAME "VK_KHR_surface"
@@ -8710,6 +8981,11 @@ typedef struct VkPhysicalDeviceCornerSampledImageFeaturesNV
 } VkPhysicalDeviceCornerSampledImageFeaturesNV;
 
 
+#define VK_NV_private_vendor_info 1
+#define VK_NV_PRIVATE_VENDOR_INFO_SPEC_VERSION 2
+#define VK_NV_PRIVATE_VENDOR_INFO_EXTENSION_NAME "VK_NV_private_vendor_info"
+
+
 #define VK_KHR_multiview 1
 #define VK_KHR_MULTIVIEW_SPEC_VERSION 1
 #define VK_KHR_MULTIVIEW_EXTENSION_NAME "VK_KHR_multiview"
@@ -9419,7 +9695,7 @@ typedef struct VkPipelineViewportSwizzleStateCreateInfoNV
 
 
 #define VK_EXT_discard_rectangles 1
-#define VK_EXT_DISCARD_RECTANGLES_SPEC_VERSION 1
+#define VK_EXT_DISCARD_RECTANGLES_SPEC_VERSION 2
 #define VK_EXT_DISCARD_RECTANGLES_EXTENSION_NAME "VK_EXT_discard_rectangles"
 
 typedef VkFlags VkPipelineDiscardRectangleStateCreateFlagsEXT;
@@ -9450,6 +9726,8 @@ typedef struct VkPipelineDiscardRectangleStateCreateInfoEXT
 
 
 typedef void (VKAPI_PTR *PFN_vkCmdSetDiscardRectangleEXT)(VkCommandBuffer commandBuffer, uint32_t firstDiscardRectangle, uint32_t discardRectangleCount, const VkRect2D* pDiscardRectangles);
+typedef void (VKAPI_PTR *PFN_vkCmdSetDiscardRectangleEnableEXT)(VkCommandBuffer commandBuffer, VkBool32 discardRectangleEnable);
+typedef void (VKAPI_PTR *PFN_vkCmdSetDiscardRectangleModeEXT)(VkCommandBuffer commandBuffer, VkDiscardRectangleModeEXT discardRectangleMode);
 
 
 #define VK_EXT_conservative_rasterization 1
@@ -9775,6 +10053,13 @@ typedef struct VkPerformanceQuerySubmitInfoKHR
     const void* pNext;
     uint32_t counterPassIndex;
 } VkPerformanceQuerySubmitInfoKHR;
+
+typedef struct VkPerformanceQueryReservationInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t maxPerformanceQueriesPerPool;
+} VkPerformanceQueryReservationInfoKHR;
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, uint32_t* pCounterCount, VkPerformanceCounterKHR* pCounters, VkPerformanceCounterDescriptionKHR* pCounterDescriptions);
@@ -11837,7 +12122,7 @@ typedef struct VkPhysicalDeviceShaderImageFootprintFeaturesNV
 
 
 #define VK_NV_scissor_exclusive 1
-#define VK_NV_SCISSOR_EXCLUSIVE_SPEC_VERSION 1
+#define VK_NV_SCISSOR_EXCLUSIVE_SPEC_VERSION 2
 #define VK_NV_SCISSOR_EXCLUSIVE_EXTENSION_NAME "VK_NV_scissor_exclusive"
 
 typedef struct VkPipelineViewportExclusiveScissorStateCreateInfoNV
@@ -11856,6 +12141,7 @@ typedef struct VkPhysicalDeviceExclusiveScissorFeaturesNV
 } VkPhysicalDeviceExclusiveScissorFeaturesNV;
 
 
+typedef void (VKAPI_PTR *PFN_vkCmdSetExclusiveScissorEnableNV)(VkCommandBuffer commandBuffer, uint32_t firstExclusiveScissor, uint32_t exclusiveScissorCount, const VkBool32* pExclusiveScissorEnables);
 typedef void (VKAPI_PTR *PFN_vkCmdSetExclusiveScissorNV)(VkCommandBuffer commandBuffer, uint32_t firstExclusiveScissor, uint32_t exclusiveScissorCount, const VkRect2D* pExclusiveScissors);
 
 
@@ -12963,7 +13249,7 @@ typedef struct VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT
 typedef struct VkSwapchainPresentFenceInfoEXT
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     uint32_t swapchainCount;
     const VkFence* pFences;
 } VkSwapchainPresentFenceInfoEXT;
@@ -12971,7 +13257,7 @@ typedef struct VkSwapchainPresentFenceInfoEXT
 typedef struct VkSwapchainPresentModesCreateInfoEXT
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     uint32_t presentModeCount;
     const VkPresentModeKHR* pPresentModes;
 } VkSwapchainPresentModesCreateInfoEXT;
@@ -12979,7 +13265,7 @@ typedef struct VkSwapchainPresentModesCreateInfoEXT
 typedef struct VkSwapchainPresentModeInfoEXT
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     uint32_t swapchainCount;
     const VkPresentModeKHR* pPresentModes;
 } VkSwapchainPresentModeInfoEXT;
@@ -13480,6 +13766,49 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 #define VK_QCOM_render_pass_store_ops 1
 #define VK_QCOM_RENDER_PASS_STORE_OPS_SPEC_VERSION 2
 #define VK_QCOM_RENDER_PASS_STORE_OPS_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
+
+
+#define VK_KHR_object_refresh 1
+#define VK_KHR_OBJECT_REFRESH_SPEC_VERSION 1
+#define VK_KHR_OBJECT_REFRESH_EXTENSION_NAME "VK_KHR_object_refresh"
+
+
+typedef enum
+{
+    VK_REFRESH_OBJECT_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkRefreshObjectFlagBitsKHR;
+typedef VkFlags VkRefreshObjectFlagsKHR;
+
+typedef struct VkRefreshObjectKHR
+{
+    VkObjectType objectType;
+    uint64_t objectHandle;
+    VkRefreshObjectFlagsKHR flags;
+} VkRefreshObjectKHR;
+
+typedef struct VkRefreshObjectListKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t objectCount;
+    const VkRefreshObjectKHR* pObjects;
+} VkRefreshObjectListKHR;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdRefreshObjectsKHR)(VkCommandBuffer commandBuffer, const VkRefreshObjectListKHR* pRefreshObjects);
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR)(VkPhysicalDevice physicalDevice, uint32_t* pRefreshableObjectTypeCount, VkObjectType* pRefreshableObjectTypes);
+
+
+#define VK_NV_low_latency 1
+#define VK_NV_LOW_LATENCY_SPEC_VERSION 1
+#define VK_NV_LOW_LATENCY_EXTENSION_NAME "VK_NV_low_latency"
+
+typedef struct VkQueryLowLatencySupportNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    void* pQueriedLowLatencyData;
+} VkQueryLowLatencySupportNV;
 
 
 #define VK_KHR_synchronization2 1
@@ -14950,6 +15279,7 @@ typedef struct VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI
     uint32_t maxWorkGroupCount[3];
     uint32_t maxWorkGroupSize[3];
     uint32_t maxOutputClusterCount;
+    VkDeviceSize indirectBufferOffsetAlignment;
 } VkPhysicalDeviceClusterCullingShaderPropertiesHUAWEI;
 
 
@@ -15008,6 +15338,42 @@ typedef VkDeviceImageMemoryRequirements VkDeviceImageMemoryRequirementsKHR;
 typedef void (VKAPI_PTR *PFN_vkGetDeviceBufferMemoryRequirementsKHR)(VkDevice device, const VkDeviceBufferMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements);
 typedef void (VKAPI_PTR *PFN_vkGetDeviceImageMemoryRequirementsKHR)(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, VkMemoryRequirements2* pMemoryRequirements);
 typedef void (VKAPI_PTR *PFN_vkGetDeviceImageSparseMemoryRequirementsKHR)(VkDevice device, const VkDeviceImageMemoryRequirements* pInfo, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements);
+
+
+#define VK_ARM_shader_core_properties 1
+#define VK_ARM_SHADER_CORE_PROPERTIES_SPEC_VERSION 1
+#define VK_ARM_SHADER_CORE_PROPERTIES_EXTENSION_NAME "VK_ARM_shader_core_properties"
+
+typedef struct VkPhysicalDeviceShaderCorePropertiesARM
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t pixelRate;
+    uint32_t texelRate;
+    uint32_t fmaRate;
+} VkPhysicalDeviceShaderCorePropertiesARM;
+
+
+#define VK_EXT_image_sliced_view_of_3d 1
+#define VK_EXT_IMAGE_SLICED_VIEW_OF_3D_SPEC_VERSION 1
+#define VK_EXT_IMAGE_SLICED_VIEW_OF_3D_EXTENSION_NAME "VK_EXT_image_sliced_view_of_3d"
+
+#define VK_REMAINING_3D_SLICES_EXT (~0U)
+
+typedef struct VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 imageSlicedViewOf3D;
+} VkPhysicalDeviceImageSlicedViewOf3DFeaturesEXT;
+
+typedef struct VkImageViewSlicedCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t sliceOffset;
+    uint32_t sliceCount;
+} VkImageViewSlicedCreateInfoEXT;
 
 
 #define VK_VALVE_descriptor_set_host_mapping 1
@@ -15186,6 +15552,21 @@ typedef struct VkPhysicalDeviceLinearColorAttachmentFeaturesNV
 #define VK_GOOGLE_surfaceless_query 1
 #define VK_GOOGLE_SURFACELESS_QUERY_SPEC_VERSION 2
 #define VK_GOOGLE_SURFACELESS_QUERY_EXTENSION_NAME "VK_GOOGLE_surfaceless_query"
+
+
+#define VK_EXT_application_parameters 1
+#define VK_EXT_APPLICATION_PARAMETERS_SPEC_VERSION 1
+#define VK_EXT_APPLICATION_PARAMETERS_EXTENSION_NAME "VK_EXT_application_parameters"
+
+typedef struct VkApplicationParametersEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t vendorID;
+    uint32_t deviceID;
+    uint32_t key;
+    uint64_t value;
+} VkApplicationParametersEXT;
 
 
 #define VK_EXT_image_compression_control_swapchain 1
@@ -15820,6 +16201,26 @@ typedef struct VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT
     void* pNext;
     VkBool32 pipelineLibraryGroupHandles;
 } VkPhysicalDevicePipelineLibraryGroupHandlesFeaturesEXT;
+
+
+#define VK_QCOM_multiview_per_view_render_areas 1
+#define VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_SPEC_VERSION 1
+#define VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_EXTENSION_NAME "VK_QCOM_multiview_per_view_render_areas"
+
+typedef struct VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 multiviewPerViewRenderAreas;
+} VkPhysicalDeviceMultiviewPerViewRenderAreasFeaturesQCOM;
+
+typedef struct VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t perViewRenderAreaCount;
+    const VkRect2D* pPerViewRenderAreas;
+} VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM;
 
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 
@@ -16748,10 +17149,204 @@ typedef struct VkPresentFrameTokenGGP
 
 #endif /*VK_USE_PLATFORM_GGP*/
 
+#ifdef VK_USE_PLATFORM_SCI
+#include <nvscibuf.h>
+#include <nvscisync.h>
+
+#define VK_NV_external_memory_sci_buf 1
+#define VK_NV_EXTERNAL_MEMORY_SCI_BUF_SPEC_VERSION 2
+#define VK_NV_EXTERNAL_MEMORY_SCI_BUF_EXTENSION_NAME "VK_NV_external_memory_sci_buf"
+
+typedef struct VkExportMemorySciBufInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    NvSciBufAttrList pAttributes;
+} VkExportMemorySciBufInfoNV;
+
+typedef struct VkImportMemorySciBufInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkExternalMemoryHandleTypeFlagBits handleType;
+    NvSciBufObj handle;
+} VkImportMemorySciBufInfoNV;
+
+typedef struct VkMemoryGetSciBufInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceMemory memory;
+    VkExternalMemoryHandleTypeFlagBits handleType;
+} VkMemoryGetSciBufInfoNV;
+
+typedef struct VkMemorySciBufPropertiesNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t memoryTypeBits;
+} VkMemorySciBufPropertiesNV;
+
+typedef struct VkPhysicalDeviceExternalMemorySciBufFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 sciBufImport;
+    VkBool32 sciBufExport;
+} VkPhysicalDeviceExternalMemorySciBufFeaturesNV;
+
+typedef VkPhysicalDeviceExternalMemorySciBufFeaturesNV VkPhysicalDeviceExternalSciBufFeaturesNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetMemorySciBufNV)(VkDevice device, const VkMemoryGetSciBufInfoNV* pGetSciBufInfo, NvSciBufObj* pHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV)(VkPhysicalDevice physicalDevice, VkExternalMemoryHandleTypeFlagBits handleType, NvSciBufObj handle, VkMemorySciBufPropertiesNV* pMemorySciBufProperties);
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceSciBufAttributesNV)(VkPhysicalDevice physicalDevice, NvSciBufAttrList pAttributes);
+
+
+#define VK_NV_external_sci_sync2 1
+#define VK_NV_EXTERNAL_SCI_SYNC_2_SPEC_VERSION 1
+#define VK_NV_EXTERNAL_SCI_SYNC_2_EXTENSION_NAME "VK_NV_external_sci_sync2"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSemaphoreSciSyncPoolNV)
+
+typedef enum
+{
+    VK_SCI_SYNC_CLIENT_TYPE_SIGNALER_NV = 0,
+    VK_SCI_SYNC_CLIENT_TYPE_WAITER_NV = 1,
+    VK_SCI_SYNC_CLIENT_TYPE_SIGNALER_WAITER_NV = 2,
+    VK_SCI_SYNC_CLIENT_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkSciSyncClientTypeNV;
+
+typedef enum
+{
+    VK_SCI_SYNC_PRIMITIVE_TYPE_FENCE_NV = 0,
+    VK_SCI_SYNC_PRIMITIVE_TYPE_SEMAPHORE_NV = 1,
+    VK_SCI_SYNC_PRIMITIVE_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
+} VkSciSyncPrimitiveTypeNV;
+
+
+typedef struct VkPhysicalDeviceExternalSciSync2FeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 sciSyncFence;
+    VkBool32 sciSyncSemaphore2;
+    VkBool32 sciSyncImport;
+    VkBool32 sciSyncExport;
+} VkPhysicalDeviceExternalSciSync2FeaturesNV;
+
+typedef struct VkSemaphoreSciSyncPoolCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    NvSciSyncObj handle;
+} VkSemaphoreSciSyncPoolCreateInfoNV;
+
+typedef struct VkSemaphoreSciSyncCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphoreSciSyncPoolNV semaphorePool;
+    const NvSciSyncFence* pFence;
+} VkSemaphoreSciSyncCreateInfoNV;
+
+typedef struct VkExportFenceSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    NvSciSyncAttrList pAttributes;
+} VkExportFenceSciSyncInfoNV;
+
+typedef struct VkImportFenceSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkFence fence;
+    VkExternalFenceHandleTypeFlagBits handleType;
+    void* handle;
+} VkImportFenceSciSyncInfoNV;
+
+typedef struct VkFenceGetSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkFence fence;
+    VkExternalFenceHandleTypeFlagBits handleType;
+} VkFenceGetSciSyncInfoNV;
+
+typedef struct VkSciSyncAttributesInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSciSyncClientTypeNV clientType;
+    VkSciSyncPrimitiveTypeNV primitiveType;
+} VkSciSyncAttributesInfoNV;
+
+typedef struct VkDeviceSemaphoreSciSyncPoolReservationCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t semaphoreSciSyncPoolRequestCount;
+} VkDeviceSemaphoreSciSyncPoolReservationCreateInfoNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateSemaphoreSciSyncPoolNV)(VkDevice device, const VkSemaphoreSciSyncPoolCreateInfoNV* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphoreSciSyncPoolNV* pSemaphorePool);
+typedef void (VKAPI_PTR *PFN_vkDestroySemaphoreSciSyncPoolNV)(VkDevice device, VkSemaphoreSciSyncPoolNV semaphorePool, const VkAllocationCallbacks* pAllocator);
+typedef VkResult (VKAPI_PTR *PFN_vkGetFenceSciSyncFenceNV)(VkDevice device, const VkFenceGetSciSyncInfoNV* pGetSciSyncHandleInfo, void* pHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkGetFenceSciSyncObjNV)(VkDevice device, const VkFenceGetSciSyncInfoNV* pGetSciSyncHandleInfo, void* pHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkImportFenceSciSyncFenceNV)(VkDevice device, const VkImportFenceSciSyncInfoNV* pImportFenceSciSyncInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkImportFenceSciSyncObjNV)(VkDevice device, const VkImportFenceSciSyncInfoNV* pImportFenceSciSyncInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceSciSyncAttributesNV)(VkPhysicalDevice physicalDevice, const VkSciSyncAttributesInfoNV* pSciSyncAttributesInfo, NvSciSyncAttrList pAttributes);
+
+
+#define VK_NV_external_sci_sync 1
+#define VK_NV_EXTERNAL_SCI_SYNC_SPEC_VERSION 2
+#define VK_NV_EXTERNAL_SCI_SYNC_EXTENSION_NAME "VK_NV_external_sci_sync"
+
+typedef struct VkExportSemaphoreSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    NvSciSyncAttrList pAttributes;
+} VkExportSemaphoreSciSyncInfoNV;
+
+typedef struct VkImportSemaphoreSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    VkExternalSemaphoreHandleTypeFlagBits handleType;
+    void* handle;
+} VkImportSemaphoreSciSyncInfoNV;
+
+typedef struct VkSemaphoreGetSciSyncInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkSemaphore semaphore;
+    VkExternalSemaphoreHandleTypeFlagBits handleType;
+} VkSemaphoreGetSciSyncInfoNV;
+
+typedef struct VkPhysicalDeviceExternalSciSyncFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 sciSyncFence;
+    VkBool32 sciSyncSemaphore;
+    VkBool32 sciSyncImport;
+    VkBool32 sciSyncExport;
+} VkPhysicalDeviceExternalSciSyncFeaturesNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreSciSyncObjNV)(VkDevice device, const VkSemaphoreGetSciSyncInfoNV* pGetSciSyncInfo, void* pHandle);
+typedef VkResult (VKAPI_PTR *PFN_vkImportSemaphoreSciSyncObjNV)(VkDevice device, const VkImportSemaphoreSciSyncInfoNV* pImportSemaphoreSciSyncInfo);
+
+#endif /*VK_USE_PLATFORM_SCI*/
+
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 
 #define VK_EXT_video_encode_h264 1
-#define VK_EXT_VIDEO_ENCODE_H264_SPEC_VERSION 9
+#define VK_EXT_VIDEO_ENCODE_H264_SPEC_VERSION 10
 #define VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME "VK_EXT_video_encode_h264"
 
 
@@ -16782,27 +17377,10 @@ typedef enum
     VK_VIDEO_ENCODE_H264_CAPABILITY_ROW_UNALIGNED_SLICE_BIT_EXT = 0x00400000,
     VK_VIDEO_ENCODE_H264_CAPABILITY_DIFFERENT_SLICE_TYPE_BIT_EXT = 0x00800000,
     VK_VIDEO_ENCODE_H264_CAPABILITY_B_FRAME_IN_L1_LIST_BIT_EXT = 0x01000000,
+    VK_VIDEO_ENCODE_H264_CAPABILITY_DIFFERENT_REFERENCE_FINAL_LISTS_BIT_EXT = 0x02000000,
     VK_VIDEO_ENCODE_H264_CAPABILITY_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
 } VkVideoEncodeH264CapabilityFlagBitsEXT;
 typedef VkFlags VkVideoEncodeH264CapabilityFlagsEXT;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_H264_INPUT_MODE_FRAME_BIT_EXT = 0x00000001,
-    VK_VIDEO_ENCODE_H264_INPUT_MODE_SLICE_BIT_EXT = 0x00000002,
-    VK_VIDEO_ENCODE_H264_INPUT_MODE_NON_VCL_BIT_EXT = 0x00000004,
-    VK_VIDEO_ENCODE_H264_INPUT_MODE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
-} VkVideoEncodeH264InputModeFlagBitsEXT;
-typedef VkFlags VkVideoEncodeH264InputModeFlagsEXT;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_H264_OUTPUT_MODE_FRAME_BIT_EXT = 0x00000001,
-    VK_VIDEO_ENCODE_H264_OUTPUT_MODE_SLICE_BIT_EXT = 0x00000002,
-    VK_VIDEO_ENCODE_H264_OUTPUT_MODE_NON_VCL_BIT_EXT = 0x00000004,
-    VK_VIDEO_ENCODE_H264_OUTPUT_MODE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
-} VkVideoEncodeH264OutputModeFlagBitsEXT;
-typedef VkFlags VkVideoEncodeH264OutputModeFlagsEXT;
 typedef enum
 {
     VK_VIDEO_ENCODE_H264_RATE_CONTROL_STRUCTURE_UNKNOWN_EXT = 0,
@@ -16817,11 +17395,9 @@ typedef struct VkVideoEncodeH264CapabilitiesEXT
     VkStructureType sType;
     void* pNext;
     VkVideoEncodeH264CapabilityFlagsEXT flags;
-    VkVideoEncodeH264InputModeFlagsEXT inputModeFlags;
-    VkVideoEncodeH264OutputModeFlagsEXT outputModeFlags;
-    uint8_t maxPPictureL0ReferenceCount;
-    uint8_t maxBPictureL0ReferenceCount;
-    uint8_t maxL1ReferenceCount;
+    uint32_t maxPPictureL0ReferenceCount;
+    uint32_t maxBPictureL0ReferenceCount;
+    uint32_t maxL1ReferenceCount;
     VkBool32 motionVectorsOverPicBoundariesFlag;
     uint32_t maxBytesPerPicDenom;
     uint32_t maxBitsPerMbDenom;
@@ -16848,53 +17424,31 @@ typedef struct VkVideoEncodeH264SessionParametersCreateInfoEXT
     const VkVideoEncodeH264SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoEncodeH264SessionParametersCreateInfoEXT;
 
-typedef struct VkVideoEncodeH264DpbSlotInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    int8_t slotIndex;
-    const StdVideoEncodeH264ReferenceInfo* pStdReferenceInfo;
-} VkVideoEncodeH264DpbSlotInfoEXT;
-
-typedef struct VkVideoEncodeH264ReferenceListsInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    uint8_t referenceList0EntryCount;
-    const VkVideoEncodeH264DpbSlotInfoEXT* pReferenceList0Entries;
-    uint8_t referenceList1EntryCount;
-    const VkVideoEncodeH264DpbSlotInfoEXT* pReferenceList1Entries;
-    const StdVideoEncodeH264RefMemMgmtCtrlOperations* pMemMgmtCtrlOperations;
-} VkVideoEncodeH264ReferenceListsInfoEXT;
-
 typedef struct VkVideoEncodeH264NaluSliceInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
     uint32_t mbCount;
-    const VkVideoEncodeH264ReferenceListsInfoEXT* pReferenceFinalLists;
-    const StdVideoEncodeH264SliceHeader* pSliceHeaderStd;
+    const StdVideoEncodeH264ReferenceListsInfo* pStdReferenceFinalLists;
+    const StdVideoEncodeH264SliceHeader* pStdSliceHeader;
 } VkVideoEncodeH264NaluSliceInfoEXT;
 
 typedef struct VkVideoEncodeH264VclFrameInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    const VkVideoEncodeH264ReferenceListsInfoEXT* pReferenceFinalLists;
+    const StdVideoEncodeH264ReferenceListsInfo* pStdReferenceFinalLists;
     uint32_t naluSliceEntryCount;
     const VkVideoEncodeH264NaluSliceInfoEXT* pNaluSliceEntries;
-    const StdVideoEncodeH264PictureInfo* pCurrentPictureInfo;
+    const StdVideoEncodeH264PictureInfo* pStdPictureInfo;
 } VkVideoEncodeH264VclFrameInfoEXT;
 
-typedef struct VkVideoEncodeH264EmitPictureParametersInfoEXT
+typedef struct VkVideoEncodeH264DpbSlotInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint8_t spsId;
-    VkBool32 emitSpsEnable;
-    uint32_t ppsIdEntryCount;
-    const uint8_t* ppsIdEntries;
-} VkVideoEncodeH264EmitPictureParametersInfoEXT;
+    const StdVideoEncodeH264ReferenceInfo* pStdReferenceInfo;
+} VkVideoEncodeH264DpbSlotInfoEXT;
 
 typedef struct VkVideoEncodeH264ProfileInfoEXT
 {
@@ -16911,7 +17465,7 @@ typedef struct VkVideoEncodeH264RateControlInfoEXT
     uint32_t idrPeriod;
     uint32_t consecutiveBFrameCount;
     VkVideoEncodeH264RateControlStructureEXT rateControlStructure;
-    uint8_t temporalLayerCount;
+    uint32_t temporalLayerCount;
 } VkVideoEncodeH264RateControlInfoEXT;
 
 typedef struct VkVideoEncodeH264QpEXT
@@ -16932,7 +17486,7 @@ typedef struct VkVideoEncodeH264RateControlLayerInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint8_t temporalLayerId;
+    uint32_t temporalLayerId;
     VkBool32 useInitialRcQp;
     VkVideoEncodeH264QpEXT initialRcQp;
     VkBool32 useMinQp;
@@ -16945,7 +17499,7 @@ typedef struct VkVideoEncodeH264RateControlLayerInfoEXT
 
 
 #define VK_EXT_video_encode_h265 1
-#define VK_EXT_VIDEO_ENCODE_H265_SPEC_VERSION 9
+#define VK_EXT_VIDEO_ENCODE_H265_SPEC_VERSION 10
 #define VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME "VK_EXT_video_encode_h265"
 
 
@@ -16977,27 +17531,10 @@ typedef enum
     VK_VIDEO_ENCODE_H265_CAPABILITY_DEPENDENT_SLICE_SEGMENT_BIT_EXT = 0x00800000,
     VK_VIDEO_ENCODE_H265_CAPABILITY_DIFFERENT_SLICE_TYPE_BIT_EXT = 0x01000000,
     VK_VIDEO_ENCODE_H265_CAPABILITY_B_FRAME_IN_L1_LIST_BIT_EXT = 0x02000000,
+    VK_VIDEO_ENCODE_H265_CAPABILITY_DIFFERENT_REFERENCE_FINAL_LISTS_BIT_EXT = 0x04000000,
     VK_VIDEO_ENCODE_H265_CAPABILITY_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
 } VkVideoEncodeH265CapabilityFlagBitsEXT;
 typedef VkFlags VkVideoEncodeH265CapabilityFlagsEXT;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_H265_INPUT_MODE_FRAME_BIT_EXT = 0x00000001,
-    VK_VIDEO_ENCODE_H265_INPUT_MODE_SLICE_SEGMENT_BIT_EXT = 0x00000002,
-    VK_VIDEO_ENCODE_H265_INPUT_MODE_NON_VCL_BIT_EXT = 0x00000004,
-    VK_VIDEO_ENCODE_H265_INPUT_MODE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
-} VkVideoEncodeH265InputModeFlagBitsEXT;
-typedef VkFlags VkVideoEncodeH265InputModeFlagsEXT;
-
-typedef enum
-{
-    VK_VIDEO_ENCODE_H265_OUTPUT_MODE_FRAME_BIT_EXT = 0x00000001,
-    VK_VIDEO_ENCODE_H265_OUTPUT_MODE_SLICE_SEGMENT_BIT_EXT = 0x00000002,
-    VK_VIDEO_ENCODE_H265_OUTPUT_MODE_NON_VCL_BIT_EXT = 0x00000004,
-    VK_VIDEO_ENCODE_H265_OUTPUT_MODE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
-} VkVideoEncodeH265OutputModeFlagBitsEXT;
-typedef VkFlags VkVideoEncodeH265OutputModeFlagsEXT;
 
 typedef enum
 {
@@ -17031,25 +17568,23 @@ typedef struct VkVideoEncodeH265CapabilitiesEXT
     VkStructureType sType;
     void* pNext;
     VkVideoEncodeH265CapabilityFlagsEXT flags;
-    VkVideoEncodeH265InputModeFlagsEXT inputModeFlags;
-    VkVideoEncodeH265OutputModeFlagsEXT outputModeFlags;
     VkVideoEncodeH265CtbSizeFlagsEXT ctbSizes;
     VkVideoEncodeH265TransformBlockSizeFlagsEXT transformBlockSizes;
-    uint8_t maxPPictureL0ReferenceCount;
-    uint8_t maxBPictureL0ReferenceCount;
-    uint8_t maxL1ReferenceCount;
-    uint8_t maxSubLayersCount;
-    uint8_t minLog2MinLumaCodingBlockSizeMinus3;
-    uint8_t maxLog2MinLumaCodingBlockSizeMinus3;
-    uint8_t minLog2MinLumaTransformBlockSizeMinus2;
-    uint8_t maxLog2MinLumaTransformBlockSizeMinus2;
-    uint8_t minMaxTransformHierarchyDepthInter;
-    uint8_t maxMaxTransformHierarchyDepthInter;
-    uint8_t minMaxTransformHierarchyDepthIntra;
-    uint8_t maxMaxTransformHierarchyDepthIntra;
-    uint8_t maxDiffCuQpDeltaDepth;
-    uint8_t minMaxNumMergeCand;
-    uint8_t maxMaxNumMergeCand;
+    uint32_t maxPPictureL0ReferenceCount;
+    uint32_t maxBPictureL0ReferenceCount;
+    uint32_t maxL1ReferenceCount;
+    uint32_t maxSubLayersCount;
+    uint32_t minLog2MinLumaCodingBlockSizeMinus3;
+    uint32_t maxLog2MinLumaCodingBlockSizeMinus3;
+    uint32_t minLog2MinLumaTransformBlockSizeMinus2;
+    uint32_t maxLog2MinLumaTransformBlockSizeMinus2;
+    uint32_t minMaxTransformHierarchyDepthInter;
+    uint32_t maxMaxTransformHierarchyDepthInter;
+    uint32_t minMaxTransformHierarchyDepthIntra;
+    uint32_t maxMaxTransformHierarchyDepthIntra;
+    uint32_t maxDiffCuQpDeltaDepth;
+    uint32_t minMaxNumMergeCand;
+    uint32_t maxMaxNumMergeCand;
 } VkVideoEncodeH265CapabilitiesEXT;
 
 typedef struct VkVideoEncodeH265SessionParametersAddInfoEXT
@@ -17074,55 +17609,31 @@ typedef struct VkVideoEncodeH265SessionParametersCreateInfoEXT
     const VkVideoEncodeH265SessionParametersAddInfoEXT* pParametersAddInfo;
 } VkVideoEncodeH265SessionParametersCreateInfoEXT;
 
-typedef struct VkVideoEncodeH265DpbSlotInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    int8_t slotIndex;
-    const StdVideoEncodeH265ReferenceInfo* pStdReferenceInfo;
-} VkVideoEncodeH265DpbSlotInfoEXT;
-
-typedef struct VkVideoEncodeH265ReferenceListsInfoEXT
-{
-    VkStructureType sType;
-    const void* pNext;
-    uint8_t referenceList0EntryCount;
-    const VkVideoEncodeH265DpbSlotInfoEXT* pReferenceList0Entries;
-    uint8_t referenceList1EntryCount;
-    const VkVideoEncodeH265DpbSlotInfoEXT* pReferenceList1Entries;
-    const StdVideoEncodeH265ReferenceModifications* pReferenceModifications;
-} VkVideoEncodeH265ReferenceListsInfoEXT;
-
 typedef struct VkVideoEncodeH265NaluSliceSegmentInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
     uint32_t ctbCount;
-    const VkVideoEncodeH265ReferenceListsInfoEXT* pReferenceFinalLists;
-    const StdVideoEncodeH265SliceSegmentHeader* pSliceSegmentHeaderStd;
+    const StdVideoEncodeH265ReferenceListsInfo* pStdReferenceFinalLists;
+    const StdVideoEncodeH265SliceSegmentHeader* pStdSliceSegmentHeader;
 } VkVideoEncodeH265NaluSliceSegmentInfoEXT;
 
 typedef struct VkVideoEncodeH265VclFrameInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    const VkVideoEncodeH265ReferenceListsInfoEXT* pReferenceFinalLists;
+    const StdVideoEncodeH265ReferenceListsInfo* pStdReferenceFinalLists;
     uint32_t naluSliceSegmentEntryCount;
     const VkVideoEncodeH265NaluSliceSegmentInfoEXT* pNaluSliceSegmentEntries;
-    const StdVideoEncodeH265PictureInfo* pCurrentPictureInfo;
+    const StdVideoEncodeH265PictureInfo* pStdPictureInfo;
 } VkVideoEncodeH265VclFrameInfoEXT;
 
-typedef struct VkVideoEncodeH265EmitPictureParametersInfoEXT
+typedef struct VkVideoEncodeH265DpbSlotInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint8_t vpsId;
-    uint8_t spsId;
-    VkBool32 emitVpsEnable;
-    VkBool32 emitSpsEnable;
-    uint32_t ppsIdEntryCount;
-    const uint8_t* ppsIdEntries;
-} VkVideoEncodeH265EmitPictureParametersInfoEXT;
+    const StdVideoEncodeH265ReferenceInfo* pStdReferenceInfo;
+} VkVideoEncodeH265DpbSlotInfoEXT;
 
 typedef struct VkVideoEncodeH265ProfileInfoEXT
 {
@@ -17139,7 +17650,7 @@ typedef struct VkVideoEncodeH265RateControlInfoEXT
     uint32_t idrPeriod;
     uint32_t consecutiveBFrameCount;
     VkVideoEncodeH265RateControlStructureEXT rateControlStructure;
-    uint8_t subLayerCount;
+    uint32_t subLayerCount;
 } VkVideoEncodeH265RateControlInfoEXT;
 
 typedef struct VkVideoEncodeH265QpEXT
@@ -17160,7 +17671,7 @@ typedef struct VkVideoEncodeH265RateControlLayerInfoEXT
 {
     VkStructureType sType;
     const void* pNext;
-    uint8_t temporalId;
+    uint32_t temporalId;
     VkBool32 useInitialRcQp;
     VkVideoEncodeH265QpEXT initialRcQp;
     VkBool32 useMinQp;
@@ -17206,7 +17717,7 @@ typedef struct VkPhysicalDevicePortabilitySubsetPropertiesKHR
 
 
 #define VK_KHR_video_encode_queue 1
-#define VK_KHR_VIDEO_ENCODE_QUEUE_SPEC_VERSION 7
+#define VK_KHR_VIDEO_ENCODE_QUEUE_SPEC_VERSION 8
 #define VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME "VK_KHR_video_encode_queue"
 
 typedef VkFlags VkVideoEncodeFlagsKHR;
@@ -17220,12 +17731,21 @@ typedef VkFlags VkVideoEncodeCapabilityFlagsKHR;
 
 typedef enum
 {
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_NONE_BIT_KHR = 0,
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR = 1,
-    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR = 2,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DEFAULT_KHR = 0,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_DISABLED_BIT_KHR = 0x00000001,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_CBR_BIT_KHR = 0x00000002,
+    VK_VIDEO_ENCODE_RATE_CONTROL_MODE_VBR_BIT_KHR = 0x00000004,
     VK_VIDEO_ENCODE_RATE_CONTROL_MODE_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
 } VkVideoEncodeRateControlModeFlagBitsKHR;
 typedef VkFlags VkVideoEncodeRateControlModeFlagsKHR;
+
+typedef enum
+{
+    VK_VIDEO_ENCODE_FEEDBACK_BITSTREAM_BUFFER_OFFSET_BIT_KHR = 0x00000001,
+    VK_VIDEO_ENCODE_FEEDBACK_BITSTREAM_BYTES_WRITTEN_BIT_KHR = 0x00000002,
+    VK_VIDEO_ENCODE_FEEDBACK_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkVideoEncodeFeedbackFlagBitsKHR;
+typedef VkFlags VkVideoEncodeFeedbackFlagsKHR;
 
 typedef enum
 {
@@ -17265,9 +17785,9 @@ typedef struct VkVideoEncodeInfoKHR
     const void* pNext;
     VkVideoEncodeFlagsKHR flags;
     uint32_t qualityLevel;
-    VkBuffer dstBitstreamBuffer;
-    VkDeviceSize dstBitstreamBufferOffset;
-    VkDeviceSize dstBitstreamBufferMaxRange;
+    VkBuffer dstBuffer;
+    VkDeviceSize dstBufferOffset;
+    VkDeviceSize dstBufferRange;
     VkVideoPictureResourceInfoKHR srcPictureResource;
     const VkVideoReferenceSlotInfoKHR* pSetupReferenceSlot;
     uint32_t referenceSlotCount;
@@ -17281,10 +17801,18 @@ typedef struct VkVideoEncodeCapabilitiesKHR
     void* pNext;
     VkVideoEncodeCapabilityFlagsKHR flags;
     VkVideoEncodeRateControlModeFlagsKHR rateControlModes;
-    uint8_t rateControlLayerCount;
-    uint8_t qualityLevelCount;
+    uint32_t maxRateControlLayers;
+    uint32_t maxQualityLevels;
     VkExtent2D inputImageDataFillAlignment;
+    VkVideoEncodeFeedbackFlagsKHR supportedEncodeFeedbackFlags;
 } VkVideoEncodeCapabilitiesKHR;
+
+typedef struct VkQueryPoolVideoEncodeFeedbackCreateInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkVideoEncodeFeedbackFlagsKHR encodeFeedbackFlags;
+} VkQueryPoolVideoEncodeFeedbackCreateInfoKHR;
 
 typedef struct VkVideoEncodeUsageInfoKHR
 {
@@ -17299,8 +17827,8 @@ typedef struct VkVideoEncodeRateControlLayerInfoKHR
 {
     VkStructureType sType;
     const void* pNext;
-    uint32_t averageBitrate;
-    uint32_t maxBitrate;
+    uint64_t averageBitrate;
+    uint64_t maxBitrate;
     uint32_t frameRateNumerator;
     uint32_t frameRateDenominator;
     uint32_t virtualBufferSizeInMs;
@@ -17313,8 +17841,8 @@ typedef struct VkVideoEncodeRateControlInfoKHR
     const void* pNext;
     VkVideoEncodeRateControlFlagsKHR flags;
     VkVideoEncodeRateControlModeFlagBitsKHR rateControlMode;
-    uint8_t layerCount;
-    const VkVideoEncodeRateControlLayerInfoKHR* pLayerConfigs;
+    uint32_t layerCount;
+    const VkVideoEncodeRateControlLayerInfoKHR* pLayers;
 } VkVideoEncodeRateControlInfoKHR;
 
 
@@ -17563,6 +18091,8 @@ extern PFN_vkCmdSetPrimitiveRestartEnable vkCmdSetPrimitiveRestartEnable;
 extern PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements;
 extern PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements;
 extern PFN_vkGetDeviceImageSparseMemoryRequirements vkGetDeviceImageSparseMemoryRequirements;
+extern PFN_vkGetCommandPoolMemoryConsumption vkGetCommandPoolMemoryConsumption;
+extern PFN_vkGetFaultData vkGetFaultData;
 extern PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
 extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 extern PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -17650,6 +18180,8 @@ extern PFN_vkGetSwapchainCounterEXT vkGetSwapchainCounterEXT;
 extern PFN_vkGetRefreshCycleDurationGOOGLE vkGetRefreshCycleDurationGOOGLE;
 extern PFN_vkGetPastPresentationTimingGOOGLE vkGetPastPresentationTimingGOOGLE;
 extern PFN_vkCmdSetDiscardRectangleEXT vkCmdSetDiscardRectangleEXT;
+extern PFN_vkCmdSetDiscardRectangleEnableEXT vkCmdSetDiscardRectangleEnableEXT;
+extern PFN_vkCmdSetDiscardRectangleModeEXT vkCmdSetDiscardRectangleModeEXT;
 extern PFN_vkSetHdrMetadataEXT vkSetHdrMetadataEXT;
 extern PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
 extern PFN_vkCmdBeginRenderPass2KHR vkCmdBeginRenderPass2KHR;
@@ -17752,6 +18284,7 @@ extern PFN_vkGetCalibratedTimestampsEXT vkGetCalibratedTimestampsEXT;
 extern PFN_vkCmdDrawMeshTasksNV vkCmdDrawMeshTasksNV;
 extern PFN_vkCmdDrawMeshTasksIndirectNV vkCmdDrawMeshTasksIndirectNV;
 extern PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
+extern PFN_vkCmdSetExclusiveScissorEnableNV vkCmdSetExclusiveScissorEnableNV;
 extern PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 extern PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 extern PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
@@ -17814,6 +18347,8 @@ extern PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 extern PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 extern PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 extern PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+extern PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
+extern PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
 extern PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
 extern PFN_vkCmdResetEvent2KHR vkCmdResetEvent2KHR;
 extern PFN_vkCmdWaitEvents2KHR vkCmdWaitEvents2KHR;
@@ -17996,6 +18531,20 @@ extern PFN_vkGetBufferCollectionPropertiesFUCHSIA vkGetBufferCollectionPropertie
 #ifdef VK_USE_PLATFORM_GGP
 extern PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+extern PFN_vkGetMemorySciBufNV vkGetMemorySciBufNV;
+extern PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV;
+extern PFN_vkGetPhysicalDeviceSciBufAttributesNV vkGetPhysicalDeviceSciBufAttributesNV;
+extern PFN_vkCreateSemaphoreSciSyncPoolNV vkCreateSemaphoreSciSyncPoolNV;
+extern PFN_vkDestroySemaphoreSciSyncPoolNV vkDestroySemaphoreSciSyncPoolNV;
+extern PFN_vkGetFenceSciSyncFenceNV vkGetFenceSciSyncFenceNV;
+extern PFN_vkGetFenceSciSyncObjNV vkGetFenceSciSyncObjNV;
+extern PFN_vkImportFenceSciSyncFenceNV vkImportFenceSciSyncFenceNV;
+extern PFN_vkImportFenceSciSyncObjNV vkImportFenceSciSyncObjNV;
+extern PFN_vkGetPhysicalDeviceSciSyncAttributesNV vkGetPhysicalDeviceSciSyncAttributesNV;
+extern PFN_vkGetSemaphoreSciSyncObjNV vkGetSemaphoreSciSyncObjNV;
+extern PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 extern PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -18222,6 +18771,8 @@ typedef struct
     PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements;
     PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements;
     PFN_vkGetDeviceImageSparseMemoryRequirements vkGetDeviceImageSparseMemoryRequirements;
+    PFN_vkGetCommandPoolMemoryConsumption vkGetCommandPoolMemoryConsumption;
+    PFN_vkGetFaultData vkGetFaultData;
     PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
     PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
     PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -18309,6 +18860,8 @@ typedef struct
     PFN_vkGetRefreshCycleDurationGOOGLE vkGetRefreshCycleDurationGOOGLE;
     PFN_vkGetPastPresentationTimingGOOGLE vkGetPastPresentationTimingGOOGLE;
     PFN_vkCmdSetDiscardRectangleEXT vkCmdSetDiscardRectangleEXT;
+    PFN_vkCmdSetDiscardRectangleEnableEXT vkCmdSetDiscardRectangleEnableEXT;
+    PFN_vkCmdSetDiscardRectangleModeEXT vkCmdSetDiscardRectangleModeEXT;
     PFN_vkSetHdrMetadataEXT vkSetHdrMetadataEXT;
     PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
     PFN_vkCmdBeginRenderPass2KHR vkCmdBeginRenderPass2KHR;
@@ -18411,6 +18964,7 @@ typedef struct
     PFN_vkCmdDrawMeshTasksNV vkCmdDrawMeshTasksNV;
     PFN_vkCmdDrawMeshTasksIndirectNV vkCmdDrawMeshTasksIndirectNV;
     PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
+    PFN_vkCmdSetExclusiveScissorEnableNV vkCmdSetExclusiveScissorEnableNV;
     PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
     PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
@@ -18473,6 +19027,8 @@ typedef struct
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
     PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+    PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
+    PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
     PFN_vkCmdResetEvent2KHR vkCmdResetEvent2KHR;
     PFN_vkCmdWaitEvents2KHR vkCmdWaitEvents2KHR;
@@ -18655,6 +19211,20 @@ typedef struct
 #ifdef VK_USE_PLATFORM_GGP
     PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    PFN_vkGetMemorySciBufNV vkGetMemorySciBufNV;
+    PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV;
+    PFN_vkGetPhysicalDeviceSciBufAttributesNV vkGetPhysicalDeviceSciBufAttributesNV;
+    PFN_vkCreateSemaphoreSciSyncPoolNV vkCreateSemaphoreSciSyncPoolNV;
+    PFN_vkDestroySemaphoreSciSyncPoolNV vkDestroySemaphoreSciSyncPoolNV;
+    PFN_vkGetFenceSciSyncFenceNV vkGetFenceSciSyncFenceNV;
+    PFN_vkGetFenceSciSyncObjNV vkGetFenceSciSyncObjNV;
+    PFN_vkImportFenceSciSyncFenceNV vkImportFenceSciSyncFenceNV;
+    PFN_vkImportFenceSciSyncObjNV vkImportFenceSciSyncObjNV;
+    PFN_vkGetPhysicalDeviceSciSyncAttributesNV vkGetPhysicalDeviceSciSyncAttributesNV;
+    PFN_vkGetSemaphoreSciSyncObjNV vkGetSemaphoreSciSyncObjNV;
+    PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -18682,6 +19252,8 @@ Vulkan 1.2
 
 Vulkan 1.3
 
+Vulkan 1.0
+    vkGetInstanceProcAddr
 
 vkbInit() will attempt to load every API statically, but for robustness you should not assume this will be successful.
 You should instead use vkCreateInstance() to create a Vulkan instance, then parse that to vkbInitInstanceAPI() and use
@@ -18965,6 +19537,8 @@ PFN_vkCmdSetPrimitiveRestartEnable vkCmdSetPrimitiveRestartEnable;
 PFN_vkGetDeviceBufferMemoryRequirements vkGetDeviceBufferMemoryRequirements;
 PFN_vkGetDeviceImageMemoryRequirements vkGetDeviceImageMemoryRequirements;
 PFN_vkGetDeviceImageSparseMemoryRequirements vkGetDeviceImageSparseMemoryRequirements;
+PFN_vkGetCommandPoolMemoryConsumption vkGetCommandPoolMemoryConsumption;
+PFN_vkGetFaultData vkGetFaultData;
 PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -19052,6 +19626,8 @@ PFN_vkGetSwapchainCounterEXT vkGetSwapchainCounterEXT;
 PFN_vkGetRefreshCycleDurationGOOGLE vkGetRefreshCycleDurationGOOGLE;
 PFN_vkGetPastPresentationTimingGOOGLE vkGetPastPresentationTimingGOOGLE;
 PFN_vkCmdSetDiscardRectangleEXT vkCmdSetDiscardRectangleEXT;
+PFN_vkCmdSetDiscardRectangleEnableEXT vkCmdSetDiscardRectangleEnableEXT;
+PFN_vkCmdSetDiscardRectangleModeEXT vkCmdSetDiscardRectangleModeEXT;
 PFN_vkSetHdrMetadataEXT vkSetHdrMetadataEXT;
 PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR;
 PFN_vkCmdBeginRenderPass2KHR vkCmdBeginRenderPass2KHR;
@@ -19154,6 +19730,7 @@ PFN_vkGetCalibratedTimestampsEXT vkGetCalibratedTimestampsEXT;
 PFN_vkCmdDrawMeshTasksNV vkCmdDrawMeshTasksNV;
 PFN_vkCmdDrawMeshTasksIndirectNV vkCmdDrawMeshTasksIndirectNV;
 PFN_vkCmdDrawMeshTasksIndirectCountNV vkCmdDrawMeshTasksIndirectCountNV;
+PFN_vkCmdSetExclusiveScissorEnableNV vkCmdSetExclusiveScissorEnableNV;
 PFN_vkCmdSetExclusiveScissorNV vkCmdSetExclusiveScissorNV;
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
 PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
@@ -19216,6 +19793,8 @@ PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
+PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
 PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
 PFN_vkCmdResetEvent2KHR vkCmdResetEvent2KHR;
 PFN_vkCmdWaitEvents2KHR vkCmdWaitEvents2KHR;
@@ -19398,6 +19977,20 @@ PFN_vkGetBufferCollectionPropertiesFUCHSIA vkGetBufferCollectionPropertiesFUCHSI
 #ifdef VK_USE_PLATFORM_GGP
 PFN_vkCreateStreamDescriptorSurfaceGGP vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+PFN_vkGetMemorySciBufNV vkGetMemorySciBufNV;
+PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV;
+PFN_vkGetPhysicalDeviceSciBufAttributesNV vkGetPhysicalDeviceSciBufAttributesNV;
+PFN_vkCreateSemaphoreSciSyncPoolNV vkCreateSemaphoreSciSyncPoolNV;
+PFN_vkDestroySemaphoreSciSyncPoolNV vkDestroySemaphoreSciSyncPoolNV;
+PFN_vkGetFenceSciSyncFenceNV vkGetFenceSciSyncFenceNV;
+PFN_vkGetFenceSciSyncObjNV vkGetFenceSciSyncObjNV;
+PFN_vkImportFenceSciSyncFenceNV vkImportFenceSciSyncFenceNV;
+PFN_vkImportFenceSciSyncObjNV vkImportFenceSciSyncObjNV;
+PFN_vkGetPhysicalDeviceSciSyncAttributesNV vkGetPhysicalDeviceSciSyncAttributesNV;
+PFN_vkGetSemaphoreSciSyncObjNV vkGetSemaphoreSciSyncObjNV;
+PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
 PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -19701,6 +20294,8 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceBufferMemoryRequirements");
     pAPI->vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceImageMemoryRequirements");
     pAPI->vkGetDeviceImageSparseMemoryRequirements = (PFN_vkGetDeviceImageSparseMemoryRequirements)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceImageSparseMemoryRequirements");
+    pAPI->vkGetCommandPoolMemoryConsumption = (PFN_vkGetCommandPoolMemoryConsumption)vkb_dlsym(g_vkbVulkanSO, "vkGetCommandPoolMemoryConsumption");
+    pAPI->vkGetFaultData = (PFN_vkGetFaultData)vkb_dlsym(g_vkbVulkanSO, "vkGetFaultData");
     pAPI->vkDestroySurfaceKHR = (PFN_vkDestroySurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkDestroySurfaceKHR");
     pAPI->vkGetPhysicalDeviceSurfaceSupportKHR = (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSurfaceSupportKHR");
     pAPI->vkGetPhysicalDeviceSurfaceCapabilitiesKHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
@@ -19788,6 +20383,8 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkGetRefreshCycleDurationGOOGLE = (PFN_vkGetRefreshCycleDurationGOOGLE)vkb_dlsym(g_vkbVulkanSO, "vkGetRefreshCycleDurationGOOGLE");
     pAPI->vkGetPastPresentationTimingGOOGLE = (PFN_vkGetPastPresentationTimingGOOGLE)vkb_dlsym(g_vkbVulkanSO, "vkGetPastPresentationTimingGOOGLE");
     pAPI->vkCmdSetDiscardRectangleEXT = (PFN_vkCmdSetDiscardRectangleEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDiscardRectangleEXT");
+    pAPI->vkCmdSetDiscardRectangleEnableEXT = (PFN_vkCmdSetDiscardRectangleEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDiscardRectangleEnableEXT");
+    pAPI->vkCmdSetDiscardRectangleModeEXT = (PFN_vkCmdSetDiscardRectangleModeEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDiscardRectangleModeEXT");
     pAPI->vkSetHdrMetadataEXT = (PFN_vkSetHdrMetadataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetHdrMetadataEXT");
     pAPI->vkCreateRenderPass2KHR = (PFN_vkCreateRenderPass2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateRenderPass2KHR");
     pAPI->vkCmdBeginRenderPass2KHR = (PFN_vkCmdBeginRenderPass2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBeginRenderPass2KHR");
@@ -19890,6 +20487,7 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdDrawMeshTasksNV = (PFN_vkCmdDrawMeshTasksNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMeshTasksNV");
     pAPI->vkCmdDrawMeshTasksIndirectNV = (PFN_vkCmdDrawMeshTasksIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMeshTasksIndirectNV");
     pAPI->vkCmdDrawMeshTasksIndirectCountNV = (PFN_vkCmdDrawMeshTasksIndirectCountNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDrawMeshTasksIndirectCountNV");
+    pAPI->vkCmdSetExclusiveScissorEnableNV = (PFN_vkCmdSetExclusiveScissorEnableNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorEnableNV");
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetQueueCheckpointDataNV");
@@ -19952,6 +20550,8 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
+    pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdRefreshObjectsKHR");
+    pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = (PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceRefreshableObjectTypesKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetEvent2KHR");
     pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResetEvent2KHR");
     pAPI->vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdWaitEvents2KHR");
@@ -20134,6 +20734,20 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_GGP
     pAPI->vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)vkb_dlsym(g_vkbVulkanSO, "vkCreateStreamDescriptorSurfaceGGP");
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    pAPI->vkGetMemorySciBufNV = (PFN_vkGetMemorySciBufNV)vkb_dlsym(g_vkbVulkanSO, "vkGetMemorySciBufNV");
+    pAPI->vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV = (PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV");
+    pAPI->vkGetPhysicalDeviceSciBufAttributesNV = (PFN_vkGetPhysicalDeviceSciBufAttributesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSciBufAttributesNV");
+    pAPI->vkCreateSemaphoreSciSyncPoolNV = (PFN_vkCreateSemaphoreSciSyncPoolNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateSemaphoreSciSyncPoolNV");
+    pAPI->vkDestroySemaphoreSciSyncPoolNV = (PFN_vkDestroySemaphoreSciSyncPoolNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroySemaphoreSciSyncPoolNV");
+    pAPI->vkGetFenceSciSyncFenceNV = (PFN_vkGetFenceSciSyncFenceNV)vkb_dlsym(g_vkbVulkanSO, "vkGetFenceSciSyncFenceNV");
+    pAPI->vkGetFenceSciSyncObjNV = (PFN_vkGetFenceSciSyncObjNV)vkb_dlsym(g_vkbVulkanSO, "vkGetFenceSciSyncObjNV");
+    pAPI->vkImportFenceSciSyncFenceNV = (PFN_vkImportFenceSciSyncFenceNV)vkb_dlsym(g_vkbVulkanSO, "vkImportFenceSciSyncFenceNV");
+    pAPI->vkImportFenceSciSyncObjNV = (PFN_vkImportFenceSciSyncObjNV)vkb_dlsym(g_vkbVulkanSO, "vkImportFenceSciSyncObjNV");
+    pAPI->vkGetPhysicalDeviceSciSyncAttributesNV = (PFN_vkGetPhysicalDeviceSciSyncAttributesNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceSciSyncAttributesNV");
+    pAPI->vkGetSemaphoreSciSyncObjNV = (PFN_vkGetSemaphoreSciSyncObjNV)vkb_dlsym(g_vkbVulkanSO, "vkGetSemaphoreSciSyncObjNV");
+    pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)vkb_dlsym(g_vkbVulkanSO, "vkImportSemaphoreSciSyncObjNV");
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdEncodeVideoKHR");
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -20376,6 +20990,8 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements;
     pAPI->vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements;
     pAPI->vkGetDeviceImageSparseMemoryRequirements = vkGetDeviceImageSparseMemoryRequirements;
+    pAPI->vkGetCommandPoolMemoryConsumption = vkGetCommandPoolMemoryConsumption;
+    pAPI->vkGetFaultData = vkGetFaultData;
     pAPI->vkDestroySurfaceKHR = vkDestroySurfaceKHR;
     pAPI->vkGetPhysicalDeviceSurfaceSupportKHR = vkGetPhysicalDeviceSurfaceSupportKHR;
     pAPI->vkGetPhysicalDeviceSurfaceCapabilitiesKHR = vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -20463,6 +21079,8 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
     pAPI->vkGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
     pAPI->vkCmdSetDiscardRectangleEXT = vkCmdSetDiscardRectangleEXT;
+    pAPI->vkCmdSetDiscardRectangleEnableEXT = vkCmdSetDiscardRectangleEnableEXT;
+    pAPI->vkCmdSetDiscardRectangleModeEXT = vkCmdSetDiscardRectangleModeEXT;
     pAPI->vkSetHdrMetadataEXT = vkSetHdrMetadataEXT;
     pAPI->vkCreateRenderPass2KHR = vkCreateRenderPass2KHR;
     pAPI->vkCmdBeginRenderPass2KHR = vkCmdBeginRenderPass2KHR;
@@ -20565,6 +21183,7 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdDrawMeshTasksNV = vkCmdDrawMeshTasksNV;
     pAPI->vkCmdDrawMeshTasksIndirectNV = vkCmdDrawMeshTasksIndirectNV;
     pAPI->vkCmdDrawMeshTasksIndirectCountNV = vkCmdDrawMeshTasksIndirectCountNV;
+    pAPI->vkCmdSetExclusiveScissorEnableNV = vkCmdSetExclusiveScissorEnableNV;
     pAPI->vkCmdSetExclusiveScissorNV = vkCmdSetExclusiveScissorNV;
     pAPI->vkCmdSetCheckpointNV = vkCmdSetCheckpointNV;
     pAPI->vkGetQueueCheckpointDataNV = vkGetQueueCheckpointDataNV;
@@ -20627,6 +21246,8 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
     pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
     pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
+    pAPI->vkCmdRefreshObjectsKHR = vkCmdRefreshObjectsKHR;
+    pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     pAPI->vkCmdSetEvent2KHR = vkCmdSetEvent2KHR;
     pAPI->vkCmdResetEvent2KHR = vkCmdResetEvent2KHR;
     pAPI->vkCmdWaitEvents2KHR = vkCmdWaitEvents2KHR;
@@ -20809,6 +21430,20 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_GGP
     pAPI->vkCreateStreamDescriptorSurfaceGGP = vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    pAPI->vkGetMemorySciBufNV = vkGetMemorySciBufNV;
+    pAPI->vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV = vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV;
+    pAPI->vkGetPhysicalDeviceSciBufAttributesNV = vkGetPhysicalDeviceSciBufAttributesNV;
+    pAPI->vkCreateSemaphoreSciSyncPoolNV = vkCreateSemaphoreSciSyncPoolNV;
+    pAPI->vkDestroySemaphoreSciSyncPoolNV = vkDestroySemaphoreSciSyncPoolNV;
+    pAPI->vkGetFenceSciSyncFenceNV = vkGetFenceSciSyncFenceNV;
+    pAPI->vkGetFenceSciSyncObjNV = vkGetFenceSciSyncObjNV;
+    pAPI->vkImportFenceSciSyncFenceNV = vkImportFenceSciSyncFenceNV;
+    pAPI->vkImportFenceSciSyncObjNV = vkImportFenceSciSyncObjNV;
+    pAPI->vkGetPhysicalDeviceSciSyncAttributesNV = vkGetPhysicalDeviceSciSyncAttributesNV;
+    pAPI->vkGetSemaphoreSciSyncObjNV = vkGetSemaphoreSciSyncObjNV;
+    pAPI->vkImportSemaphoreSciSyncObjNV = vkImportSemaphoreSciSyncObjNV;
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     pAPI->vkCmdEncodeVideoKHR = vkCmdEncodeVideoKHR;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -21134,6 +21769,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceBufferMemoryRequirements");
     pAPI->vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceImageMemoryRequirements");
     pAPI->vkGetDeviceImageSparseMemoryRequirements = (PFN_vkGetDeviceImageSparseMemoryRequirements)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceImageSparseMemoryRequirements");
+    pAPI->vkGetCommandPoolMemoryConsumption = (PFN_vkGetCommandPoolMemoryConsumption)pAPI->vkGetInstanceProcAddr(instance, "vkGetCommandPoolMemoryConsumption");
+    pAPI->vkGetFaultData = (PFN_vkGetFaultData)pAPI->vkGetInstanceProcAddr(instance, "vkGetFaultData");
     pAPI->vkDestroySurfaceKHR = (PFN_vkDestroySurfaceKHR)pAPI->vkGetInstanceProcAddr(instance, "vkDestroySurfaceKHR");
     pAPI->vkGetPhysicalDeviceSurfaceSupportKHR = (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceSupportKHR");
     pAPI->vkGetPhysicalDeviceSurfaceCapabilitiesKHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
@@ -21221,6 +21858,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetRefreshCycleDurationGOOGLE = (PFN_vkGetRefreshCycleDurationGOOGLE)pAPI->vkGetInstanceProcAddr(instance, "vkGetRefreshCycleDurationGOOGLE");
     pAPI->vkGetPastPresentationTimingGOOGLE = (PFN_vkGetPastPresentationTimingGOOGLE)pAPI->vkGetInstanceProcAddr(instance, "vkGetPastPresentationTimingGOOGLE");
     pAPI->vkCmdSetDiscardRectangleEXT = (PFN_vkCmdSetDiscardRectangleEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDiscardRectangleEXT");
+    pAPI->vkCmdSetDiscardRectangleEnableEXT = (PFN_vkCmdSetDiscardRectangleEnableEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDiscardRectangleEnableEXT");
+    pAPI->vkCmdSetDiscardRectangleModeEXT = (PFN_vkCmdSetDiscardRectangleModeEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDiscardRectangleModeEXT");
     pAPI->vkSetHdrMetadataEXT = (PFN_vkSetHdrMetadataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkSetHdrMetadataEXT");
     pAPI->vkCreateRenderPass2KHR = (PFN_vkCreateRenderPass2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCreateRenderPass2KHR");
     pAPI->vkCmdBeginRenderPass2KHR = (PFN_vkCmdBeginRenderPass2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBeginRenderPass2KHR");
@@ -21323,6 +21962,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdDrawMeshTasksNV = (PFN_vkCmdDrawMeshTasksNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDrawMeshTasksNV");
     pAPI->vkCmdDrawMeshTasksIndirectNV = (PFN_vkCmdDrawMeshTasksIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDrawMeshTasksIndirectNV");
     pAPI->vkCmdDrawMeshTasksIndirectCountNV = (PFN_vkCmdDrawMeshTasksIndirectCountNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDrawMeshTasksIndirectCountNV");
+    pAPI->vkCmdSetExclusiveScissorEnableNV = (PFN_vkCmdSetExclusiveScissorEnableNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorEnableNV");
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetQueueCheckpointDataNV");
@@ -21385,6 +22025,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
+    pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdRefreshObjectsKHR");
+    pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = (PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceRefreshableObjectTypesKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetEvent2KHR");
     pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdResetEvent2KHR");
     pAPI->vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdWaitEvents2KHR");
@@ -21567,6 +22209,20 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_GGP
     pAPI->vkCreateStreamDescriptorSurfaceGGP = (PFN_vkCreateStreamDescriptorSurfaceGGP)pAPI->vkGetInstanceProcAddr(instance, "vkCreateStreamDescriptorSurfaceGGP");
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    pAPI->vkGetMemorySciBufNV = (PFN_vkGetMemorySciBufNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetMemorySciBufNV");
+    pAPI->vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV = (PFN_vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV");
+    pAPI->vkGetPhysicalDeviceSciBufAttributesNV = (PFN_vkGetPhysicalDeviceSciBufAttributesNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSciBufAttributesNV");
+    pAPI->vkCreateSemaphoreSciSyncPoolNV = (PFN_vkCreateSemaphoreSciSyncPoolNV)pAPI->vkGetInstanceProcAddr(instance, "vkCreateSemaphoreSciSyncPoolNV");
+    pAPI->vkDestroySemaphoreSciSyncPoolNV = (PFN_vkDestroySemaphoreSciSyncPoolNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroySemaphoreSciSyncPoolNV");
+    pAPI->vkGetFenceSciSyncFenceNV = (PFN_vkGetFenceSciSyncFenceNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetFenceSciSyncFenceNV");
+    pAPI->vkGetFenceSciSyncObjNV = (PFN_vkGetFenceSciSyncObjNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetFenceSciSyncObjNV");
+    pAPI->vkImportFenceSciSyncFenceNV = (PFN_vkImportFenceSciSyncFenceNV)pAPI->vkGetInstanceProcAddr(instance, "vkImportFenceSciSyncFenceNV");
+    pAPI->vkImportFenceSciSyncObjNV = (PFN_vkImportFenceSciSyncObjNV)pAPI->vkGetInstanceProcAddr(instance, "vkImportFenceSciSyncObjNV");
+    pAPI->vkGetPhysicalDeviceSciSyncAttributesNV = (PFN_vkGetPhysicalDeviceSciSyncAttributesNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSciSyncAttributesNV");
+    pAPI->vkGetSemaphoreSciSyncObjNV = (PFN_vkGetSemaphoreSciSyncObjNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetSemaphoreSciSyncObjNV");
+    pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)pAPI->vkGetInstanceProcAddr(instance, "vkImportSemaphoreSciSyncObjNV");
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdEncodeVideoKHR");
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -21787,6 +22443,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceBufferMemoryRequirements");
     pAPI->vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceImageMemoryRequirements");
     pAPI->vkGetDeviceImageSparseMemoryRequirements = (PFN_vkGetDeviceImageSparseMemoryRequirements)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceImageSparseMemoryRequirements");
+    pAPI->vkGetCommandPoolMemoryConsumption = (PFN_vkGetCommandPoolMemoryConsumption)pAPI->vkGetDeviceProcAddr(device, "vkGetCommandPoolMemoryConsumption");
+    pAPI->vkGetFaultData = (PFN_vkGetFaultData)pAPI->vkGetDeviceProcAddr(device, "vkGetFaultData");
     pAPI->vkCreateSwapchainKHR = (PFN_vkCreateSwapchainKHR)pAPI->vkGetDeviceProcAddr(device, "vkCreateSwapchainKHR");
     pAPI->vkDestroySwapchainKHR = (PFN_vkDestroySwapchainKHR)pAPI->vkGetDeviceProcAddr(device, "vkDestroySwapchainKHR");
     pAPI->vkGetSwapchainImagesKHR = (PFN_vkGetSwapchainImagesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetSwapchainImagesKHR");
@@ -21846,6 +22504,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetRefreshCycleDurationGOOGLE = (PFN_vkGetRefreshCycleDurationGOOGLE)pAPI->vkGetDeviceProcAddr(device, "vkGetRefreshCycleDurationGOOGLE");
     pAPI->vkGetPastPresentationTimingGOOGLE = (PFN_vkGetPastPresentationTimingGOOGLE)pAPI->vkGetDeviceProcAddr(device, "vkGetPastPresentationTimingGOOGLE");
     pAPI->vkCmdSetDiscardRectangleEXT = (PFN_vkCmdSetDiscardRectangleEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDiscardRectangleEXT");
+    pAPI->vkCmdSetDiscardRectangleEnableEXT = (PFN_vkCmdSetDiscardRectangleEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDiscardRectangleEnableEXT");
+    pAPI->vkCmdSetDiscardRectangleModeEXT = (PFN_vkCmdSetDiscardRectangleModeEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDiscardRectangleModeEXT");
     pAPI->vkSetHdrMetadataEXT = (PFN_vkSetHdrMetadataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetHdrMetadataEXT");
     pAPI->vkCreateRenderPass2KHR = (PFN_vkCreateRenderPass2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCreateRenderPass2KHR");
     pAPI->vkCmdBeginRenderPass2KHR = (PFN_vkCmdBeginRenderPass2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBeginRenderPass2KHR");
@@ -21931,6 +22591,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdDrawMeshTasksNV = (PFN_vkCmdDrawMeshTasksNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksNV");
     pAPI->vkCmdDrawMeshTasksIndirectNV = (PFN_vkCmdDrawMeshTasksIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectNV");
     pAPI->vkCmdDrawMeshTasksIndirectCountNV = (PFN_vkCmdDrawMeshTasksIndirectCountNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectCountNV");
+    pAPI->vkCmdSetExclusiveScissorEnableNV = (PFN_vkCmdSetExclusiveScissorEnableNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorEnableNV");
     pAPI->vkCmdSetExclusiveScissorNV = (PFN_vkCmdSetExclusiveScissorNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetExclusiveScissorNV");
     pAPI->vkCmdSetCheckpointNV = (PFN_vkCmdSetCheckpointNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetCheckpointNV");
     pAPI->vkGetQueueCheckpointDataNV = (PFN_vkGetQueueCheckpointDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetQueueCheckpointDataNV");
@@ -21986,6 +22647,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+    pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdRefreshObjectsKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetEvent2KHR");
     pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResetEvent2KHR");
     pAPI->vkCmdWaitEvents2KHR = (PFN_vkCmdWaitEvents2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdWaitEvents2KHR");
@@ -22145,6 +22807,17 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
 #endif /*VK_USE_PLATFORM_FUCHSIA*/
 #ifdef VK_USE_PLATFORM_GGP
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    pAPI->vkGetMemorySciBufNV = (PFN_vkGetMemorySciBufNV)pAPI->vkGetDeviceProcAddr(device, "vkGetMemorySciBufNV");
+    pAPI->vkCreateSemaphoreSciSyncPoolNV = (PFN_vkCreateSemaphoreSciSyncPoolNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateSemaphoreSciSyncPoolNV");
+    pAPI->vkDestroySemaphoreSciSyncPoolNV = (PFN_vkDestroySemaphoreSciSyncPoolNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroySemaphoreSciSyncPoolNV");
+    pAPI->vkGetFenceSciSyncFenceNV = (PFN_vkGetFenceSciSyncFenceNV)pAPI->vkGetDeviceProcAddr(device, "vkGetFenceSciSyncFenceNV");
+    pAPI->vkGetFenceSciSyncObjNV = (PFN_vkGetFenceSciSyncObjNV)pAPI->vkGetDeviceProcAddr(device, "vkGetFenceSciSyncObjNV");
+    pAPI->vkImportFenceSciSyncFenceNV = (PFN_vkImportFenceSciSyncFenceNV)pAPI->vkGetDeviceProcAddr(device, "vkImportFenceSciSyncFenceNV");
+    pAPI->vkImportFenceSciSyncObjNV = (PFN_vkImportFenceSciSyncObjNV)pAPI->vkGetDeviceProcAddr(device, "vkImportFenceSciSyncObjNV");
+    pAPI->vkGetSemaphoreSciSyncObjNV = (PFN_vkGetSemaphoreSciSyncObjNV)pAPI->vkGetDeviceProcAddr(device, "vkGetSemaphoreSciSyncObjNV");
+    pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)pAPI->vkGetDeviceProcAddr(device, "vkImportSemaphoreSciSyncObjNV");
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdEncodeVideoKHR");
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -22378,6 +23051,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetDeviceBufferMemoryRequirements = pAPI->vkGetDeviceBufferMemoryRequirements;
     vkGetDeviceImageMemoryRequirements = pAPI->vkGetDeviceImageMemoryRequirements;
     vkGetDeviceImageSparseMemoryRequirements = pAPI->vkGetDeviceImageSparseMemoryRequirements;
+    vkGetCommandPoolMemoryConsumption = pAPI->vkGetCommandPoolMemoryConsumption;
+    vkGetFaultData = pAPI->vkGetFaultData;
     vkDestroySurfaceKHR = pAPI->vkDestroySurfaceKHR;
     vkGetPhysicalDeviceSurfaceSupportKHR = pAPI->vkGetPhysicalDeviceSurfaceSupportKHR;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR = pAPI->vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
@@ -22465,6 +23140,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetRefreshCycleDurationGOOGLE = pAPI->vkGetRefreshCycleDurationGOOGLE;
     vkGetPastPresentationTimingGOOGLE = pAPI->vkGetPastPresentationTimingGOOGLE;
     vkCmdSetDiscardRectangleEXT = pAPI->vkCmdSetDiscardRectangleEXT;
+    vkCmdSetDiscardRectangleEnableEXT = pAPI->vkCmdSetDiscardRectangleEnableEXT;
+    vkCmdSetDiscardRectangleModeEXT = pAPI->vkCmdSetDiscardRectangleModeEXT;
     vkSetHdrMetadataEXT = pAPI->vkSetHdrMetadataEXT;
     vkCreateRenderPass2KHR = pAPI->vkCreateRenderPass2KHR;
     vkCmdBeginRenderPass2KHR = pAPI->vkCmdBeginRenderPass2KHR;
@@ -22567,6 +23244,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdDrawMeshTasksNV = pAPI->vkCmdDrawMeshTasksNV;
     vkCmdDrawMeshTasksIndirectNV = pAPI->vkCmdDrawMeshTasksIndirectNV;
     vkCmdDrawMeshTasksIndirectCountNV = pAPI->vkCmdDrawMeshTasksIndirectCountNV;
+    vkCmdSetExclusiveScissorEnableNV = pAPI->vkCmdSetExclusiveScissorEnableNV;
     vkCmdSetExclusiveScissorNV = pAPI->vkCmdSetExclusiveScissorNV;
     vkCmdSetCheckpointNV = pAPI->vkCmdSetCheckpointNV;
     vkGetQueueCheckpointDataNV = pAPI->vkGetQueueCheckpointDataNV;
@@ -22629,6 +23307,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
     vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
+    vkCmdRefreshObjectsKHR = pAPI->vkCmdRefreshObjectsKHR;
+    vkGetPhysicalDeviceRefreshableObjectTypesKHR = pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     vkCmdSetEvent2KHR = pAPI->vkCmdSetEvent2KHR;
     vkCmdResetEvent2KHR = pAPI->vkCmdResetEvent2KHR;
     vkCmdWaitEvents2KHR = pAPI->vkCmdWaitEvents2KHR;
@@ -22811,6 +23491,20 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_GGP
     vkCreateStreamDescriptorSurfaceGGP = pAPI->vkCreateStreamDescriptorSurfaceGGP;
 #endif /*VK_USE_PLATFORM_GGP*/
+#ifdef VK_USE_PLATFORM_SCI
+    vkGetMemorySciBufNV = pAPI->vkGetMemorySciBufNV;
+    vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV = pAPI->vkGetPhysicalDeviceExternalMemorySciBufPropertiesNV;
+    vkGetPhysicalDeviceSciBufAttributesNV = pAPI->vkGetPhysicalDeviceSciBufAttributesNV;
+    vkCreateSemaphoreSciSyncPoolNV = pAPI->vkCreateSemaphoreSciSyncPoolNV;
+    vkDestroySemaphoreSciSyncPoolNV = pAPI->vkDestroySemaphoreSciSyncPoolNV;
+    vkGetFenceSciSyncFenceNV = pAPI->vkGetFenceSciSyncFenceNV;
+    vkGetFenceSciSyncObjNV = pAPI->vkGetFenceSciSyncObjNV;
+    vkImportFenceSciSyncFenceNV = pAPI->vkImportFenceSciSyncFenceNV;
+    vkImportFenceSciSyncObjNV = pAPI->vkImportFenceSciSyncObjNV;
+    vkGetPhysicalDeviceSciSyncAttributesNV = pAPI->vkGetPhysicalDeviceSciSyncAttributesNV;
+    vkGetSemaphoreSciSyncObjNV = pAPI->vkGetSemaphoreSciSyncObjNV;
+    vkImportSemaphoreSciSyncObjNV = pAPI->vkImportSemaphoreSciSyncObjNV;
+#endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
     vkCmdEncodeVideoKHR = pAPI->vkCmdEncodeVideoKHR;
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
