@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.243.0 - 2023-03-15
+vkbind - v1.3.244.0 - 2023-03-18
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1304,7 +1304,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 243
+#define VK_HEADER_VERSION 244
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -1969,6 +1969,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR = 1000269003,
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR = 1000269004,
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR = 1000269005,
+    VK_STRUCTURE_TYPE_MEMORY_MAP_INFO_KHR = 1000271000,
+    VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO_KHR = 1000271001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT = 1000273000,
     VK_STRUCTURE_TYPE_SURFACE_PRESENT_MODE_EXT = 1000274000,
     VK_STRUCTURE_TYPE_SURFACE_PRESENT_SCALING_CAPABILITIES_EXT = 1000274001,
@@ -13162,6 +13164,34 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetPipelineExecutableStatisticsKHR)(VkDevice 
 typedef VkResult (VKAPI_PTR *PFN_vkGetPipelineExecutableInternalRepresentationsKHR)(VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pInternalRepresentationCount, VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations);
 
 
+#define VK_KHR_map_memory2 1
+#define VK_KHR_MAP_MEMORY_2_SPEC_VERSION 1
+#define VK_KHR_MAP_MEMORY_2_EXTENSION_NAME "VK_KHR_map_memory2"
+
+typedef VkFlags VkMemoryUnmapFlagsKHR;
+typedef struct VkMemoryMapInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkMemoryMapFlags flags;
+    VkDeviceMemory memory;
+    VkDeviceSize offset;
+    VkDeviceSize size;
+} VkMemoryMapInfoKHR;
+
+typedef struct VkMemoryUnmapInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkMemoryUnmapFlagsKHR flags;
+    VkDeviceMemory memory;
+} VkMemoryUnmapInfoKHR;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkMapMemory2KHR)(VkDevice device, const VkMemoryMapInfoKHR* pMemoryMapInfo, void** ppData);
+typedef VkResult (VKAPI_PTR *PFN_vkUnmapMemory2KHR)(VkDevice device, const VkMemoryUnmapInfoKHR* pMemoryUnmapInfo);
+
+
 #define VK_EXT_shader_atomic_float2 1
 #define VK_EXT_SHADER_ATOMIC_FLOAT_2_SPEC_VERSION 1
 #define VK_EXT_SHADER_ATOMIC_FLOAT_2_EXTENSION_NAME "VK_EXT_shader_atomic_float2"
@@ -18334,6 +18364,8 @@ extern PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 extern PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 extern PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 extern PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+extern PFN_vkMapMemory2KHR vkMapMemory2KHR;
+extern PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
 extern PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
 extern PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
 extern PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
@@ -19014,6 +19046,8 @@ typedef struct
     PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
     PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
     PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+    PFN_vkMapMemory2KHR vkMapMemory2KHR;
+    PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
     PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
     PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
     PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
@@ -19780,6 +19814,8 @@ PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+PFN_vkMapMemory2KHR vkMapMemory2KHR;
+PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
 PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
 PFN_vkGetGeneratedCommandsMemoryRequirementsNV vkGetGeneratedCommandsMemoryRequirementsNV;
 PFN_vkCmdPreprocessGeneratedCommandsNV vkCmdPreprocessGeneratedCommandsNV;
@@ -20537,6 +20573,8 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)vkb_dlsym(g_vkbVulkanSO, "vkMapMemory2KHR");
+    pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)vkb_dlsym(g_vkbVulkanSO, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vkb_dlsym(g_vkbVulkanSO, "vkReleaseSwapchainImagesEXT");
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetGeneratedCommandsMemoryRequirementsNV");
     pAPI->vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdPreprocessGeneratedCommandsNV");
@@ -21233,6 +21271,8 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = vkGetPipelineExecutablePropertiesKHR;
     pAPI->vkGetPipelineExecutableStatisticsKHR = vkGetPipelineExecutableStatisticsKHR;
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = vkGetPipelineExecutableInternalRepresentationsKHR;
+    pAPI->vkMapMemory2KHR = vkMapMemory2KHR;
+    pAPI->vkUnmapMemory2KHR = vkUnmapMemory2KHR;
     pAPI->vkReleaseSwapchainImagesEXT = vkReleaseSwapchainImagesEXT;
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = vkGetGeneratedCommandsMemoryRequirementsNV;
     pAPI->vkCmdPreprocessGeneratedCommandsNV = vkCmdPreprocessGeneratedCommandsNV;
@@ -22012,6 +22052,8 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkMapMemory2KHR");
+    pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)pAPI->vkGetInstanceProcAddr(instance, "vkReleaseSwapchainImagesEXT");
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetGeneratedCommandsMemoryRequirementsNV");
     pAPI->vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdPreprocessGeneratedCommandsNV");
@@ -22636,6 +22678,8 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)pAPI->vkGetDeviceProcAddr(device, "vkMapMemory2KHR");
+    pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)pAPI->vkGetDeviceProcAddr(device, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)pAPI->vkGetDeviceProcAddr(device, "vkReleaseSwapchainImagesEXT");
     pAPI->vkGetGeneratedCommandsMemoryRequirementsNV = (PFN_vkGetGeneratedCommandsMemoryRequirementsNV)pAPI->vkGetDeviceProcAddr(device, "vkGetGeneratedCommandsMemoryRequirementsNV");
     pAPI->vkCmdPreprocessGeneratedCommandsNV = (PFN_vkCmdPreprocessGeneratedCommandsNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdPreprocessGeneratedCommandsNV");
@@ -23294,6 +23338,8 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetPipelineExecutablePropertiesKHR = pAPI->vkGetPipelineExecutablePropertiesKHR;
     vkGetPipelineExecutableStatisticsKHR = pAPI->vkGetPipelineExecutableStatisticsKHR;
     vkGetPipelineExecutableInternalRepresentationsKHR = pAPI->vkGetPipelineExecutableInternalRepresentationsKHR;
+    vkMapMemory2KHR = pAPI->vkMapMemory2KHR;
+    vkUnmapMemory2KHR = pAPI->vkUnmapMemory2KHR;
     vkReleaseSwapchainImagesEXT = pAPI->vkReleaseSwapchainImagesEXT;
     vkGetGeneratedCommandsMemoryRequirementsNV = pAPI->vkGetGeneratedCommandsMemoryRequirementsNV;
     vkCmdPreprocessGeneratedCommandsNV = pAPI->vkCmdPreprocessGeneratedCommandsNV;
