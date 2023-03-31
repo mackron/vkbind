@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.244.0 - 2023-03-18
+vkbind - v1.3.246.0 - 2023-04-01
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1304,7 +1304,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 244
+#define VK_HEADER_VERSION 246
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -1414,6 +1414,7 @@ typedef enum
     VK_OPERATION_NOT_DEFERRED_KHR = 1000268003,
     VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR = -1000299000,
     VK_ERROR_COMPRESSION_EXHAUSTED_EXT = -1000338000,
+    VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT = 1000482000,
     VK_ERROR_OUT_OF_POOL_MEMORY_KHR = VK_ERROR_OUT_OF_POOL_MEMORY,
     VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = VK_ERROR_INVALID_EXTERNAL_HANDLE,
     VK_ERROR_FRAGMENTATION_EXT = VK_ERROR_FRAGMENTATION,
@@ -2128,6 +2129,8 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_FEATURES_EXT = 1000392000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTI_DRAW_PROPERTIES_EXT = 1000392001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_2D_VIEW_OF_3D_FEATURES_EXT = 1000393000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_FEATURES_EXT = 1000395000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_TILE_IMAGE_PROPERTIES_EXT = 1000395001,
     VK_STRUCTURE_TYPE_MICROMAP_BUILD_INFO_EXT = 1000396000,
     VK_STRUCTURE_TYPE_MICROMAP_VERSION_INFO_EXT = 1000396001,
     VK_STRUCTURE_TYPE_COPY_MICROMAP_INFO_EXT = 1000396002,
@@ -2138,6 +2141,9 @@ typedef enum
     VK_STRUCTURE_TYPE_MICROMAP_CREATE_INFO_EXT = 1000396007,
     VK_STRUCTURE_TYPE_MICROMAP_BUILD_SIZES_INFO_EXT = 1000396008,
     VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_OPACITY_MICROMAP_EXT = 1000396009,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_FEATURES_NV = 1000397000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DISPLACEMENT_MICROMAP_PROPERTIES_NV = 1000397001,
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_TRIANGLES_DISPLACEMENT_MICROMAP_NV = 1000397002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_FEATURES_HUAWEI = 1000404000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CLUSTER_CULLING_SHADER_PROPERTIES_HUAWEI = 1000404001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BORDER_COLOR_SWIZZLE_FEATURES_EXT = 1000411000,
@@ -2186,6 +2192,9 @@ typedef enum
     VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV = 1000464010,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT = 1000465000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES_EXT = 1000466000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT = 1000482000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_PROPERTIES_EXT = 1000482001,
+    VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT = 1000482002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_PROPERTIES_FEATURES_QCOM = 1000484000,
     VK_STRUCTURE_TYPE_TILE_PROPERTIES_QCOM = 1000484001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_AMIGO_PROFILING_FEATURES_SEC = 1000485000,
@@ -2384,6 +2393,7 @@ typedef enum
     VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
     VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS_KHR = VK_STRUCTURE_TYPE_DEVICE_IMAGE_MEMORY_REQUIREMENTS,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_ARM = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT,
+    VK_STRUCTURE_TYPE_SHADER_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_VALVE = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT,
     VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_VALVE = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT,
     VK_STRUCTURE_TYPE_MAX_ENUM = 0x7FFFFFFF
@@ -2549,6 +2559,7 @@ typedef enum
     VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA = 1000366000,
     VK_OBJECT_TYPE_MICROMAP_EXT = 1000396000,
     VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV = 1000464000,
+    VK_OBJECT_TYPE_SHADER_EXT = 1000482000,
     VK_OBJECT_TYPE_SEMAPHORE_SCI_SYNC_POOL_NV = 1000489000,
     VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR = VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE,
     VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR = VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION,
@@ -3450,6 +3461,7 @@ typedef enum
     VK_PIPELINE_CREATE_COLOR_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT = 0x02000000,
     VK_PIPELINE_CREATE_DEPTH_STENCIL_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT = 0x04000000,
     VK_PIPELINE_CREATE_RAY_TRACING_OPACITY_MICROMAP_BIT_EXT = 0x01000000,
+    VK_PIPELINE_CREATE_RAY_TRACING_DISPLACEMENT_MICROMAP_BIT_NV = 0x10000000,
     VK_PIPELINE_CREATE_NO_PROTECTED_ACCESS_BIT_EXT = 0x08000000,
     VK_PIPELINE_CREATE_PROTECTED_ACCESS_ONLY_BIT_EXT = 0x40000000,
     VK_PIPELINE_CREATE_DISPATCH_BASE = VK_PIPELINE_CREATE_DISPATCH_BASE_BIT,
@@ -10683,6 +10695,7 @@ typedef enum
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_OPACITY_MICROMAP_UPDATE_EXT = 0x00000040,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DISABLE_OPACITY_MICROMAPS_EXT = 0x00000080,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_OPACITY_MICROMAP_DATA_UPDATE_EXT = 0x00000100,
+    VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_DISPLACEMENT_MICROMAP_UPDATE_NV = 0x00000200,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR,
     VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR,
     VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
@@ -15091,6 +15104,29 @@ typedef struct VkPhysicalDeviceImage2DViewOf3DFeaturesEXT
 #define VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME "VK_KHR_portability_enumeration"
 
 
+#define VK_EXT_shader_tile_image 1
+#define VK_EXT_SHADER_TILE_IMAGE_SPEC_VERSION 1
+#define VK_EXT_SHADER_TILE_IMAGE_EXTENSION_NAME "VK_EXT_shader_tile_image"
+
+typedef struct VkPhysicalDeviceShaderTileImageFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderTileImageColorReadAccess;
+    VkBool32 shaderTileImageDepthReadAccess;
+    VkBool32 shaderTileImageStencilReadAccess;
+} VkPhysicalDeviceShaderTileImageFeaturesEXT;
+
+typedef struct VkPhysicalDeviceShaderTileImagePropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderTileImageCoherentReadAccelerated;
+    VkBool32 shaderTileImageReadSampleFromPixelRateInvocation;
+    VkBool32 shaderTileImageReadFromHelperInvocation;
+} VkPhysicalDeviceShaderTileImagePropertiesEXT;
+
+
 #define VK_EXT_opacity_micromap 1
 #define VK_EXT_OPACITY_MICROMAP_SPEC_VERSION 2
 #define VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME "VK_EXT_opacity_micromap"
@@ -15100,6 +15136,7 @@ VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkMicromapEXT)
 typedef enum
 {
     VK_MICROMAP_TYPE_OPACITY_MICROMAP_EXT = 0,
+    VK_MICROMAP_TYPE_DISPLACEMENT_MICROMAP_NV = 1000397000,
     VK_MICROMAP_TYPE_MAX_ENUM_EXT = 0x7FFFFFFF
 } VkMicromapTypeEXT;
 
@@ -16077,6 +16114,75 @@ typedef struct VkPhysicalDevicePipelineProtectedAccessFeaturesEXT
     void* pNext;
     VkBool32 pipelineProtectedAccess;
 } VkPhysicalDevicePipelineProtectedAccessFeaturesEXT;
+
+
+#define VK_EXT_shader_object 1
+#define VK_EXT_SHADER_OBJECT_SPEC_VERSION 1
+#define VK_EXT_SHADER_OBJECT_EXTENSION_NAME "VK_EXT_shader_object"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkShaderEXT)
+
+
+typedef enum
+{
+    VK_SHADER_CREATE_LINK_STAGE_BIT_EXT = 0x00000001,
+    VK_SHADER_CREATE_ALLOW_VARYING_SUBGROUP_SIZE_BIT_EXT = 0x00000002,
+    VK_SHADER_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT = 0x00000004,
+    VK_SHADER_CREATE_NO_TASK_SHADER_BIT_EXT = 0x00000008,
+    VK_SHADER_CREATE_DISPATCH_BASE_BIT_EXT = 0x00000010,
+    VK_SHADER_CREATE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_EXT = 0x00000020,
+    VK_SHADER_CREATE_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_EXT = 0x00000040,
+    VK_SHADER_CREATE_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkShaderCreateFlagBitsEXT;
+typedef VkFlags VkShaderCreateFlagsEXT;
+typedef enum
+{
+    VK_SHADER_CODE_TYPE_BINARY_EXT = 0,
+    VK_SHADER_CODE_TYPE_SPIRV_EXT = 1,
+    VK_SHADER_CODE_TYPE_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkShaderCodeTypeEXT;
+
+
+typedef struct VkPhysicalDeviceShaderObjectFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderObject;
+} VkPhysicalDeviceShaderObjectFeaturesEXT;
+
+typedef struct VkPhysicalDeviceShaderObjectPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint8_t shaderBinaryUUID[VK_UUID_SIZE];
+    uint32_t shaderBinaryVersion;
+} VkPhysicalDeviceShaderObjectPropertiesEXT;
+
+typedef struct VkShaderCreateInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkShaderCreateFlagsEXT flags;
+    VkShaderStageFlagBits stage;
+    VkShaderStageFlags nextStage;
+    VkShaderCodeTypeEXT codeType;
+    size_t codeSize;
+    const void* pCode;
+    const char* pName;
+    uint32_t setLayoutCount;
+    const VkDescriptorSetLayout* pSetLayouts;
+    uint32_t pushConstantRangeCount;
+    const VkPushConstantRange* pPushConstantRanges;
+    const VkSpecializationInfo* pSpecializationInfo;
+} VkShaderCreateInfoEXT;
+
+typedef VkPipelineShaderStageRequiredSubgroupSizeCreateInfo VkShaderRequiredSubgroupSizeCreateInfoEXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateShadersEXT)(VkDevice device, uint32_t createInfoCount, const VkShaderCreateInfoEXT* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkShaderEXT* pShaders);
+typedef void (VKAPI_PTR *PFN_vkDestroyShaderEXT)(VkDevice device, VkShaderEXT shader, const VkAllocationCallbacks* pAllocator);
+typedef VkResult (VKAPI_PTR *PFN_vkGetShaderBinaryDataEXT)(VkDevice device, VkShaderEXT shader, size_t* pDataSize, void* pData);
+typedef void (VKAPI_PTR *PFN_vkCmdBindShadersEXT)(VkCommandBuffer commandBuffer, uint32_t stageCount, const VkShaderStageFlagBits* pStages, const VkShaderEXT* pShaders);
 
 
 #define VK_QCOM_tile_properties 1
@@ -17878,6 +17984,56 @@ typedef struct VkVideoEncodeRateControlInfoKHR
 
 typedef void (VKAPI_PTR *PFN_vkCmdEncodeVideoKHR)(VkCommandBuffer commandBuffer, const VkVideoEncodeInfoKHR* pEncodeInfo);
 
+
+#define VK_NV_displacement_micromap 1
+#define VK_NV_DISPLACEMENT_MICROMAP_SPEC_VERSION 1
+#define VK_NV_DISPLACEMENT_MICROMAP_EXTENSION_NAME "VK_NV_displacement_micromap"
+
+typedef enum
+{
+    VK_DISPLACEMENT_MICROMAP_FORMAT_64_TRIANGLES_64_BYTES_NV = 1,
+    VK_DISPLACEMENT_MICROMAP_FORMAT_256_TRIANGLES_128_BYTES_NV = 2,
+    VK_DISPLACEMENT_MICROMAP_FORMAT_1024_TRIANGLES_128_BYTES_NV = 3,
+    VK_DISPLACEMENT_MICROMAP_FORMAT_MAX_ENUM_NV = 0x7FFFFFFF
+} VkDisplacementMicromapFormatNV;
+
+
+typedef struct VkPhysicalDeviceDisplacementMicromapFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 displacementMicromap;
+} VkPhysicalDeviceDisplacementMicromapFeaturesNV;
+
+typedef struct VkPhysicalDeviceDisplacementMicromapPropertiesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxDisplacementMicromapSubdivisionLevel;
+} VkPhysicalDeviceDisplacementMicromapPropertiesNV;
+
+typedef struct VkAccelerationStructureTrianglesDisplacementMicromapNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkFormat displacementBiasAndScaleFormat;
+    VkFormat displacementVectorFormat;
+    VkDeviceOrHostAddressConstKHR displacementBiasAndScaleBuffer;
+    VkDeviceSize displacementBiasAndScaleStride;
+    VkDeviceOrHostAddressConstKHR displacementVectorBuffer;
+    VkDeviceSize displacementVectorStride;
+    VkDeviceOrHostAddressConstKHR displacedMicromapPrimitiveFlags;
+    VkDeviceSize displacedMicromapPrimitiveFlagsStride;
+    VkIndexType indexType;
+    VkDeviceOrHostAddressConstKHR indexBuffer;
+    VkDeviceSize indexStride;
+    uint32_t baseTriangle;
+    uint32_t usageCountsCount;
+    const VkMicromapUsageEXT* pUsageCounts;
+    const VkMicromapUsageEXT* const* ppUsageCounts;
+    VkMicromapEXT micromap;
+} VkAccelerationStructureTrianglesDisplacementMicromapNV;
+
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
@@ -18491,6 +18647,10 @@ extern PFN_vkCreateOpticalFlowSessionNV vkCreateOpticalFlowSessionNV;
 extern PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
 extern PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
 extern PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+extern PFN_vkCreateShadersEXT vkCreateShadersEXT;
+extern PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
+extern PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
+extern PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 extern PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 extern PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -19173,6 +19333,10 @@ typedef struct
     PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
     PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
     PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+    PFN_vkCreateShadersEXT vkCreateShadersEXT;
+    PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
+    PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
+    PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
     PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
     PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -19941,6 +20105,10 @@ PFN_vkCreateOpticalFlowSessionNV vkCreateOpticalFlowSessionNV;
 PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
 PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
 PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+PFN_vkCreateShadersEXT vkCreateShadersEXT;
+PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
+PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
+PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -20700,6 +20868,10 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)vkb_dlsym(g_vkbVulkanSO, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateShadersEXT");
+    pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyShaderEXT");
+    pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetShaderBinaryDataEXT");
+    pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetDynamicRenderingTilePropertiesQCOM");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -21398,6 +21570,10 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = vkDestroyOpticalFlowSessionNV;
     pAPI->vkBindOpticalFlowSessionImageNV = vkBindOpticalFlowSessionImageNV;
     pAPI->vkCmdOpticalFlowExecuteNV = vkCmdOpticalFlowExecuteNV;
+    pAPI->vkCreateShadersEXT = vkCreateShadersEXT;
+    pAPI->vkDestroyShaderEXT = vkDestroyShaderEXT;
+    pAPI->vkGetShaderBinaryDataEXT = vkGetShaderBinaryDataEXT;
+    pAPI->vkCmdBindShadersEXT = vkCmdBindShadersEXT;
     pAPI->vkGetFramebufferTilePropertiesQCOM = vkGetFramebufferTilePropertiesQCOM;
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = vkGetDynamicRenderingTilePropertiesQCOM;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -22179,6 +22355,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)pAPI->vkGetInstanceProcAddr(instance, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCreateShadersEXT");
+    pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyShaderEXT");
+    pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetShaderBinaryDataEXT");
+    pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetDynamicRenderingTilePropertiesQCOM");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -22801,6 +22981,10 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)pAPI->vkGetDeviceProcAddr(device, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCreateShadersEXT");
+    pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyShaderEXT");
+    pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetShaderBinaryDataEXT");
+    pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)pAPI->vkGetDeviceProcAddr(device, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)pAPI->vkGetDeviceProcAddr(device, "vkGetDynamicRenderingTilePropertiesQCOM");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
@@ -23465,6 +23649,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyOpticalFlowSessionNV = pAPI->vkDestroyOpticalFlowSessionNV;
     vkBindOpticalFlowSessionImageNV = pAPI->vkBindOpticalFlowSessionImageNV;
     vkCmdOpticalFlowExecuteNV = pAPI->vkCmdOpticalFlowExecuteNV;
+    vkCreateShadersEXT = pAPI->vkCreateShadersEXT;
+    vkDestroyShaderEXT = pAPI->vkDestroyShaderEXT;
+    vkGetShaderBinaryDataEXT = pAPI->vkGetShaderBinaryDataEXT;
+    vkCmdBindShadersEXT = pAPI->vkCmdBindShadersEXT;
     vkGetFramebufferTilePropertiesQCOM = pAPI->vkGetFramebufferTilePropertiesQCOM;
     vkGetDynamicRenderingTilePropertiesQCOM = pAPI->vkGetDynamicRenderingTilePropertiesQCOM;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
