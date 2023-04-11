@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.246.0 - 2023-04-01
+vkbind - v1.3.246.1 - 2023-04-12
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -129,6 +129,12 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #include <stddef.h>
 #endif  /* VK_NO_STDDEF_H */
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    #if !defined(VKBIND_NO_WIN32_HEADERS)
+        #include <windows.h>
+    #endif
+#endif
+
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     #if !defined(VKBIND_NO_XLIB_HEADERS)
         #include <X11/Xlib.h>
@@ -141,7 +147,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #endif
 #endif
 
-/* We need to vkbind_Display and vkbind_Window */
+/* We need to define vkbind_Display and vkbind_Window */
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
     #if !defined(VKBIND_NO_XLIB_HEADERS)
         typedef Display       vkbind_Display;
@@ -16558,7 +16564,6 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryAndroidHardwareBufferANDROID)(VkDevi
 #endif /*VK_USE_PLATFORM_ANDROID_KHR*/
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-#include <windows.h>
 
 #define VK_KHR_win32_surface 1
 #define VK_KHR_WIN32_SURFACE_SPEC_VERSION 6

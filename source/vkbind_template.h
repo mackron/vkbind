@@ -129,6 +129,12 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #include <stddef.h>
 #endif  /* VK_NO_STDDEF_H */
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    #if !defined(VKBIND_NO_WIN32_HEADERS)
+        #include <windows.h>
+    #endif
+#endif
+
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
     #if !defined(VKBIND_NO_XLIB_HEADERS)
         #include <X11/Xlib.h>
@@ -141,7 +147,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #endif
 #endif
 
-/* We need to vkbind_Display and vkbind_Window */
+/* We need to define vkbind_Display and vkbind_Window */
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
     #if !defined(VKBIND_NO_XLIB_HEADERS)
         typedef Display       vkbind_Display;

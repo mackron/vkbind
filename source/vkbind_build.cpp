@@ -1637,6 +1637,11 @@ VkbResult vkbBuildGenerateCode_C_DependencyIncludes(VkbBuild &context, vkbBuildC
                     continue;
                 }
 
+                /* Same for windows.h */
+                if (type.name == "windows.h") {
+                    continue;
+                }
+
                 codeOut += "#include <" + type.name + ">\n";
                 codegenState.MarkTypeAsOutput(type.name);
             }
