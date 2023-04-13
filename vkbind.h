@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.246.1 - 2023-04-12
+vkbind - v1.3.247.0 - 2023-04-14
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1310,7 +1310,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 246
+#define VK_HEADER_VERSION 247
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -14601,7 +14601,7 @@ typedef struct VkPhysicalDevice4444FormatsFeaturesEXT
 
 
 #define VK_EXT_device_fault 1
-#define VK_EXT_DEVICE_FAULT_SPEC_VERSION 1
+#define VK_EXT_DEVICE_FAULT_SPEC_VERSION 2
 #define VK_EXT_DEVICE_FAULT_EXTENSION_NAME "VK_EXT_device_fault"
 
 typedef enum
@@ -14675,6 +14675,8 @@ typedef struct VkDeviceFaultVendorBinaryHeaderVersionOneEXT
     uint32_t applicationNameOffset;
     uint32_t applicationVersion;
     uint32_t engineNameOffset;
+    uint32_t engineVersion;
+    uint32_t apiVersion;
 } VkDeviceFaultVendorBinaryHeaderVersionOneEXT;
 
 
@@ -15334,7 +15336,7 @@ typedef void (VKAPI_PTR *PFN_vkGetMicromapBuildSizesEXT)(VkDevice device, VkAcce
 
 
 #define VK_HUAWEI_cluster_culling_shader 1
-#define VK_HUAWEI_CLUSTER_CULLING_SHADER_SPEC_VERSION 1
+#define VK_HUAWEI_CLUSTER_CULLING_SHADER_SPEC_VERSION 2
 #define VK_HUAWEI_CLUSTER_CULLING_SHADER_EXTENSION_NAME "VK_HUAWEI_cluster_culling_shader"
 
 typedef struct VkPhysicalDeviceClusterCullingShaderFeaturesHUAWEI
