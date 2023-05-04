@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.249.0 - 2023-04-29
+vkbind - v1.3.250.0 - 2023-05-05
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1310,7 +1310,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 249
+#define VK_HEADER_VERSION 250
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -2228,6 +2228,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT = 1000498000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM = 1000510000,
     VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM = 1000510001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT = 1000524000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDERING_INFO_KHR = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -3574,6 +3575,7 @@ typedef enum
     VK_DYNAMIC_STATE_SHADING_RATE_IMAGE_ENABLE_NV = 1000455030,
     VK_DYNAMIC_STATE_REPRESENTATIVE_FRAGMENT_TEST_ENABLE_NV = 1000455031,
     VK_DYNAMIC_STATE_COVERAGE_REDUCTION_MODE_NV = 1000455032,
+    VK_DYNAMIC_STATE_ATTACHMENT_FEEDBACK_LOOP_ENABLE_EXT = 1000524000,
     VK_DYNAMIC_STATE_CULL_MODE_EXT = VK_DYNAMIC_STATE_CULL_MODE,
     VK_DYNAMIC_STATE_FRONT_FACE_EXT = VK_DYNAMIC_STATE_FRONT_FACE,
     VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
@@ -16380,6 +16382,21 @@ typedef struct VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM
     const VkRect2D* pPerViewRenderAreas;
 } VkMultiviewPerViewRenderAreasRenderPassBeginInfoQCOM;
 
+
+#define VK_EXT_attachment_feedback_loop_dynamic_state 1
+#define VK_EXT_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_SPEC_VERSION 1
+#define VK_EXT_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_EXTENSION_NAME "VK_EXT_attachment_feedback_loop_dynamic_state"
+
+typedef struct VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 attachmentFeedbackLoopDynamicState;
+} VkPhysicalDeviceAttachmentFeedbackLoopDynamicStateFeaturesEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)(VkCommandBuffer commandBuffer, VkImageAspectFlags aspectMask);
+
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 
 #define VK_KHR_xlib_surface 1
@@ -18674,6 +18691,7 @@ extern PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
 extern PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 extern PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 extern PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+extern PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 extern PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 extern PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -19360,6 +19378,7 @@ typedef struct
     PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
     PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
     PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+    PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
     PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -20132,6 +20151,7 @@ PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
 PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
 PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -20895,6 +20915,7 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetDynamicRenderingTilePropertiesQCOM");
+    pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = (PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetAttachmentFeedbackLoopEnableEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -21597,6 +21618,7 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = vkCmdBindShadersEXT;
     pAPI->vkGetFramebufferTilePropertiesQCOM = vkGetFramebufferTilePropertiesQCOM;
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = vkGetDynamicRenderingTilePropertiesQCOM;
+    pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = vkGetPhysicalDeviceXlibPresentationSupportKHR;
@@ -22382,6 +22404,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetDynamicRenderingTilePropertiesQCOM");
+    pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = (PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetAttachmentFeedbackLoopEnableEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
     pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR = (PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceXlibPresentationSupportKHR");
@@ -23008,6 +23031,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)pAPI->vkGetDeviceProcAddr(device, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)pAPI->vkGetDeviceProcAddr(device, "vkGetDynamicRenderingTilePropertiesQCOM");
+    pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = (PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetAttachmentFeedbackLoopEnableEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 #endif /*VK_USE_PLATFORM_XLIB_KHR*/
 #ifdef VK_USE_PLATFORM_XLIB_XRANDR_EXT
@@ -23676,6 +23700,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBindShadersEXT = pAPI->vkCmdBindShadersEXT;
     vkGetFramebufferTilePropertiesQCOM = pAPI->vkGetFramebufferTilePropertiesQCOM;
     vkGetDynamicRenderingTilePropertiesQCOM = pAPI->vkGetDynamicRenderingTilePropertiesQCOM;
+    vkCmdSetAttachmentFeedbackLoopEnableEXT = pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
     vkGetPhysicalDeviceXlibPresentationSupportKHR = pAPI->vkGetPhysicalDeviceXlibPresentationSupportKHR;
