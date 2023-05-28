@@ -1039,7 +1039,7 @@ int main(int argc, char** argv)
     multisampleState.flags                 = 0;
     multisampleState.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT;
     multisampleState.sampleShadingEnable   = VK_FALSE;
-    multisampleState.minSampleShading      = 0;
+    multisampleState.minSampleShading      = 1;
     multisampleState.pSampleMask           = NULL;
     multisampleState.alphaToCoverageEnable = VK_FALSE;
     multisampleState.alphaToOneEnable      = VK_FALSE;
@@ -1060,9 +1060,9 @@ int main(int argc, char** argv)
     depthStencilState.front.failOp          = VK_STENCIL_OP_KEEP;
     depthStencilState.front.passOp          = VK_STENCIL_OP_KEEP;
     depthStencilState.front.depthFailOp     = VK_STENCIL_OP_KEEP;
-    depthStencilState.front.compareOp       = VK_COMPARE_OP_NEVER;
-    depthStencilState.front.compareMask     = 0;
-    depthStencilState.front.writeMask       = 0;
+    depthStencilState.front.compareOp       = VK_COMPARE_OP_ALWAYS;
+    depthStencilState.front.compareMask     = 0xFFFFFFFF;
+    depthStencilState.front.writeMask       = 0xFFFFFFFF;
     depthStencilState.front.reference       = 0;
     depthStencilState.back                  = depthStencilState.front;  /* We're not doing stencil testing, so set to whatever you want (but make sure it's valid for correctness sake). */
     depthStencilState.minDepthBounds        = 0;
