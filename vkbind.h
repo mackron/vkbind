@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.251.0 - 2023-05-29
+vkbind - v1.3.252.0 - 2023-06-04
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1310,7 +1310,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 251
+#define VK_HEADER_VERSION 252
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -2176,6 +2176,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_FEATURES_QCOM = 1000440000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_PROCESSING_PROPERTIES_QCOM = 1000440001,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_SAMPLE_WEIGHT_CREATE_INFO_QCOM = 1000440002,
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXT = 1000453000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT = 1000455000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_PROPERTIES_EXT = 1000455001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBPASS_MERGE_FEEDBACK_FEATURES_EXT = 1000458000,
@@ -7952,7 +7953,7 @@ typedef void (VKAPI_PTR *PFN_vkFaultCallbackFunction)(VkBool32 unrecordedFaults,
 typedef struct VkFaultCallbackInfo
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     uint32_t faultCount;
     VkFaultData* pFaults;
     PFN_vkFaultCallbackFunction pfnFaultCallback;
@@ -15692,6 +15693,18 @@ typedef struct VkPhysicalDeviceImageProcessingPropertiesQCOM
     VkExtent2D maxBlockMatchRegion;
     VkExtent2D maxBoxFilterBlockSize;
 } VkPhysicalDeviceImageProcessingPropertiesQCOM;
+
+
+#define VK_EXT_external_memory_acquire_unmodified 1
+#define VK_EXT_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_SPEC_VERSION 1
+#define VK_EXT_EXTERNAL_MEMORY_ACQUIRE_UNMODIFIED_EXTENSION_NAME "VK_EXT_external_memory_acquire_unmodified"
+
+typedef struct VkExternalMemoryAcquireUnmodifiedEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBool32 acquireUnmodifiedMemory;
+} VkExternalMemoryAcquireUnmodifiedEXT;
 
 
 #define VK_EXT_extended_dynamic_state3 1
