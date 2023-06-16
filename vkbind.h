@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.253.0 - 2023-06-10
+vkbind - v1.3.254.0 - 2023-06-17
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1317,7 +1317,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 253
+#define VK_HEADER_VERSION 254
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -2018,6 +2018,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT = 1000281000,
     VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_RENDER_PASS_TRANSFORM_INFO_QCOM = 1000282000,
     VK_STRUCTURE_TYPE_RENDER_PASS_TRANSFORM_BEGIN_INFO_QCOM = 1000282001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_BIAS_CONTROL_FEATURES_EXT = 1000283000,
+    VK_STRUCTURE_TYPE_DEPTH_BIAS_INFO_EXT = 1000283001,
+    VK_STRUCTURE_TYPE_DEPTH_BIAS_REPRESENTATION_INFO_EXT = 1000283002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_MEMORY_REPORT_FEATURES_EXT = 1000284000,
     VK_STRUCTURE_TYPE_DEVICE_DEVICE_MEMORY_REPORT_CREATE_INFO_EXT = 1000284001,
     VK_STRUCTURE_TYPE_DEVICE_MEMORY_REPORT_CALLBACK_DATA_EXT = 1000284002,
@@ -2253,6 +2256,11 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM = 1000510000,
     VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM = 1000510001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT = 1000524000,
+    VK_STRUCTURE_TYPE_SCREEN_BUFFER_PROPERTIES_QNX = 1000529000,
+    VK_STRUCTURE_TYPE_SCREEN_BUFFER_FORMAT_PROPERTIES_QNX = 1000529001,
+    VK_STRUCTURE_TYPE_IMPORT_SCREEN_BUFFER_INFO_QNX = 1000529002,
+    VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_QNX = 1000529003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCREEN_BUFFER_FEATURES_QNX = 1000529004,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTERS_FEATURES,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
     VK_STRUCTURE_TYPE_RENDERING_INFO_KHR = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -5489,6 +5497,7 @@ typedef enum
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_ZIRCON_VMO_BIT_FUCHSIA = 0x00000800,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_RDMA_ADDRESS_BIT_NV = 0x00001000,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCI_BUF_BIT_NV = 0x00002000,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_SCREEN_BUFFER_BIT_QNX = 0x00004000,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
@@ -13619,6 +13628,50 @@ typedef struct VkCommandBufferInheritanceRenderPassTransformInfoQCOM
 } VkCommandBufferInheritanceRenderPassTransformInfoQCOM;
 
 
+#define VK_EXT_depth_bias_control 1
+#define VK_EXT_DEPTH_BIAS_CONTROL_SPEC_VERSION 1
+#define VK_EXT_DEPTH_BIAS_CONTROL_EXTENSION_NAME "VK_EXT_depth_bias_control"
+
+typedef enum
+{
+    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORMAT_EXT = 0,
+    VK_DEPTH_BIAS_REPRESENTATION_LEAST_REPRESENTABLE_VALUE_FORCE_UNORM_EXT = 1,
+    VK_DEPTH_BIAS_REPRESENTATION_FLOAT_EXT = 2,
+    VK_DEPTH_BIAS_REPRESENTATION_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkDepthBiasRepresentationEXT;
+
+
+typedef struct VkPhysicalDeviceDepthBiasControlFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 depthBiasControl;
+    VkBool32 leastRepresentableValueForceUnormRepresentation;
+    VkBool32 floatRepresentation;
+    VkBool32 depthBiasExact;
+} VkPhysicalDeviceDepthBiasControlFeaturesEXT;
+
+typedef struct VkDepthBiasInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    float depthBiasConstantFactor;
+    float depthBiasClamp;
+    float depthBiasSlopeFactor;
+} VkDepthBiasInfoEXT;
+
+typedef struct VkDepthBiasRepresentationInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDepthBiasRepresentationEXT depthBiasRepresentation;
+    VkBool32 depthBiasExact;
+} VkDepthBiasRepresentationInfoEXT;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdSetDepthBias2EXT)(VkCommandBuffer commandBuffer, const VkDepthBiasInfoEXT* pDepthBiasInfo);
+
+
 #define VK_EXT_device_memory_report 1
 #define VK_EXT_DEVICE_MEMORY_REPORT_SPEC_VERSION 2
 #define VK_EXT_DEVICE_MEMORY_REPORT_EXTENSION_NAME "VK_EXT_device_memory_report"
@@ -18302,6 +18355,58 @@ typedef struct VkScreenSurfaceCreateInfoQNX
 typedef VkResult (VKAPI_PTR *PFN_vkCreateScreenSurfaceQNX)(VkInstance instance, const VkScreenSurfaceCreateInfoQNX* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface);
 typedef VkBool32 (VKAPI_PTR *PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, struct _screen_window* window);
 
+
+#define VK_QNX_external_memory_screen_buffer 1
+#define VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_SPEC_VERSION 1
+#define VK_QNX_EXTERNAL_MEMORY_SCREEN_BUFFER_EXTENSION_NAME "VK_QNX_external_memory_screen_buffer"
+
+typedef struct VkScreenBufferPropertiesQNX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceSize allocationSize;
+    uint32_t memoryTypeBits;
+} VkScreenBufferPropertiesQNX;
+
+typedef struct VkScreenBufferFormatPropertiesQNX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkFormat format;
+    uint64_t externalFormat;
+    uint64_t screenUsage;
+    VkFormatFeatureFlags formatFeatures;
+    VkComponentMapping samplerYcbcrConversionComponents;
+    VkSamplerYcbcrModelConversion suggestedYcbcrModel;
+    VkSamplerYcbcrRange suggestedYcbcrRange;
+    VkChromaLocation suggestedXChromaOffset;
+    VkChromaLocation suggestedYChromaOffset;
+} VkScreenBufferFormatPropertiesQNX;
+
+typedef struct VkImportScreenBufferInfoQNX
+{
+    VkStructureType sType;
+    const void* pNext;
+    struct _screen_buffer* buffer;
+} VkImportScreenBufferInfoQNX;
+
+typedef struct VkExternalFormatQNX
+{
+    VkStructureType sType;
+    void* pNext;
+    uint64_t externalFormat;
+} VkExternalFormatQNX;
+
+typedef struct VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 screenBufferImport;
+} VkPhysicalDeviceExternalMemoryScreenBufferFeaturesQNX;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetScreenBufferPropertiesQNX)(VkDevice device, const struct _screen_buffer* buffer, VkScreenBufferPropertiesQNX* pProperties);
+
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
 
@@ -18774,6 +18879,7 @@ extern PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
 extern PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
 extern PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
 extern PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+extern PFN_vkCmdSetDepthBias2EXT vkCmdSetDepthBias2EXT;
 extern PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
 extern PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
 extern PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
@@ -18991,6 +19097,7 @@ extern PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 extern PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
 extern PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
+extern PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 #endif /*VKBIND_NO_GLOBAL_API*/
 
@@ -19463,6 +19570,7 @@ typedef struct
     PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
     PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
     PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+    PFN_vkCmdSetDepthBias2EXT vkCmdSetDepthBias2EXT;
     PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
     PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
     PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
@@ -19680,6 +19788,7 @@ typedef struct
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
     PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
     PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
+    PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 } VkbAPI;
 
@@ -20238,6 +20347,7 @@ PFN_vkCmdExecuteGeneratedCommandsNV vkCmdExecuteGeneratedCommandsNV;
 PFN_vkCmdBindPipelineShaderGroupNV vkCmdBindPipelineShaderGroupNV;
 PFN_vkCreateIndirectCommandsLayoutNV vkCreateIndirectCommandsLayoutNV;
 PFN_vkDestroyIndirectCommandsLayoutNV vkDestroyIndirectCommandsLayoutNV;
+PFN_vkCmdSetDepthBias2EXT vkCmdSetDepthBias2EXT;
 PFN_vkAcquireDrmDisplayEXT vkAcquireDrmDisplayEXT;
 PFN_vkGetDrmDisplayEXT vkGetDrmDisplayEXT;
 PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
@@ -20455,6 +20565,7 @@ PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
 PFN_vkCreateScreenSurfaceQNX vkCreateScreenSurfaceQNX;
 PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX vkGetPhysicalDeviceScreenPresentationSupportQNX;
+PFN_vkGetScreenBufferPropertiesQNX vkGetScreenBufferPropertiesQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 #endif /*VKBIND_NO_GLOBAL_API*/
 
@@ -21004,6 +21115,7 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkCmdSetDepthBias2EXT = (PFN_vkCmdSetDepthBias2EXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDepthBias2EXT");
     pAPI->vkAcquireDrmDisplayEXT = (PFN_vkAcquireDrmDisplayEXT)vkb_dlsym(g_vkbVulkanSO, "vkAcquireDrmDisplayEXT");
     pAPI->vkGetDrmDisplayEXT = (PFN_vkGetDrmDisplayEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDrmDisplayEXT");
     pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreatePrivateDataSlotEXT");
@@ -21221,6 +21333,7 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
     pAPI->vkCreateScreenSurfaceQNX = (PFN_vkCreateScreenSurfaceQNX)vkb_dlsym(g_vkbVulkanSO, "vkCreateScreenSurfaceQNX");
     pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX = (PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceScreenPresentationSupportQNX");
+    pAPI->vkGetScreenBufferPropertiesQNX = (PFN_vkGetScreenBufferPropertiesQNX)vkb_dlsym(g_vkbVulkanSO, "vkGetScreenBufferPropertiesQNX");
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     /*
@@ -21709,6 +21822,7 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = vkCmdBindPipelineShaderGroupNV;
     pAPI->vkCreateIndirectCommandsLayoutNV = vkCreateIndirectCommandsLayoutNV;
     pAPI->vkDestroyIndirectCommandsLayoutNV = vkDestroyIndirectCommandsLayoutNV;
+    pAPI->vkCmdSetDepthBias2EXT = vkCmdSetDepthBias2EXT;
     pAPI->vkAcquireDrmDisplayEXT = vkAcquireDrmDisplayEXT;
     pAPI->vkGetDrmDisplayEXT = vkGetDrmDisplayEXT;
     pAPI->vkCreatePrivateDataSlotEXT = vkCreatePrivateDataSlotEXT;
@@ -21926,6 +22040,7 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
     pAPI->vkCreateScreenSurfaceQNX = vkCreateScreenSurfaceQNX;
     pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX = vkGetPhysicalDeviceScreenPresentationSupportQNX;
+    pAPI->vkGetScreenBufferPropertiesQNX = vkGetScreenBufferPropertiesQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 }
 #endif /*VKBIND_NO_GLOBAL_API*/
@@ -22497,6 +22612,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)pAPI->vkGetInstanceProcAddr(instance, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkCmdSetDepthBias2EXT = (PFN_vkCmdSetDepthBias2EXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDepthBias2EXT");
     pAPI->vkAcquireDrmDisplayEXT = (PFN_vkAcquireDrmDisplayEXT)pAPI->vkGetInstanceProcAddr(instance, "vkAcquireDrmDisplayEXT");
     pAPI->vkGetDrmDisplayEXT = (PFN_vkGetDrmDisplayEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetDrmDisplayEXT");
     pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCreatePrivateDataSlotEXT");
@@ -22714,6 +22830,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
     pAPI->vkCreateScreenSurfaceQNX = (PFN_vkCreateScreenSurfaceQNX)pAPI->vkGetInstanceProcAddr(instance, "vkCreateScreenSurfaceQNX");
     pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX = (PFN_vkGetPhysicalDeviceScreenPresentationSupportQNX)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceScreenPresentationSupportQNX");
+    pAPI->vkGetScreenBufferPropertiesQNX = (PFN_vkGetScreenBufferPropertiesQNX)pAPI->vkGetInstanceProcAddr(instance, "vkGetScreenBufferPropertiesQNX");
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
@@ -23130,6 +23247,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdBindPipelineShaderGroupNV = (PFN_vkCmdBindPipelineShaderGroupNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindPipelineShaderGroupNV");
     pAPI->vkCreateIndirectCommandsLayoutNV = (PFN_vkCreateIndirectCommandsLayoutNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateIndirectCommandsLayoutNV");
     pAPI->vkDestroyIndirectCommandsLayoutNV = (PFN_vkDestroyIndirectCommandsLayoutNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyIndirectCommandsLayoutNV");
+    pAPI->vkCmdSetDepthBias2EXT = (PFN_vkCmdSetDepthBias2EXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDepthBias2EXT");
     pAPI->vkCreatePrivateDataSlotEXT = (PFN_vkCreatePrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkCreatePrivateDataSlotEXT");
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
@@ -23315,6 +23433,7 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdEncodeVideoKHR");
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
+    pAPI->vkGetScreenBufferPropertiesQNX = (PFN_vkGetScreenBufferPropertiesQNX)pAPI->vkGetDeviceProcAddr(device, "vkGetScreenBufferPropertiesQNX");
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
@@ -23796,6 +23915,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBindPipelineShaderGroupNV = pAPI->vkCmdBindPipelineShaderGroupNV;
     vkCreateIndirectCommandsLayoutNV = pAPI->vkCreateIndirectCommandsLayoutNV;
     vkDestroyIndirectCommandsLayoutNV = pAPI->vkDestroyIndirectCommandsLayoutNV;
+    vkCmdSetDepthBias2EXT = pAPI->vkCmdSetDepthBias2EXT;
     vkAcquireDrmDisplayEXT = pAPI->vkAcquireDrmDisplayEXT;
     vkGetDrmDisplayEXT = pAPI->vkGetDrmDisplayEXT;
     vkCreatePrivateDataSlotEXT = pAPI->vkCreatePrivateDataSlotEXT;
@@ -24013,6 +24133,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
 #ifdef VK_USE_PLATFORM_SCREEN_QNX
     vkCreateScreenSurfaceQNX = pAPI->vkCreateScreenSurfaceQNX;
     vkGetPhysicalDeviceScreenPresentationSupportQNX = pAPI->vkGetPhysicalDeviceScreenPresentationSupportQNX;
+    vkGetScreenBufferPropertiesQNX = pAPI->vkGetScreenBufferPropertiesQNX;
 #endif /*VK_USE_PLATFORM_SCREEN_QNX*/
 
     return VK_SUCCESS;
