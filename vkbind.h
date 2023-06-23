@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.254.0 - 2023-06-17
+vkbind - v1.3.255.0 - 2023-06-24
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1317,7 +1317,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 254
+#define VK_HEADER_VERSION 255
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -2253,6 +2253,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM = 1000497001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_LIBRARY_GROUP_HANDLES_FEATURES_EXT = 1000498000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_FEATURES_EXT = 1000499000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_KHR = 1000506000,
+    VK_STRUCTURE_TYPE_COOPERATIVE_MATRIX_PROPERTIES_KHR = 1000506001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_KHR = 1000506002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PER_VIEW_RENDER_AREAS_FEATURES_QCOM = 1000510000,
     VK_STRUCTURE_TYPE_MULTIVIEW_PER_VIEW_RENDER_AREAS_RENDER_PASS_BEGIN_INFO_QCOM = 1000510001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_DYNAMIC_STATE_FEATURES_EXT = 1000524000,
@@ -16465,6 +16468,70 @@ typedef struct VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
 } VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT;
 
 
+#define VK_KHR_cooperative_matrix 1
+#define VK_KHR_COOPERATIVE_MATRIX_SPEC_VERSION 2
+#define VK_KHR_COOPERATIVE_MATRIX_EXTENSION_NAME "VK_KHR_cooperative_matrix"
+
+typedef enum
+{
+    VK_COMPONENT_TYPE_FLOAT16_KHR = 0,
+    VK_COMPONENT_TYPE_FLOAT32_KHR = 1,
+    VK_COMPONENT_TYPE_FLOAT64_KHR = 2,
+    VK_COMPONENT_TYPE_SINT8_KHR = 3,
+    VK_COMPONENT_TYPE_SINT16_KHR = 4,
+    VK_COMPONENT_TYPE_SINT32_KHR = 5,
+    VK_COMPONENT_TYPE_SINT64_KHR = 6,
+    VK_COMPONENT_TYPE_UINT8_KHR = 7,
+    VK_COMPONENT_TYPE_UINT16_KHR = 8,
+    VK_COMPONENT_TYPE_UINT32_KHR = 9,
+    VK_COMPONENT_TYPE_UINT64_KHR = 10,
+    VK_COMPONENT_TYPE_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkComponentTypeKHR;
+
+typedef enum
+{
+    VK_SCOPE_DEVICE_KHR = 1,
+    VK_SCOPE_WORKGROUP_KHR = 2,
+    VK_SCOPE_SUBGROUP_KHR = 3,
+    VK_SCOPE_QUEUE_FAMILY_KHR = 5,
+    VK_SCOPE_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkScopeKHR;
+
+
+typedef struct VkCooperativeMatrixPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t MSize;
+    uint32_t NSize;
+    uint32_t KSize;
+    VkComponentTypeKHR AType;
+    VkComponentTypeKHR BType;
+    VkComponentTypeKHR CType;
+    VkComponentTypeKHR ResultType;
+    VkBool32 saturatingAccumulation;
+    VkScopeKHR scope;
+} VkCooperativeMatrixPropertiesKHR;
+
+typedef struct VkPhysicalDeviceCooperativeMatrixFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 cooperativeMatrix;
+    VkBool32 cooperativeMatrixRobustBufferAccess;
+} VkPhysicalDeviceCooperativeMatrixFeaturesKHR;
+
+typedef struct VkPhysicalDeviceCooperativeMatrixPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkShaderStageFlags cooperativeMatrixSupportedStages;
+} VkPhysicalDeviceCooperativeMatrixPropertiesKHR;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR)(VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount, VkCooperativeMatrixPropertiesKHR* pProperties);
+
+
 #define VK_QCOM_multiview_per_view_render_areas 1
 #define VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_SPEC_VERSION 1
 #define VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_EXTENSION_NAME "VK_QCOM_multiview_per_view_render_areas"
@@ -19004,6 +19071,7 @@ extern PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
 extern PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 extern PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 extern PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+extern PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
 extern PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 extern PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -19695,6 +19763,7 @@ typedef struct
     PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
     PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
     PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+    PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
     PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -20472,6 +20541,7 @@ PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
 PFN_vkCmdBindShadersEXT vkCmdBindShadersEXT;
 PFN_vkGetFramebufferTilePropertiesQCOM vkGetFramebufferTilePropertiesQCOM;
 PFN_vkGetDynamicRenderingTilePropertiesQCOM vkGetDynamicRenderingTilePropertiesQCOM;
+PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
 PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
 PFN_vkCreateXlibSurfaceKHR vkCreateXlibSurfaceKHR;
@@ -21240,6 +21310,7 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)vkb_dlsym(g_vkbVulkanSO, "vkGetDynamicRenderingTilePropertiesQCOM");
+    pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR");
     pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = (PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetAttachmentFeedbackLoopEnableEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)vkb_dlsym(g_vkbVulkanSO, "vkCreateXlibSurfaceKHR");
@@ -21947,6 +22018,7 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = vkCmdBindShadersEXT;
     pAPI->vkGetFramebufferTilePropertiesQCOM = vkGetFramebufferTilePropertiesQCOM;
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = vkGetDynamicRenderingTilePropertiesQCOM;
+    pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR = vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
     pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = vkCreateXlibSurfaceKHR;
@@ -22737,6 +22809,7 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdBindShadersEXT = (PFN_vkCmdBindShadersEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindShadersEXT");
     pAPI->vkGetFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetFramebufferTilePropertiesQCOM");
     pAPI->vkGetDynamicRenderingTilePropertiesQCOM = (PFN_vkGetDynamicRenderingTilePropertiesQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkGetDynamicRenderingTilePropertiesQCOM");
+    pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR = (PFN_vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR");
     pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT = (PFN_vkCmdSetAttachmentFeedbackLoopEnableEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetAttachmentFeedbackLoopEnableEXT");
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     pAPI->vkCreateXlibSurfaceKHR = (PFN_vkCreateXlibSurfaceKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCreateXlibSurfaceKHR");
@@ -24040,6 +24113,7 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdBindShadersEXT = pAPI->vkCmdBindShadersEXT;
     vkGetFramebufferTilePropertiesQCOM = pAPI->vkGetFramebufferTilePropertiesQCOM;
     vkGetDynamicRenderingTilePropertiesQCOM = pAPI->vkGetDynamicRenderingTilePropertiesQCOM;
+    vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR = pAPI->vkGetPhysicalDeviceCooperativeMatrixPropertiesKHR;
     vkCmdSetAttachmentFeedbackLoopEnableEXT = pAPI->vkCmdSetAttachmentFeedbackLoopEnableEXT;
 #ifdef VK_USE_PLATFORM_XLIB_KHR
     vkCreateXlibSurfaceKHR = pAPI->vkCreateXlibSurfaceKHR;
