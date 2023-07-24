@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.257.0 - 2023-07-08
+vkbind - v1.3.259.0 - 2023-07-24
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1317,7 +1317,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 257
+#define VK_HEADER_VERSION 259
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -1993,6 +1993,16 @@ typedef enum
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INFO_KHR = 1000269003,
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_STATISTIC_KHR = 1000269004,
     VK_STRUCTURE_TYPE_PIPELINE_EXECUTABLE_INTERNAL_REPRESENTATION_KHR = 1000269005,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_FEATURES_EXT = 1000270000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_IMAGE_COPY_PROPERTIES_EXT = 1000270001,
+    VK_STRUCTURE_TYPE_MEMORY_TO_IMAGE_COPY_EXT = 1000270002,
+    VK_STRUCTURE_TYPE_IMAGE_TO_MEMORY_COPY_EXT = 1000270003,
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_MEMORY_INFO_EXT = 1000270004,
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INFO_EXT = 1000270005,
+    VK_STRUCTURE_TYPE_HOST_IMAGE_LAYOUT_TRANSITION_INFO_EXT = 1000270006,
+    VK_STRUCTURE_TYPE_COPY_IMAGE_TO_IMAGE_INFO_EXT = 1000270007,
+    VK_STRUCTURE_TYPE_SUBRESOURCE_HOST_MEMCPY_SIZE_EXT = 1000270008,
+    VK_STRUCTURE_TYPE_HOST_IMAGE_COPY_DEVICE_PERFORMANCE_QUERY_EXT = 1000270009,
     VK_STRUCTURE_TYPE_MEMORY_MAP_INFO_KHR = 1000271000,
     VK_STRUCTURE_TYPE_MEMORY_UNMAP_INFO_KHR = 1000271001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ATOMIC_FLOAT_2_FEATURES_EXT = 1000273000,
@@ -2195,6 +2205,9 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_NV = 1000426001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_NV = 1000427000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_NV = 1000427001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_COMPUTE_FEATURES_NV = 1000428000,
+    VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_INDIRECT_BUFFER_INFO_NV = 1000428001,
+    VK_STRUCTURE_TYPE_PIPELINE_INDIRECT_DEVICE_ADDRESS_INFO_NV = 1000428002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINEAR_COLOR_ATTACHMENT_FEATURES_NV = 1000430000,
     VK_STRUCTURE_TYPE_APPLICATION_PARAMETERS_EXT = 1000435000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT = 1000437000,
@@ -3069,6 +3082,7 @@ typedef enum
     VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR = 0x00001000,
     VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x00000200,
     VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = 0x00000100,
+    VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT = 0x00400000,
     VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR = 0x00002000,
     VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR = 0x00004000,
     VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR = 0x00008000,
@@ -3860,6 +3874,7 @@ typedef enum
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR = 0x00000001,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT = 0x00000010,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT = 0x00000020,
+    VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV = 0x00000080,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT = 0x00000004,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
     VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT,
@@ -7192,6 +7207,7 @@ static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_VIDEO_DECODE_DPB_BIT_K
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_ACCELERATION_STRUCTURE_VERTEX_BUFFER_BIT_KHR = 0x20000000;
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_FRAGMENT_DENSITY_MAP_BIT_EXT = 0x01000000;
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = 0x40000000;
+static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT_EXT = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00004000 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_VIDEO_ENCODE_INPUT_BIT_KHR = 0x08000000;
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_VIDEO_ENCODE_DPB_BIT_KHR = 0x10000000;
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_LINEAR_COLOR_ATTACHMENT_BIT_NV = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00000040 << 32) | (0x00000000));
@@ -13242,6 +13258,143 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetPipelineExecutableStatisticsKHR)(VkDevice 
 typedef VkResult (VKAPI_PTR *PFN_vkGetPipelineExecutableInternalRepresentationsKHR)(VkDevice device, const VkPipelineExecutableInfoKHR* pExecutableInfo, uint32_t* pInternalRepresentationCount, VkPipelineExecutableInternalRepresentationKHR* pInternalRepresentations);
 
 
+#define VK_EXT_host_image_copy 1
+#define VK_EXT_HOST_IMAGE_COPY_SPEC_VERSION 1
+#define VK_EXT_HOST_IMAGE_COPY_EXTENSION_NAME "VK_EXT_host_image_copy"
+
+
+typedef enum
+{
+    VK_HOST_IMAGE_COPY_MEMCPY_EXT = 0x00000001,
+    VK_HOST_IMAGE_COPY_FLAG_BITS_MAX_ENUM_EXT = 0x7FFFFFFF
+} VkHostImageCopyFlagBitsEXT;
+typedef VkFlags VkHostImageCopyFlagsEXT;
+
+typedef struct VkPhysicalDeviceHostImageCopyFeaturesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 hostImageCopy;
+} VkPhysicalDeviceHostImageCopyFeaturesEXT;
+
+typedef struct VkPhysicalDeviceHostImageCopyPropertiesEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t copySrcLayoutCount;
+    VkImageLayout* pCopySrcLayouts;
+    uint32_t copyDstLayoutCount;
+    VkImageLayout* pCopyDstLayouts;
+    uint8_t optimalTilingLayoutUUID[VK_UUID_SIZE];
+    VkBool32 identicalMemoryTypeRequirements;
+} VkPhysicalDeviceHostImageCopyPropertiesEXT;
+
+typedef struct VkMemoryToImageCopyEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    const void* pHostPointer;
+    uint32_t memoryRowLength;
+    uint32_t memoryImageHeight;
+    VkImageSubresourceLayers imageSubresource;
+    VkOffset3D imageOffset;
+    VkExtent3D imageExtent;
+} VkMemoryToImageCopyEXT;
+
+typedef struct VkImageToMemoryCopyEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    void* pHostPointer;
+    uint32_t memoryRowLength;
+    uint32_t memoryImageHeight;
+    VkImageSubresourceLayers imageSubresource;
+    VkOffset3D imageOffset;
+    VkExtent3D imageExtent;
+} VkImageToMemoryCopyEXT;
+
+typedef struct VkCopyMemoryToImageInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkHostImageCopyFlagsEXT flags;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkMemoryToImageCopyEXT* pRegions;
+} VkCopyMemoryToImageInfoEXT;
+
+typedef struct VkCopyImageToMemoryInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkHostImageCopyFlagsEXT flags;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    uint32_t regionCount;
+    const VkImageToMemoryCopyEXT* pRegions;
+} VkCopyImageToMemoryInfoEXT;
+
+typedef struct VkCopyImageToImageInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkHostImageCopyFlagsEXT flags;
+    VkImage srcImage;
+    VkImageLayout srcImageLayout;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    uint32_t regionCount;
+    const VkImageCopy2* pRegions;
+} VkCopyImageToImageInfoEXT;
+
+typedef struct VkHostImageLayoutTransitionInfoEXT
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkImage image;
+    VkImageLayout oldLayout;
+    VkImageLayout newLayout;
+    VkImageSubresourceRange subresourceRange;
+} VkHostImageLayoutTransitionInfoEXT;
+
+typedef struct VkSubresourceHostMemcpySizeEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceSize size;
+} VkSubresourceHostMemcpySizeEXT;
+
+typedef struct VkHostImageCopyDevicePerformanceQueryEXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 optimalDeviceAccess;
+    VkBool32 identicalMemoryLayout;
+} VkHostImageCopyDevicePerformanceQueryEXT;
+
+typedef struct VkSubresourceLayout2EXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkSubresourceLayout subresourceLayout;
+} VkSubresourceLayout2EXT;
+
+typedef struct VkImageSubresource2EXT
+{
+    VkStructureType sType;
+    void* pNext;
+    VkImageSubresource imageSubresource;
+} VkImageSubresource2EXT;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCopyMemoryToImageEXT)(VkDevice device, const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkCopyImageToMemoryEXT)(VkDevice device, const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkCopyImageToImageEXT)(VkDevice device, const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkTransitionImageLayoutEXT)(VkDevice device, uint32_t transitionCount, const VkHostImageLayoutTransitionInfoEXT* pTransitions);
+typedef void (VKAPI_PTR *PFN_vkGetImageSubresourceLayout2EXT)(VkDevice device, VkImage image, const VkImageSubresource2EXT* pSubresource, VkSubresourceLayout2EXT* pLayout);
+
+
 #define VK_KHR_map_memory2 1
 #define VK_KHR_MAP_MEMORY_2_SPEC_VERSION 1
 #define VK_KHR_MAP_MEMORY_2_EXTENSION_NAME "VK_KHR_map_memory2"
@@ -13431,6 +13584,8 @@ typedef enum
     VK_INDIRECT_COMMANDS_TOKEN_TYPE_DRAW_NV = 6,
     VK_INDIRECT_COMMANDS_TOKEN_TYPE_DRAW_TASKS_NV = 7,
     VK_INDIRECT_COMMANDS_TOKEN_TYPE_DRAW_MESH_TASKS_NV = 1000328000,
+    VK_INDIRECT_COMMANDS_TOKEN_TYPE_PIPELINE_NV = 1000428003,
+    VK_INDIRECT_COMMANDS_TOKEN_TYPE_DISPATCH_NV = 1000428004,
     VK_INDIRECT_COMMANDS_TOKEN_TYPE_MAX_ENUM_NV = 0x7FFFFFFF
 } VkIndirectCommandsTokenTypeNV;
 
@@ -14652,20 +14807,6 @@ typedef struct VkImageCompressionControlEXT
     VkImageCompressionFixedRateFlagsEXT* pFixedRateFlags;
 } VkImageCompressionControlEXT;
 
-typedef struct VkSubresourceLayout2EXT
-{
-    VkStructureType sType;
-    void* pNext;
-    VkSubresourceLayout subresourceLayout;
-} VkSubresourceLayout2EXT;
-
-typedef struct VkImageSubresource2EXT
-{
-    VkStructureType sType;
-    void* pNext;
-    VkImageSubresource imageSubresource;
-} VkImageSubresource2EXT;
-
 typedef struct VkImageCompressionPropertiesEXT
 {
     VkStructureType sType;
@@ -14673,9 +14814,6 @@ typedef struct VkImageCompressionPropertiesEXT
     VkImageCompressionFlagsEXT imageCompressionFlags;
     VkImageCompressionFixedRateFlagsEXT imageCompressionFixedRateFlags;
 } VkImageCompressionPropertiesEXT;
-
-
-typedef void (VKAPI_PTR *PFN_vkGetImageSubresourceLayout2EXT)(VkDevice device, VkImage image, const VkImageSubresource2EXT* pSubresource, VkSubresourceLayout2EXT* pLayout);
 
 
 #define VK_EXT_attachment_feedback_loop_layout 1
@@ -15713,6 +15851,47 @@ typedef struct VkPhysicalDeviceMemoryDecompressionPropertiesNV
 
 typedef void (VKAPI_PTR *PFN_vkCmdDecompressMemoryNV)(VkCommandBuffer commandBuffer, uint32_t decompressRegionCount, const VkDecompressMemoryRegionNV* pDecompressMemoryRegions);
 typedef void (VKAPI_PTR *PFN_vkCmdDecompressMemoryIndirectCountNV)(VkCommandBuffer commandBuffer, VkDeviceAddress indirectCommandsAddress, VkDeviceAddress indirectCommandsCountAddress, uint32_t stride);
+
+
+#define VK_NV_device_generated_commands_compute 1
+#define VK_NV_DEVICE_GENERATED_COMMANDS_COMPUTE_SPEC_VERSION 2
+#define VK_NV_DEVICE_GENERATED_COMMANDS_COMPUTE_EXTENSION_NAME "VK_NV_device_generated_commands_compute"
+
+typedef struct VkPhysicalDeviceDeviceGeneratedCommandsComputeFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 deviceGeneratedCompute;
+    VkBool32 deviceGeneratedComputePipelines;
+    VkBool32 deviceGeneratedComputeCaptureReplay;
+} VkPhysicalDeviceDeviceGeneratedCommandsComputeFeaturesNV;
+
+typedef struct VkComputePipelineIndirectBufferInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkDeviceAddress deviceAddress;
+    VkDeviceSize size;
+    VkDeviceAddress pipelineDeviceAddressCaptureReplay;
+} VkComputePipelineIndirectBufferInfoNV;
+
+typedef struct VkPipelineIndirectDeviceAddressInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineBindPoint pipelineBindPoint;
+    VkPipeline pipeline;
+} VkPipelineIndirectDeviceAddressInfoNV;
+
+typedef struct VkBindPipelineIndirectCommandNV
+{
+    VkDeviceAddress pipelineAddress;
+} VkBindPipelineIndirectCommandNV;
+
+
+typedef void (VKAPI_PTR *PFN_vkGetPipelineIndirectMemoryRequirementsNV)(VkDevice device, const VkComputePipelineCreateInfo* pCreateInfo, VkMemoryRequirements2* pMemoryRequirements);
+typedef void (VKAPI_PTR *PFN_vkCmdUpdatePipelineIndirectBufferNV)(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline);
+typedef VkDeviceAddress (VKAPI_PTR *PFN_vkGetPipelineIndirectDeviceAddressNV)(VkDevice device, const VkPipelineIndirectDeviceAddressInfoNV* pInfo);
 
 
 #define VK_NV_linear_color_attachment 1
@@ -18343,7 +18522,7 @@ typedef void (VKAPI_PTR *PFN_vkCmdEncodeVideoKHR)(VkCommandBuffer commandBuffer,
 
 
 #define VK_NV_displacement_micromap 1
-#define VK_NV_DISPLACEMENT_MICROMAP_SPEC_VERSION 1
+#define VK_NV_DISPLACEMENT_MICROMAP_SPEC_VERSION 2
 #define VK_NV_DISPLACEMENT_MICROMAP_EXTENSION_NAME "VK_NV_displacement_micromap"
 
 typedef enum
@@ -18929,6 +19108,11 @@ extern PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 extern PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 extern PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 extern PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+extern PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImageEXT;
+extern PFN_vkCopyImageToMemoryEXT vkCopyImageToMemoryEXT;
+extern PFN_vkCopyImageToImageEXT vkCopyImageToImageEXT;
+extern PFN_vkTransitionImageLayoutEXT vkTransitionImageLayoutEXT;
+extern PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
 extern PFN_vkMapMemory2KHR vkMapMemory2KHR;
 extern PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
 extern PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
@@ -18976,7 +19160,6 @@ extern PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
 extern PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
 extern PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
 extern PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
-extern PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
 extern PFN_vkGetDeviceFaultInfoEXT vkGetDeviceFaultInfoEXT;
 extern PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
 extern PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
@@ -19019,6 +19202,9 @@ extern PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
 extern PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 extern PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
 extern PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
+extern PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
+extern PFN_vkCmdUpdatePipelineIndirectBufferNV vkCmdUpdatePipelineIndirectBufferNV;
+extern PFN_vkGetPipelineIndirectDeviceAddressNV vkGetPipelineIndirectDeviceAddressNV;
 extern PFN_vkCmdSetTessellationDomainOriginEXT vkCmdSetTessellationDomainOriginEXT;
 extern PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT;
 extern PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT;
@@ -19621,6 +19807,11 @@ typedef struct
     PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
     PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
     PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+    PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImageEXT;
+    PFN_vkCopyImageToMemoryEXT vkCopyImageToMemoryEXT;
+    PFN_vkCopyImageToImageEXT vkCopyImageToImageEXT;
+    PFN_vkTransitionImageLayoutEXT vkTransitionImageLayoutEXT;
+    PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
     PFN_vkMapMemory2KHR vkMapMemory2KHR;
     PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
     PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
@@ -19668,7 +19859,6 @@ typedef struct
     PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
     PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
     PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
-    PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
     PFN_vkGetDeviceFaultInfoEXT vkGetDeviceFaultInfoEXT;
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
     PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
@@ -19711,6 +19901,9 @@ typedef struct
     PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
     PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
     PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
+    PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
+    PFN_vkCmdUpdatePipelineIndirectBufferNV vkCmdUpdatePipelineIndirectBufferNV;
+    PFN_vkGetPipelineIndirectDeviceAddressNV vkGetPipelineIndirectDeviceAddressNV;
     PFN_vkCmdSetTessellationDomainOriginEXT vkCmdSetTessellationDomainOriginEXT;
     PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT;
     PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT;
@@ -20399,6 +20592,11 @@ PFN_vkDeferredOperationJoinKHR vkDeferredOperationJoinKHR;
 PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR;
 PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR;
 PFN_vkGetPipelineExecutableInternalRepresentationsKHR vkGetPipelineExecutableInternalRepresentationsKHR;
+PFN_vkCopyMemoryToImageEXT vkCopyMemoryToImageEXT;
+PFN_vkCopyImageToMemoryEXT vkCopyImageToMemoryEXT;
+PFN_vkCopyImageToImageEXT vkCopyImageToImageEXT;
+PFN_vkTransitionImageLayoutEXT vkTransitionImageLayoutEXT;
+PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
 PFN_vkMapMemory2KHR vkMapMemory2KHR;
 PFN_vkUnmapMemory2KHR vkUnmapMemory2KHR;
 PFN_vkReleaseSwapchainImagesEXT vkReleaseSwapchainImagesEXT;
@@ -20446,7 +20644,6 @@ PFN_vkCmdCopyBufferToImage2KHR vkCmdCopyBufferToImage2KHR;
 PFN_vkCmdCopyImageToBuffer2KHR vkCmdCopyImageToBuffer2KHR;
 PFN_vkCmdBlitImage2KHR vkCmdBlitImage2KHR;
 PFN_vkCmdResolveImage2KHR vkCmdResolveImage2KHR;
-PFN_vkGetImageSubresourceLayout2EXT vkGetImageSubresourceLayout2EXT;
 PFN_vkGetDeviceFaultInfoEXT vkGetDeviceFaultInfoEXT;
 PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT;
 PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
@@ -20489,6 +20686,9 @@ PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
 PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
 PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
+PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
+PFN_vkCmdUpdatePipelineIndirectBufferNV vkCmdUpdatePipelineIndirectBufferNV;
+PFN_vkGetPipelineIndirectDeviceAddressNV vkGetPipelineIndirectDeviceAddressNV;
 PFN_vkCmdSetTessellationDomainOriginEXT vkCmdSetTessellationDomainOriginEXT;
 PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT;
 PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT;
@@ -21168,6 +21368,11 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkCopyMemoryToImageEXT = (PFN_vkCopyMemoryToImageEXT)vkb_dlsym(g_vkbVulkanSO, "vkCopyMemoryToImageEXT");
+    pAPI->vkCopyImageToMemoryEXT = (PFN_vkCopyImageToMemoryEXT)vkb_dlsym(g_vkbVulkanSO, "vkCopyImageToMemoryEXT");
+    pAPI->vkCopyImageToImageEXT = (PFN_vkCopyImageToImageEXT)vkb_dlsym(g_vkbVulkanSO, "vkCopyImageToImageEXT");
+    pAPI->vkTransitionImageLayoutEXT = (PFN_vkTransitionImageLayoutEXT)vkb_dlsym(g_vkbVulkanSO, "vkTransitionImageLayoutEXT");
+    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)vkb_dlsym(g_vkbVulkanSO, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)vkb_dlsym(g_vkbVulkanSO, "vkMapMemory2KHR");
     pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)vkb_dlsym(g_vkbVulkanSO, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)vkb_dlsym(g_vkbVulkanSO, "vkReleaseSwapchainImagesEXT");
@@ -21215,7 +21420,6 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyImageToBuffer2KHR");
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdResolveImage2KHR");
-    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)vkb_dlsym(g_vkbVulkanSO, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkGetDeviceFaultInfoEXT = (PFN_vkGetDeviceFaultInfoEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceFaultInfoEXT");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetVertexInputEXT");
     pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
@@ -21258,6 +21462,9 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDecompressMemoryIndirectCountNV");
+    pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineIndirectMemoryRequirementsNV");
+    pAPI->vkCmdUpdatePipelineIndirectBufferNV = (PFN_vkCmdUpdatePipelineIndirectBufferNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdUpdatePipelineIndirectBufferNV");
+    pAPI->vkGetPipelineIndirectDeviceAddressNV = (PFN_vkGetPipelineIndirectDeviceAddressNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineIndirectDeviceAddressNV");
     pAPI->vkCmdSetTessellationDomainOriginEXT = (PFN_vkCmdSetTessellationDomainOriginEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetTessellationDomainOriginEXT");
     pAPI->vkCmdSetDepthClampEnableEXT = (PFN_vkCmdSetDepthClampEnableEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDepthClampEnableEXT");
     pAPI->vkCmdSetPolygonModeEXT = (PFN_vkCmdSetPolygonModeEXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetPolygonModeEXT");
@@ -21876,6 +22083,11 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = vkGetPipelineExecutablePropertiesKHR;
     pAPI->vkGetPipelineExecutableStatisticsKHR = vkGetPipelineExecutableStatisticsKHR;
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = vkGetPipelineExecutableInternalRepresentationsKHR;
+    pAPI->vkCopyMemoryToImageEXT = vkCopyMemoryToImageEXT;
+    pAPI->vkCopyImageToMemoryEXT = vkCopyImageToMemoryEXT;
+    pAPI->vkCopyImageToImageEXT = vkCopyImageToImageEXT;
+    pAPI->vkTransitionImageLayoutEXT = vkTransitionImageLayoutEXT;
+    pAPI->vkGetImageSubresourceLayout2EXT = vkGetImageSubresourceLayout2EXT;
     pAPI->vkMapMemory2KHR = vkMapMemory2KHR;
     pAPI->vkUnmapMemory2KHR = vkUnmapMemory2KHR;
     pAPI->vkReleaseSwapchainImagesEXT = vkReleaseSwapchainImagesEXT;
@@ -21923,7 +22135,6 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdCopyImageToBuffer2KHR = vkCmdCopyImageToBuffer2KHR;
     pAPI->vkCmdBlitImage2KHR = vkCmdBlitImage2KHR;
     pAPI->vkCmdResolveImage2KHR = vkCmdResolveImage2KHR;
-    pAPI->vkGetImageSubresourceLayout2EXT = vkGetImageSubresourceLayout2EXT;
     pAPI->vkGetDeviceFaultInfoEXT = vkGetDeviceFaultInfoEXT;
     pAPI->vkCmdSetVertexInputEXT = vkCmdSetVertexInputEXT;
     pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
@@ -21966,6 +22177,9 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdCopyMemoryToImageIndirectNV = vkCmdCopyMemoryToImageIndirectNV;
     pAPI->vkCmdDecompressMemoryNV = vkCmdDecompressMemoryNV;
     pAPI->vkCmdDecompressMemoryIndirectCountNV = vkCmdDecompressMemoryIndirectCountNV;
+    pAPI->vkGetPipelineIndirectMemoryRequirementsNV = vkGetPipelineIndirectMemoryRequirementsNV;
+    pAPI->vkCmdUpdatePipelineIndirectBufferNV = vkCmdUpdatePipelineIndirectBufferNV;
+    pAPI->vkGetPipelineIndirectDeviceAddressNV = vkGetPipelineIndirectDeviceAddressNV;
     pAPI->vkCmdSetTessellationDomainOriginEXT = vkCmdSetTessellationDomainOriginEXT;
     pAPI->vkCmdSetDepthClampEnableEXT = vkCmdSetDepthClampEnableEXT;
     pAPI->vkCmdSetPolygonModeEXT = vkCmdSetPolygonModeEXT;
@@ -22667,6 +22881,11 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkCopyMemoryToImageEXT = (PFN_vkCopyMemoryToImageEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCopyMemoryToImageEXT");
+    pAPI->vkCopyImageToMemoryEXT = (PFN_vkCopyImageToMemoryEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCopyImageToMemoryEXT");
+    pAPI->vkCopyImageToImageEXT = (PFN_vkCopyImageToImageEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCopyImageToImageEXT");
+    pAPI->vkTransitionImageLayoutEXT = (PFN_vkTransitionImageLayoutEXT)pAPI->vkGetInstanceProcAddr(instance, "vkTransitionImageLayoutEXT");
+    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkMapMemory2KHR");
     pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)pAPI->vkGetInstanceProcAddr(instance, "vkReleaseSwapchainImagesEXT");
@@ -22714,7 +22933,6 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyImageToBuffer2KHR");
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdResolveImage2KHR");
-    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkGetDeviceFaultInfoEXT = (PFN_vkGetDeviceFaultInfoEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceFaultInfoEXT");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetVertexInputEXT");
     pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
@@ -22757,6 +22975,9 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDecompressMemoryIndirectCountNV");
+    pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineIndirectMemoryRequirementsNV");
+    pAPI->vkCmdUpdatePipelineIndirectBufferNV = (PFN_vkCmdUpdatePipelineIndirectBufferNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdUpdatePipelineIndirectBufferNV");
+    pAPI->vkGetPipelineIndirectDeviceAddressNV = (PFN_vkGetPipelineIndirectDeviceAddressNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineIndirectDeviceAddressNV");
     pAPI->vkCmdSetTessellationDomainOriginEXT = (PFN_vkCmdSetTessellationDomainOriginEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetTessellationDomainOriginEXT");
     pAPI->vkCmdSetDepthClampEnableEXT = (PFN_vkCmdSetDepthClampEnableEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDepthClampEnableEXT");
     pAPI->vkCmdSetPolygonModeEXT = (PFN_vkCmdSetPolygonModeEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetPolygonModeEXT");
@@ -23303,6 +23524,11 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetPipelineExecutablePropertiesKHR = (PFN_vkGetPipelineExecutablePropertiesKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutablePropertiesKHR");
     pAPI->vkGetPipelineExecutableStatisticsKHR = (PFN_vkGetPipelineExecutableStatisticsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableStatisticsKHR");
     pAPI->vkGetPipelineExecutableInternalRepresentationsKHR = (PFN_vkGetPipelineExecutableInternalRepresentationsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineExecutableInternalRepresentationsKHR");
+    pAPI->vkCopyMemoryToImageEXT = (PFN_vkCopyMemoryToImageEXT)pAPI->vkGetDeviceProcAddr(device, "vkCopyMemoryToImageEXT");
+    pAPI->vkCopyImageToMemoryEXT = (PFN_vkCopyImageToMemoryEXT)pAPI->vkGetDeviceProcAddr(device, "vkCopyImageToMemoryEXT");
+    pAPI->vkCopyImageToImageEXT = (PFN_vkCopyImageToImageEXT)pAPI->vkGetDeviceProcAddr(device, "vkCopyImageToImageEXT");
+    pAPI->vkTransitionImageLayoutEXT = (PFN_vkTransitionImageLayoutEXT)pAPI->vkGetDeviceProcAddr(device, "vkTransitionImageLayoutEXT");
+    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)pAPI->vkGetDeviceProcAddr(device, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkMapMemory2KHR = (PFN_vkMapMemory2KHR)pAPI->vkGetDeviceProcAddr(device, "vkMapMemory2KHR");
     pAPI->vkUnmapMemory2KHR = (PFN_vkUnmapMemory2KHR)pAPI->vkGetDeviceProcAddr(device, "vkUnmapMemory2KHR");
     pAPI->vkReleaseSwapchainImagesEXT = (PFN_vkReleaseSwapchainImagesEXT)pAPI->vkGetDeviceProcAddr(device, "vkReleaseSwapchainImagesEXT");
@@ -23347,7 +23573,6 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdCopyImageToBuffer2KHR = (PFN_vkCmdCopyImageToBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyImageToBuffer2KHR");
     pAPI->vkCmdBlitImage2KHR = (PFN_vkCmdBlitImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBlitImage2KHR");
     pAPI->vkCmdResolveImage2KHR = (PFN_vkCmdResolveImage2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResolveImage2KHR");
-    pAPI->vkGetImageSubresourceLayout2EXT = (PFN_vkGetImageSubresourceLayout2EXT)pAPI->vkGetDeviceProcAddr(device, "vkGetImageSubresourceLayout2EXT");
     pAPI->vkGetDeviceFaultInfoEXT = (PFN_vkGetDeviceFaultInfoEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceFaultInfoEXT");
     pAPI->vkCmdSetVertexInputEXT = (PFN_vkCmdSetVertexInputEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetVertexInputEXT");
     pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = (PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI");
@@ -23390,6 +23615,9 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDecompressMemoryIndirectCountNV");
+    pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineIndirectMemoryRequirementsNV");
+    pAPI->vkCmdUpdatePipelineIndirectBufferNV = (PFN_vkCmdUpdatePipelineIndirectBufferNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdUpdatePipelineIndirectBufferNV");
+    pAPI->vkGetPipelineIndirectDeviceAddressNV = (PFN_vkGetPipelineIndirectDeviceAddressNV)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineIndirectDeviceAddressNV");
     pAPI->vkCmdSetTessellationDomainOriginEXT = (PFN_vkCmdSetTessellationDomainOriginEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetTessellationDomainOriginEXT");
     pAPI->vkCmdSetDepthClampEnableEXT = (PFN_vkCmdSetDepthClampEnableEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDepthClampEnableEXT");
     pAPI->vkCmdSetPolygonModeEXT = (PFN_vkCmdSetPolygonModeEXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetPolygonModeEXT");
@@ -23971,6 +24199,11 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetPipelineExecutablePropertiesKHR = pAPI->vkGetPipelineExecutablePropertiesKHR;
     vkGetPipelineExecutableStatisticsKHR = pAPI->vkGetPipelineExecutableStatisticsKHR;
     vkGetPipelineExecutableInternalRepresentationsKHR = pAPI->vkGetPipelineExecutableInternalRepresentationsKHR;
+    vkCopyMemoryToImageEXT = pAPI->vkCopyMemoryToImageEXT;
+    vkCopyImageToMemoryEXT = pAPI->vkCopyImageToMemoryEXT;
+    vkCopyImageToImageEXT = pAPI->vkCopyImageToImageEXT;
+    vkTransitionImageLayoutEXT = pAPI->vkTransitionImageLayoutEXT;
+    vkGetImageSubresourceLayout2EXT = pAPI->vkGetImageSubresourceLayout2EXT;
     vkMapMemory2KHR = pAPI->vkMapMemory2KHR;
     vkUnmapMemory2KHR = pAPI->vkUnmapMemory2KHR;
     vkReleaseSwapchainImagesEXT = pAPI->vkReleaseSwapchainImagesEXT;
@@ -24018,7 +24251,6 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdCopyImageToBuffer2KHR = pAPI->vkCmdCopyImageToBuffer2KHR;
     vkCmdBlitImage2KHR = pAPI->vkCmdBlitImage2KHR;
     vkCmdResolveImage2KHR = pAPI->vkCmdResolveImage2KHR;
-    vkGetImageSubresourceLayout2EXT = pAPI->vkGetImageSubresourceLayout2EXT;
     vkGetDeviceFaultInfoEXT = pAPI->vkGetDeviceFaultInfoEXT;
     vkCmdSetVertexInputEXT = pAPI->vkCmdSetVertexInputEXT;
     vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI = pAPI->vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI;
@@ -24061,6 +24293,9 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdCopyMemoryToImageIndirectNV = pAPI->vkCmdCopyMemoryToImageIndirectNV;
     vkCmdDecompressMemoryNV = pAPI->vkCmdDecompressMemoryNV;
     vkCmdDecompressMemoryIndirectCountNV = pAPI->vkCmdDecompressMemoryIndirectCountNV;
+    vkGetPipelineIndirectMemoryRequirementsNV = pAPI->vkGetPipelineIndirectMemoryRequirementsNV;
+    vkCmdUpdatePipelineIndirectBufferNV = pAPI->vkCmdUpdatePipelineIndirectBufferNV;
+    vkGetPipelineIndirectDeviceAddressNV = pAPI->vkGetPipelineIndirectDeviceAddressNV;
     vkCmdSetTessellationDomainOriginEXT = pAPI->vkCmdSetTessellationDomainOriginEXT;
     vkCmdSetDepthClampEnableEXT = pAPI->vkCmdSetDepthClampEnableEXT;
     vkCmdSetPolygonModeEXT = pAPI->vkCmdSetPolygonModeEXT;
