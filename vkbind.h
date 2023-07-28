@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.259.0 - 2023-07-24
+vkbind - v1.3.260.0 - 2023-07-29
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1317,7 +1317,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 259
+#define VK_HEADER_VERSION 260
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -1841,6 +1841,11 @@ typedef enum
     VK_STRUCTURE_TYPE_MEMORY_GET_ANDROID_HARDWARE_BUFFER_INFO_ANDROID = 1000129004,
     VK_STRUCTURE_TYPE_EXTERNAL_FORMAT_ANDROID = 1000129005,
     VK_STRUCTURE_TYPE_ANDROID_HARDWARE_BUFFER_FORMAT_PROPERTIES_2_ANDROID = 1000129006,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_FEATURES_AMDX = 1000134000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_ENQUEUE_PROPERTIES_AMDX = 1000134001,
+    VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_SCRATCH_SIZE_AMDX = 1000134002,
+    VK_STRUCTURE_TYPE_EXECUTION_GRAPH_PIPELINE_CREATE_INFO_AMDX = 1000134003,
+    VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_NODE_CREATE_INFO_AMDX = 1000134004,
     VK_STRUCTURE_TYPE_SAMPLE_LOCATIONS_INFO_EXT = 1000143000,
     VK_STRUCTURE_TYPE_RENDER_PASS_SAMPLE_LOCATIONS_BEGIN_INFO_EXT = 1000143001,
     VK_STRUCTURE_TYPE_PIPELINE_SAMPLE_LOCATIONS_STATE_CREATE_INFO_EXT = 1000143002,
@@ -2109,8 +2114,6 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR = 1000336000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_FEATURES_EXT = 1000338000,
     VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_CONTROL_EXT = 1000338001,
-    VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_EXT = 1000338002,
-    VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_EXT = 1000338003,
     VK_STRUCTURE_TYPE_IMAGE_COMPRESSION_PROPERTIES_EXT = 1000338004,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ATTACHMENT_FEEDBACK_LOOP_LAYOUT_FEATURES_EXT = 1000339000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_4444_FORMATS_FEATURES_EXT = 1000340000,
@@ -2237,6 +2240,14 @@ typedef enum
     VK_STRUCTURE_TYPE_OPTICAL_FLOW_SESSION_CREATE_PRIVATE_DATA_INFO_NV = 1000464010,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LEGACY_DITHERING_FEATURES_EXT = 1000465000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PIPELINE_PROTECTED_ACCESS_FEATURES_EXT = 1000466000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR = 1000470000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_PROPERTIES_KHR = 1000470001,
+    VK_STRUCTURE_TYPE_RENDERING_AREA_INFO_KHR = 1000470003,
+    VK_STRUCTURE_TYPE_DEVICE_IMAGE_SUBRESOURCE_INFO_KHR = 1000470004,
+    VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_KHR = 1000338002,
+    VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_KHR = 1000338003,
+    VK_STRUCTURE_TYPE_PIPELINE_CREATE_FLAGS_2_CREATE_INFO_KHR = 1000470005,
+    VK_STRUCTURE_TYPE_BUFFER_USAGE_FLAGS_2_CREATE_INFO_KHR = 1000470006,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_POSITION_FETCH_FEATURES_KHR = 1000481000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_FEATURES_EXT = 1000482000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_OBJECT_PROPERTIES_EXT = 1000482001,
@@ -2441,6 +2452,8 @@ typedef enum
     VK_STRUCTURE_TYPE_IMAGE_BLIT_2_KHR = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
     VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2_KHR = VK_STRUCTURE_TYPE_BUFFER_IMAGE_COPY_2,
     VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2_KHR = VK_STRUCTURE_TYPE_IMAGE_RESOLVE_2,
+    VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_EXT = VK_STRUCTURE_TYPE_SUBRESOURCE_LAYOUT_2_KHR,
+    VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_EXT = VK_STRUCTURE_TYPE_IMAGE_SUBRESOURCE_2_KHR,
     VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3,
     VK_STRUCTURE_TYPE_PIPELINE_INFO_EXT = VK_STRUCTURE_TYPE_PIPELINE_INFO_KHR,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_SCI_BUF_FEATURES_NV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_SCI_BUF_FEATURES_NV,
@@ -2901,6 +2914,8 @@ typedef enum
     VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG = 1000054006,
     VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG = 1000054007,
     VK_FORMAT_R16G16_S10_5_NV = 1000464000,
+    VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR = 1000470000,
+    VK_FORMAT_A8_UNORM_KHR = 1000470001,
     VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT = VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK,
     VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT = VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK,
     VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT = VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK,
@@ -3316,6 +3331,7 @@ typedef enum
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT = 0x00000800,
     VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT = 0x00001000,
     VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT = 0x00000200,
+    VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX = 0x02000000,
     VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR = 0x00080000,
     VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR = 0x00100000,
     VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR = 0x00000400,
@@ -3932,6 +3948,7 @@ typedef enum
 {
     VK_PIPELINE_BIND_POINT_GRAPHICS = 0,
     VK_PIPELINE_BIND_POINT_COMPUTE = 1,
+    VK_PIPELINE_BIND_POINT_EXECUTION_GRAPH_AMDX = 1000134000,
     VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR = 1000165000,
     VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI = 1000369003,
     VK_PIPELINE_BIND_POINT_RAY_TRACING_NV = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
@@ -13373,26 +13390,30 @@ typedef struct VkHostImageCopyDevicePerformanceQueryEXT
     VkBool32 identicalMemoryLayout;
 } VkHostImageCopyDevicePerformanceQueryEXT;
 
-typedef struct VkSubresourceLayout2EXT
+typedef struct VkSubresourceLayout2KHR
 {
     VkStructureType sType;
     void* pNext;
     VkSubresourceLayout subresourceLayout;
-} VkSubresourceLayout2EXT;
+} VkSubresourceLayout2KHR;
 
-typedef struct VkImageSubresource2EXT
+typedef VkSubresourceLayout2KHR VkSubresourceLayout2EXT;
+
+typedef struct VkImageSubresource2KHR
 {
     VkStructureType sType;
     void* pNext;
     VkImageSubresource imageSubresource;
-} VkImageSubresource2EXT;
+} VkImageSubresource2KHR;
+
+typedef VkImageSubresource2KHR VkImageSubresource2EXT;
 
 
 typedef VkResult (VKAPI_PTR *PFN_vkCopyMemoryToImageEXT)(VkDevice device, const VkCopyMemoryToImageInfoEXT* pCopyMemoryToImageInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkCopyImageToMemoryEXT)(VkDevice device, const VkCopyImageToMemoryInfoEXT* pCopyImageToMemoryInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkCopyImageToImageEXT)(VkDevice device, const VkCopyImageToImageInfoEXT* pCopyImageToImageInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkTransitionImageLayoutEXT)(VkDevice device, uint32_t transitionCount, const VkHostImageLayoutTransitionInfoEXT* pTransitions);
-typedef void (VKAPI_PTR *PFN_vkGetImageSubresourceLayout2EXT)(VkDevice device, VkImage image, const VkImageSubresource2EXT* pSubresource, VkSubresourceLayout2EXT* pLayout);
+typedef void (VKAPI_PTR *PFN_vkGetImageSubresourceLayout2EXT)(VkDevice device, VkImage image, const VkImageSubresource2KHR* pSubresource, VkSubresourceLayout2KHR* pLayout);
 
 
 #define VK_KHR_map_memory2 1
@@ -14366,7 +14387,7 @@ typedef struct VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT
 typedef struct VkGraphicsPipelineLibraryCreateInfoEXT
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     VkGraphicsPipelineLibraryFlagsEXT flags;
 } VkGraphicsPipelineLibraryCreateInfoEXT;
 
@@ -16418,6 +16439,134 @@ typedef struct VkPhysicalDevicePipelineProtectedAccessFeaturesEXT
 } VkPhysicalDevicePipelineProtectedAccessFeaturesEXT;
 
 
+#define VK_KHR_maintenance5 1
+#define VK_KHR_MAINTENANCE_5_SPEC_VERSION 1
+#define VK_KHR_MAINTENANCE_5_EXTENSION_NAME "VK_KHR_maintenance5"
+
+
+typedef VkFlags64 VkPipelineCreateFlagBits2KHR;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DISABLE_OPTIMIZATION_BIT_KHR = 0x00000001;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_ALLOW_DERIVATIVES_BIT_KHR = 0x00000002;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DERIVATIVE_BIT_KHR = 0x00000004;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RESERVED_BIT_28_NV = 0x10000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_VIEW_INDEX_FROM_DEVICE_INDEX_BIT_KHR = 0x00000008;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DISPATCH_BASE_BIT_KHR = 0x00000010;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DEFER_COMPILE_BIT_KHR = 0x00000020;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_CAPTURE_STATISTICS_BIT_KHR = 0x00000040;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_CAPTURE_INTERNAL_REPRESENTATIONS_BIT_KHR = 0x00000080;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_FAIL_ON_PIPELINE_COMPILE_REQUIRED_BIT_KHR = 0x00000100;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_EARLY_RETURN_ON_FAILURE_BIT_KHR = 0x00000200;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_LINK_TIME_OPTIMIZATION_BIT_KHR = 0x00000400;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RETAIN_LINK_TIME_OPTIMIZATION_INFO_BIT_KHR = 0x00800000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_LIBRARY_BIT_KHR = 0x00000800;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR = 0x00001000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_SKIP_AABBS_BIT_KHR = 0x00002000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_ANY_HIT_SHADERS_BIT_KHR = 0x00004000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_CLOSEST_HIT_SHADERS_BIT_KHR = 0x00008000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_MISS_SHADERS_BIT_KHR = 0x00010000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR = 0x00020000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_SHADER_GROUP_HANDLE_CAPTURE_REPLAY_BIT_KHR = 0x00080000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_INDIRECT_BINDABLE_BIT_KHR = 0x00040000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_ALLOW_MOTION_BIT_KHR = 0x00100000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR = 0x00200000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RENDERING_FRAGMENT_DENSITY_MAP_ATTACHMENT_BIT_KHR = 0x00400000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_RAY_TRACING_OPACITY_MICROMAP_BIT_KHR = 0x01000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_COLOR_ATTACHMENT_FEEDBACK_LOOP_BIT_KHR = 0x02000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DEPTH_STENCIL_ATTACHMENT_FEEDBACK_LOOP_BIT_KHR = 0x04000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_NO_PROTECTED_ACCESS_BIT_KHR = 0x08000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_PROTECTED_ACCESS_ONLY_BIT_KHR = 0x40000000;
+static const VkPipelineCreateFlagBits2KHR VK_PIPELINE_CREATE_2_DESCRIPTOR_BUFFER_BIT_KHR = 0x20000000;
+typedef VkFlags64 VkPipelineCreateFlags2KHR;
+
+typedef VkFlags64 VkBufferUsageFlagBits2KHR;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_TRANSFER_SRC_BIT_KHR = 0x00000001;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_TRANSFER_DST_BIT_KHR = 0x00000002;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_UNIFORM_TEXEL_BUFFER_BIT_KHR = 0x00000004;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_STORAGE_TEXEL_BUFFER_BIT_KHR = 0x00000008;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_UNIFORM_BUFFER_BIT_KHR = 0x00000010;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_STORAGE_BUFFER_BIT_KHR = 0x00000020;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_INDEX_BUFFER_BIT_KHR = 0x00000040;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_VERTEX_BUFFER_BIT_KHR = 0x00000080;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_INDIRECT_BUFFER_BIT_KHR = 0x00000100;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_EXECUTION_GRAPH_SCRATCH_BIT_AMDX = 0x02000000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_CONDITIONAL_RENDERING_BIT_KHR = 0x00000200;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_SHADER_BINDING_TABLE_BIT_KHR = 0x00000400;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_TRANSFORM_FEEDBACK_BUFFER_BIT_KHR = 0x00000800;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_KHR = 0x00001000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_VIDEO_DECODE_SRC_BIT_KHR = 0x00002000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_VIDEO_DECODE_DST_BIT_KHR = 0x00004000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_VIDEO_ENCODE_DST_BIT_KHR = 0x00008000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_VIDEO_ENCODE_SRC_BIT_KHR = 0x00010000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT_KHR = 0x00020000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR = 0x00080000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR = 0x00100000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_SAMPLER_DESCRIPTOR_BUFFER_BIT_KHR = 0x00200000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_RESOURCE_DESCRIPTOR_BUFFER_BIT_KHR = 0x00400000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_KHR = 0x04000000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_KHR = 0x00800000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_MICROMAP_STORAGE_BIT_KHR = 0x01000000;
+static const VkBufferUsageFlagBits2KHR VK_BUFFER_USAGE_2_RAY_TRACING_BIT_KHR = 0x00000400;
+typedef VkFlags64 VkBufferUsageFlags2KHR;
+
+typedef struct VkPhysicalDeviceMaintenance5FeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 maintenance5;
+} VkPhysicalDeviceMaintenance5FeaturesKHR;
+
+typedef struct VkPhysicalDeviceMaintenance5PropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 earlyFragmentMultisampleCoverageAfterSampleCounting;
+    VkBool32 earlyFragmentSampleMaskTestBeforeSampleCounting;
+    VkBool32 depthStencilSwizzleOneSupport;
+    VkBool32 polygonModePointSize;
+    VkBool32 nonStrictSinglePixelWideLinesUseParallelogram;
+    VkBool32 nonStrictWideLinesUseParallelogram;
+} VkPhysicalDeviceMaintenance5PropertiesKHR;
+
+typedef struct VkRenderingAreaInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    uint32_t viewMask;
+    uint32_t colorAttachmentCount;
+    const VkFormat* pColorAttachmentFormats;
+    VkFormat depthAttachmentFormat;
+    VkFormat stencilAttachmentFormat;
+} VkRenderingAreaInfoKHR;
+
+typedef struct VkDeviceImageSubresourceInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    const VkImageCreateInfo* pCreateInfo;
+    const VkImageSubresource2KHR* pSubresource;
+} VkDeviceImageSubresourceInfoKHR;
+
+typedef struct VkPipelineCreateFlags2CreateInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineCreateFlags2KHR flags;
+} VkPipelineCreateFlags2CreateInfoKHR;
+
+typedef struct VkBufferUsageFlags2CreateInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkBufferUsageFlags2KHR usage;
+} VkBufferUsageFlags2CreateInfoKHR;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdBindIndexBuffer2KHR)(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size, VkIndexType indexType);
+typedef void (VKAPI_PTR *PFN_vkGetRenderingAreaGranularityKHR)(VkDevice device, const VkRenderingAreaInfoKHR* pRenderingAreaInfo, VkExtent2D* pGranularity);
+typedef void (VKAPI_PTR *PFN_vkGetDeviceImageSubresourceLayoutKHR)(VkDevice device, const VkDeviceImageSubresourceInfoKHR* pInfo, VkSubresourceLayout2KHR* pLayout);
+typedef void (VKAPI_PTR *PFN_vkGetImageSubresourceLayout2KHR)(VkDevice device, VkImage image, const VkImageSubresource2KHR* pSubresource, VkSubresourceLayout2KHR* pLayout);
+
+
 #define VK_KHR_ray_tracing_position_fetch 1
 #define VK_KHR_RAY_TRACING_POSITION_FETCH_SPEC_VERSION 1
 #define VK_KHR_RAY_TRACING_POSITION_FETCH_EXTENSION_NAME "VK_KHR_ray_tracing_position_fetch"
@@ -18315,6 +18464,89 @@ typedef struct VkVideoEncodeH265GopRemainingFrameInfoEXT
 } VkVideoEncodeH265GopRemainingFrameInfoEXT;
 
 
+#define VK_AMDX_shader_enqueue 1
+#define VK_AMDX_SHADER_ENQUEUE_SPEC_VERSION 1
+#define VK_AMDX_SHADER_ENQUEUE_EXTENSION_NAME "VK_AMDX_shader_enqueue"
+
+#define VK_SHADER_INDEX_UNUSED_AMDX (~0U)
+
+typedef struct VkPhysicalDeviceShaderEnqueueFeaturesAMDX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderEnqueue;
+} VkPhysicalDeviceShaderEnqueueFeaturesAMDX;
+
+typedef struct VkPhysicalDeviceShaderEnqueuePropertiesAMDX
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t maxExecutionGraphDepth;
+    uint32_t maxExecutionGraphShaderOutputNodes;
+    uint32_t maxExecutionGraphShaderPayloadSize;
+    uint32_t maxExecutionGraphShaderPayloadCount;
+    uint32_t executionGraphDispatchAddressAlignment;
+} VkPhysicalDeviceShaderEnqueuePropertiesAMDX;
+
+typedef struct VkExecutionGraphPipelineScratchSizeAMDX
+{
+    VkStructureType sType;
+    void* pNext;
+    VkDeviceSize size;
+} VkExecutionGraphPipelineScratchSizeAMDX;
+
+typedef struct VkExecutionGraphPipelineCreateInfoAMDX
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkPipelineCreateFlags flags;
+    uint32_t stageCount;
+    const VkPipelineShaderStageCreateInfo* pStages;
+    const VkPipelineLibraryCreateInfoKHR* pLibraryInfo;
+    VkPipelineLayout layout;
+    VkPipeline basePipelineHandle;
+    int32_t basePipelineIndex;
+} VkExecutionGraphPipelineCreateInfoAMDX;
+
+typedef union VkDeviceOrHostAddressConstAMDX
+{
+    VkDeviceAddress deviceAddress;
+    const void* hostAddress;
+} VkDeviceOrHostAddressConstAMDX;
+
+typedef struct VkDispatchGraphInfoAMDX
+{
+    uint32_t nodeIndex;
+    uint32_t payloadCount;
+    VkDeviceOrHostAddressConstAMDX payloads;
+    uint64_t payloadStride;
+} VkDispatchGraphInfoAMDX;
+
+typedef struct VkDispatchGraphCountInfoAMDX
+{
+    uint32_t count;
+    VkDeviceOrHostAddressConstAMDX infos;
+    uint64_t stride;
+} VkDispatchGraphCountInfoAMDX;
+
+typedef struct VkPipelineShaderStageNodeCreateInfoAMDX
+{
+    VkStructureType sType;
+    const void* pNext;
+    const char* pName;
+    uint32_t index;
+} VkPipelineShaderStageNodeCreateInfoAMDX;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateExecutionGraphPipelinesAMDX)(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkExecutionGraphPipelineCreateInfoAMDX* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines);
+typedef VkResult (VKAPI_PTR *PFN_vkGetExecutionGraphPipelineScratchSizeAMDX)(VkDevice device, VkPipeline executionGraph, VkExecutionGraphPipelineScratchSizeAMDX* pSizeInfo);
+typedef VkResult (VKAPI_PTR *PFN_vkGetExecutionGraphPipelineNodeIndexAMDX)(VkDevice device, VkPipeline executionGraph, const VkPipelineShaderStageNodeCreateInfoAMDX* pNodeInfo, uint32_t* pNodeIndex);
+typedef void (VKAPI_PTR *PFN_vkCmdInitializeGraphScratchMemoryAMDX)(VkCommandBuffer commandBuffer, VkDeviceAddress scratch);
+typedef void (VKAPI_PTR *PFN_vkCmdDispatchGraphAMDX)(VkCommandBuffer commandBuffer, VkDeviceAddress scratch, const VkDispatchGraphCountInfoAMDX* pCountInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdDispatchGraphIndirectAMDX)(VkCommandBuffer commandBuffer, VkDeviceAddress scratch, const VkDispatchGraphCountInfoAMDX* pCountInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdDispatchGraphIndirectCountAMDX)(VkCommandBuffer commandBuffer, VkDeviceAddress scratch, VkDeviceAddress countInfo);
+
+
 #define VK_KHR_portability_subset 1
 #define VK_KHR_PORTABILITY_SUBSET_SPEC_VERSION 1
 #define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"
@@ -19243,6 +19475,10 @@ extern PFN_vkCreateOpticalFlowSessionNV vkCreateOpticalFlowSessionNV;
 extern PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
 extern PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
 extern PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+extern PFN_vkCmdBindIndexBuffer2KHR vkCmdBindIndexBuffer2KHR;
+extern PFN_vkGetRenderingAreaGranularityKHR vkGetRenderingAreaGranularityKHR;
+extern PFN_vkGetDeviceImageSubresourceLayoutKHR vkGetDeviceImageSubresourceLayoutKHR;
+extern PFN_vkGetImageSubresourceLayout2KHR vkGetImageSubresourceLayout2KHR;
 extern PFN_vkCreateShadersEXT vkCreateShadersEXT;
 extern PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
 extern PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
@@ -19336,6 +19572,13 @@ extern PFN_vkGetSemaphoreSciSyncObjNV vkGetSemaphoreSciSyncObjNV;
 extern PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+extern PFN_vkCreateExecutionGraphPipelinesAMDX vkCreateExecutionGraphPipelinesAMDX;
+extern PFN_vkGetExecutionGraphPipelineScratchSizeAMDX vkGetExecutionGraphPipelineScratchSizeAMDX;
+extern PFN_vkGetExecutionGraphPipelineNodeIndexAMDX vkGetExecutionGraphPipelineNodeIndexAMDX;
+extern PFN_vkCmdInitializeGraphScratchMemoryAMDX vkCmdInitializeGraphScratchMemoryAMDX;
+extern PFN_vkCmdDispatchGraphAMDX vkCmdDispatchGraphAMDX;
+extern PFN_vkCmdDispatchGraphIndirectAMDX vkCmdDispatchGraphIndirectAMDX;
+extern PFN_vkCmdDispatchGraphIndirectCountAMDX vkCmdDispatchGraphIndirectCountAMDX;
 extern PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
 extern PFN_vkGetEncodedVideoSessionParametersKHR vkGetEncodedVideoSessionParametersKHR;
 extern PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
@@ -19942,6 +20185,10 @@ typedef struct
     PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
     PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
     PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+    PFN_vkCmdBindIndexBuffer2KHR vkCmdBindIndexBuffer2KHR;
+    PFN_vkGetRenderingAreaGranularityKHR vkGetRenderingAreaGranularityKHR;
+    PFN_vkGetDeviceImageSubresourceLayoutKHR vkGetDeviceImageSubresourceLayoutKHR;
+    PFN_vkGetImageSubresourceLayout2KHR vkGetImageSubresourceLayout2KHR;
     PFN_vkCreateShadersEXT vkCreateShadersEXT;
     PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
     PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
@@ -20035,6 +20282,13 @@ typedef struct
     PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    PFN_vkCreateExecutionGraphPipelinesAMDX vkCreateExecutionGraphPipelinesAMDX;
+    PFN_vkGetExecutionGraphPipelineScratchSizeAMDX vkGetExecutionGraphPipelineScratchSizeAMDX;
+    PFN_vkGetExecutionGraphPipelineNodeIndexAMDX vkGetExecutionGraphPipelineNodeIndexAMDX;
+    PFN_vkCmdInitializeGraphScratchMemoryAMDX vkCmdInitializeGraphScratchMemoryAMDX;
+    PFN_vkCmdDispatchGraphAMDX vkCmdDispatchGraphAMDX;
+    PFN_vkCmdDispatchGraphIndirectAMDX vkCmdDispatchGraphIndirectAMDX;
+    PFN_vkCmdDispatchGraphIndirectCountAMDX vkCmdDispatchGraphIndirectCountAMDX;
     PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
     PFN_vkGetEncodedVideoSessionParametersKHR vkGetEncodedVideoSessionParametersKHR;
     PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
@@ -20727,6 +20981,10 @@ PFN_vkCreateOpticalFlowSessionNV vkCreateOpticalFlowSessionNV;
 PFN_vkDestroyOpticalFlowSessionNV vkDestroyOpticalFlowSessionNV;
 PFN_vkBindOpticalFlowSessionImageNV vkBindOpticalFlowSessionImageNV;
 PFN_vkCmdOpticalFlowExecuteNV vkCmdOpticalFlowExecuteNV;
+PFN_vkCmdBindIndexBuffer2KHR vkCmdBindIndexBuffer2KHR;
+PFN_vkGetRenderingAreaGranularityKHR vkGetRenderingAreaGranularityKHR;
+PFN_vkGetDeviceImageSubresourceLayoutKHR vkGetDeviceImageSubresourceLayoutKHR;
+PFN_vkGetImageSubresourceLayout2KHR vkGetImageSubresourceLayout2KHR;
 PFN_vkCreateShadersEXT vkCreateShadersEXT;
 PFN_vkDestroyShaderEXT vkDestroyShaderEXT;
 PFN_vkGetShaderBinaryDataEXT vkGetShaderBinaryDataEXT;
@@ -20820,6 +21078,13 @@ PFN_vkGetSemaphoreSciSyncObjNV vkGetSemaphoreSciSyncObjNV;
 PFN_vkImportSemaphoreSciSyncObjNV vkImportSemaphoreSciSyncObjNV;
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+PFN_vkCreateExecutionGraphPipelinesAMDX vkCreateExecutionGraphPipelinesAMDX;
+PFN_vkGetExecutionGraphPipelineScratchSizeAMDX vkGetExecutionGraphPipelineScratchSizeAMDX;
+PFN_vkGetExecutionGraphPipelineNodeIndexAMDX vkGetExecutionGraphPipelineNodeIndexAMDX;
+PFN_vkCmdInitializeGraphScratchMemoryAMDX vkCmdInitializeGraphScratchMemoryAMDX;
+PFN_vkCmdDispatchGraphAMDX vkCmdDispatchGraphAMDX;
+PFN_vkCmdDispatchGraphIndirectAMDX vkCmdDispatchGraphIndirectAMDX;
+PFN_vkCmdDispatchGraphIndirectCountAMDX vkCmdDispatchGraphIndirectCountAMDX;
 PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
 PFN_vkGetEncodedVideoSessionParametersKHR vkGetEncodedVideoSessionParametersKHR;
 PFN_vkCmdEncodeVideoKHR vkCmdEncodeVideoKHR;
@@ -21503,6 +21768,10 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)vkb_dlsym(g_vkbVulkanSO, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCmdBindIndexBuffer2KHR = (PFN_vkCmdBindIndexBuffer2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindIndexBuffer2KHR");
+    pAPI->vkGetRenderingAreaGranularityKHR = (PFN_vkGetRenderingAreaGranularityKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetRenderingAreaGranularityKHR");
+    pAPI->vkGetDeviceImageSubresourceLayoutKHR = (PFN_vkGetDeviceImageSubresourceLayoutKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceImageSubresourceLayoutKHR");
+    pAPI->vkGetImageSubresourceLayout2KHR = (PFN_vkGetImageSubresourceLayout2KHR)vkb_dlsym(g_vkbVulkanSO, "vkGetImageSubresourceLayout2KHR");
     pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)vkb_dlsym(g_vkbVulkanSO, "vkCreateShadersEXT");
     pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyShaderEXT");
     pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetShaderBinaryDataEXT");
@@ -21596,6 +21865,13 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)vkb_dlsym(g_vkbVulkanSO, "vkImportSemaphoreSciSyncObjNV");
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    pAPI->vkCreateExecutionGraphPipelinesAMDX = (PFN_vkCreateExecutionGraphPipelinesAMDX)vkb_dlsym(g_vkbVulkanSO, "vkCreateExecutionGraphPipelinesAMDX");
+    pAPI->vkGetExecutionGraphPipelineScratchSizeAMDX = (PFN_vkGetExecutionGraphPipelineScratchSizeAMDX)vkb_dlsym(g_vkbVulkanSO, "vkGetExecutionGraphPipelineScratchSizeAMDX");
+    pAPI->vkGetExecutionGraphPipelineNodeIndexAMDX = (PFN_vkGetExecutionGraphPipelineNodeIndexAMDX)vkb_dlsym(g_vkbVulkanSO, "vkGetExecutionGraphPipelineNodeIndexAMDX");
+    pAPI->vkCmdInitializeGraphScratchMemoryAMDX = (PFN_vkCmdInitializeGraphScratchMemoryAMDX)vkb_dlsym(g_vkbVulkanSO, "vkCmdInitializeGraphScratchMemoryAMDX");
+    pAPI->vkCmdDispatchGraphAMDX = (PFN_vkCmdDispatchGraphAMDX)vkb_dlsym(g_vkbVulkanSO, "vkCmdDispatchGraphAMDX");
+    pAPI->vkCmdDispatchGraphIndirectAMDX = (PFN_vkCmdDispatchGraphIndirectAMDX)vkb_dlsym(g_vkbVulkanSO, "vkCmdDispatchGraphIndirectAMDX");
+    pAPI->vkCmdDispatchGraphIndirectCountAMDX = (PFN_vkCmdDispatchGraphIndirectCountAMDX)vkb_dlsym(g_vkbVulkanSO, "vkCmdDispatchGraphIndirectCountAMDX");
     pAPI->vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR = (PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR");
     pAPI->vkGetEncodedVideoSessionParametersKHR = (PFN_vkGetEncodedVideoSessionParametersKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetEncodedVideoSessionParametersKHR");
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdEncodeVideoKHR");
@@ -22218,6 +22494,10 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = vkDestroyOpticalFlowSessionNV;
     pAPI->vkBindOpticalFlowSessionImageNV = vkBindOpticalFlowSessionImageNV;
     pAPI->vkCmdOpticalFlowExecuteNV = vkCmdOpticalFlowExecuteNV;
+    pAPI->vkCmdBindIndexBuffer2KHR = vkCmdBindIndexBuffer2KHR;
+    pAPI->vkGetRenderingAreaGranularityKHR = vkGetRenderingAreaGranularityKHR;
+    pAPI->vkGetDeviceImageSubresourceLayoutKHR = vkGetDeviceImageSubresourceLayoutKHR;
+    pAPI->vkGetImageSubresourceLayout2KHR = vkGetImageSubresourceLayout2KHR;
     pAPI->vkCreateShadersEXT = vkCreateShadersEXT;
     pAPI->vkDestroyShaderEXT = vkDestroyShaderEXT;
     pAPI->vkGetShaderBinaryDataEXT = vkGetShaderBinaryDataEXT;
@@ -22311,6 +22591,13 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkImportSemaphoreSciSyncObjNV = vkImportSemaphoreSciSyncObjNV;
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    pAPI->vkCreateExecutionGraphPipelinesAMDX = vkCreateExecutionGraphPipelinesAMDX;
+    pAPI->vkGetExecutionGraphPipelineScratchSizeAMDX = vkGetExecutionGraphPipelineScratchSizeAMDX;
+    pAPI->vkGetExecutionGraphPipelineNodeIndexAMDX = vkGetExecutionGraphPipelineNodeIndexAMDX;
+    pAPI->vkCmdInitializeGraphScratchMemoryAMDX = vkCmdInitializeGraphScratchMemoryAMDX;
+    pAPI->vkCmdDispatchGraphAMDX = vkCmdDispatchGraphAMDX;
+    pAPI->vkCmdDispatchGraphIndirectAMDX = vkCmdDispatchGraphIndirectAMDX;
+    pAPI->vkCmdDispatchGraphIndirectCountAMDX = vkCmdDispatchGraphIndirectCountAMDX;
     pAPI->vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR = vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
     pAPI->vkGetEncodedVideoSessionParametersKHR = vkGetEncodedVideoSessionParametersKHR;
     pAPI->vkCmdEncodeVideoKHR = vkCmdEncodeVideoKHR;
@@ -23016,6 +23303,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)pAPI->vkGetInstanceProcAddr(instance, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCmdBindIndexBuffer2KHR = (PFN_vkCmdBindIndexBuffer2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindIndexBuffer2KHR");
+    pAPI->vkGetRenderingAreaGranularityKHR = (PFN_vkGetRenderingAreaGranularityKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetRenderingAreaGranularityKHR");
+    pAPI->vkGetDeviceImageSubresourceLayoutKHR = (PFN_vkGetDeviceImageSubresourceLayoutKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceImageSubresourceLayoutKHR");
+    pAPI->vkGetImageSubresourceLayout2KHR = (PFN_vkGetImageSubresourceLayout2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetImageSubresourceLayout2KHR");
     pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)pAPI->vkGetInstanceProcAddr(instance, "vkCreateShadersEXT");
     pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyShaderEXT");
     pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetShaderBinaryDataEXT");
@@ -23109,6 +23400,13 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)pAPI->vkGetInstanceProcAddr(instance, "vkImportSemaphoreSciSyncObjNV");
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    pAPI->vkCreateExecutionGraphPipelinesAMDX = (PFN_vkCreateExecutionGraphPipelinesAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkCreateExecutionGraphPipelinesAMDX");
+    pAPI->vkGetExecutionGraphPipelineScratchSizeAMDX = (PFN_vkGetExecutionGraphPipelineScratchSizeAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkGetExecutionGraphPipelineScratchSizeAMDX");
+    pAPI->vkGetExecutionGraphPipelineNodeIndexAMDX = (PFN_vkGetExecutionGraphPipelineNodeIndexAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkGetExecutionGraphPipelineNodeIndexAMDX");
+    pAPI->vkCmdInitializeGraphScratchMemoryAMDX = (PFN_vkCmdInitializeGraphScratchMemoryAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkCmdInitializeGraphScratchMemoryAMDX");
+    pAPI->vkCmdDispatchGraphAMDX = (PFN_vkCmdDispatchGraphAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDispatchGraphAMDX");
+    pAPI->vkCmdDispatchGraphIndirectAMDX = (PFN_vkCmdDispatchGraphIndirectAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDispatchGraphIndirectAMDX");
+    pAPI->vkCmdDispatchGraphIndirectCountAMDX = (PFN_vkCmdDispatchGraphIndirectCountAMDX)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDispatchGraphIndirectCountAMDX");
     pAPI->vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR = (PFN_vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR");
     pAPI->vkGetEncodedVideoSessionParametersKHR = (PFN_vkGetEncodedVideoSessionParametersKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetEncodedVideoSessionParametersKHR");
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdEncodeVideoKHR");
@@ -23655,6 +23953,10 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyOpticalFlowSessionNV = (PFN_vkDestroyOpticalFlowSessionNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyOpticalFlowSessionNV");
     pAPI->vkBindOpticalFlowSessionImageNV = (PFN_vkBindOpticalFlowSessionImageNV)pAPI->vkGetDeviceProcAddr(device, "vkBindOpticalFlowSessionImageNV");
     pAPI->vkCmdOpticalFlowExecuteNV = (PFN_vkCmdOpticalFlowExecuteNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdOpticalFlowExecuteNV");
+    pAPI->vkCmdBindIndexBuffer2KHR = (PFN_vkCmdBindIndexBuffer2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindIndexBuffer2KHR");
+    pAPI->vkGetRenderingAreaGranularityKHR = (PFN_vkGetRenderingAreaGranularityKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetRenderingAreaGranularityKHR");
+    pAPI->vkGetDeviceImageSubresourceLayoutKHR = (PFN_vkGetDeviceImageSubresourceLayoutKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceImageSubresourceLayoutKHR");
+    pAPI->vkGetImageSubresourceLayout2KHR = (PFN_vkGetImageSubresourceLayout2KHR)pAPI->vkGetDeviceProcAddr(device, "vkGetImageSubresourceLayout2KHR");
     pAPI->vkCreateShadersEXT = (PFN_vkCreateShadersEXT)pAPI->vkGetDeviceProcAddr(device, "vkCreateShadersEXT");
     pAPI->vkDestroyShaderEXT = (PFN_vkDestroyShaderEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyShaderEXT");
     pAPI->vkGetShaderBinaryDataEXT = (PFN_vkGetShaderBinaryDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetShaderBinaryDataEXT");
@@ -23722,6 +24024,13 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkImportSemaphoreSciSyncObjNV = (PFN_vkImportSemaphoreSciSyncObjNV)pAPI->vkGetDeviceProcAddr(device, "vkImportSemaphoreSciSyncObjNV");
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    pAPI->vkCreateExecutionGraphPipelinesAMDX = (PFN_vkCreateExecutionGraphPipelinesAMDX)pAPI->vkGetDeviceProcAddr(device, "vkCreateExecutionGraphPipelinesAMDX");
+    pAPI->vkGetExecutionGraphPipelineScratchSizeAMDX = (PFN_vkGetExecutionGraphPipelineScratchSizeAMDX)pAPI->vkGetDeviceProcAddr(device, "vkGetExecutionGraphPipelineScratchSizeAMDX");
+    pAPI->vkGetExecutionGraphPipelineNodeIndexAMDX = (PFN_vkGetExecutionGraphPipelineNodeIndexAMDX)pAPI->vkGetDeviceProcAddr(device, "vkGetExecutionGraphPipelineNodeIndexAMDX");
+    pAPI->vkCmdInitializeGraphScratchMemoryAMDX = (PFN_vkCmdInitializeGraphScratchMemoryAMDX)pAPI->vkGetDeviceProcAddr(device, "vkCmdInitializeGraphScratchMemoryAMDX");
+    pAPI->vkCmdDispatchGraphAMDX = (PFN_vkCmdDispatchGraphAMDX)pAPI->vkGetDeviceProcAddr(device, "vkCmdDispatchGraphAMDX");
+    pAPI->vkCmdDispatchGraphIndirectAMDX = (PFN_vkCmdDispatchGraphIndirectAMDX)pAPI->vkGetDeviceProcAddr(device, "vkCmdDispatchGraphIndirectAMDX");
+    pAPI->vkCmdDispatchGraphIndirectCountAMDX = (PFN_vkCmdDispatchGraphIndirectCountAMDX)pAPI->vkGetDeviceProcAddr(device, "vkCmdDispatchGraphIndirectCountAMDX");
     pAPI->vkGetEncodedVideoSessionParametersKHR = (PFN_vkGetEncodedVideoSessionParametersKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetEncodedVideoSessionParametersKHR");
     pAPI->vkCmdEncodeVideoKHR = (PFN_vkCmdEncodeVideoKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdEncodeVideoKHR");
 #endif /*VK_ENABLE_BETA_EXTENSIONS*/
@@ -24334,6 +24643,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyOpticalFlowSessionNV = pAPI->vkDestroyOpticalFlowSessionNV;
     vkBindOpticalFlowSessionImageNV = pAPI->vkBindOpticalFlowSessionImageNV;
     vkCmdOpticalFlowExecuteNV = pAPI->vkCmdOpticalFlowExecuteNV;
+    vkCmdBindIndexBuffer2KHR = pAPI->vkCmdBindIndexBuffer2KHR;
+    vkGetRenderingAreaGranularityKHR = pAPI->vkGetRenderingAreaGranularityKHR;
+    vkGetDeviceImageSubresourceLayoutKHR = pAPI->vkGetDeviceImageSubresourceLayoutKHR;
+    vkGetImageSubresourceLayout2KHR = pAPI->vkGetImageSubresourceLayout2KHR;
     vkCreateShadersEXT = pAPI->vkCreateShadersEXT;
     vkDestroyShaderEXT = pAPI->vkDestroyShaderEXT;
     vkGetShaderBinaryDataEXT = pAPI->vkGetShaderBinaryDataEXT;
@@ -24427,6 +24740,13 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkImportSemaphoreSciSyncObjNV = pAPI->vkImportSemaphoreSciSyncObjNV;
 #endif /*VK_USE_PLATFORM_SCI*/
 #ifdef VK_ENABLE_BETA_EXTENSIONS
+    vkCreateExecutionGraphPipelinesAMDX = pAPI->vkCreateExecutionGraphPipelinesAMDX;
+    vkGetExecutionGraphPipelineScratchSizeAMDX = pAPI->vkGetExecutionGraphPipelineScratchSizeAMDX;
+    vkGetExecutionGraphPipelineNodeIndexAMDX = pAPI->vkGetExecutionGraphPipelineNodeIndexAMDX;
+    vkCmdInitializeGraphScratchMemoryAMDX = pAPI->vkCmdInitializeGraphScratchMemoryAMDX;
+    vkCmdDispatchGraphAMDX = pAPI->vkCmdDispatchGraphAMDX;
+    vkCmdDispatchGraphIndirectAMDX = pAPI->vkCmdDispatchGraphIndirectAMDX;
+    vkCmdDispatchGraphIndirectCountAMDX = pAPI->vkCmdDispatchGraphIndirectCountAMDX;
     vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR = pAPI->vkGetPhysicalDeviceVideoEncodeQualityLevelPropertiesKHR;
     vkGetEncodedVideoSessionParametersKHR = pAPI->vkGetEncodedVideoSessionParametersKHR;
     vkCmdEncodeVideoKHR = pAPI->vkCmdEncodeVideoKHR;
