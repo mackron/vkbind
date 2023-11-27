@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.3.267.0 - 2023-10-09
+vkbind - v1.3.271.0 - 2023-11-28
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -1321,7 +1321,7 @@ typedef struct StdVideoEncodeH265ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 267
+#define VK_HEADER_VERSION 271
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -1803,6 +1803,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT = 1000102000,
     VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT = 1000102001,
     VK_STRUCTURE_TYPE_HDR_METADATA_EXT = 1000105000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RELAXED_LINE_RASTERIZATION_FEATURES_IMG = 1000110000,
     VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR = 1000111000,
     VK_STRUCTURE_TYPE_IMPORT_FENCE_WIN32_HANDLE_INFO_KHR = 1000114000,
     VK_STRUCTURE_TYPE_EXPORT_FENCE_WIN32_HANDLE_INFO_KHR = 1000114001,
@@ -2067,6 +2068,11 @@ typedef enum
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_SESSION_PARAMETERS_FEEDBACK_INFO_KHR = 1000299010,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DIAGNOSTICS_CONFIG_FEATURES_NV = 1000300000,
     VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV = 1000300001,
+    VK_STRUCTURE_TYPE_CUDA_MODULE_CREATE_INFO_NV = 1000307000,
+    VK_STRUCTURE_TYPE_CUDA_FUNCTION_CREATE_INFO_NV = 1000307001,
+    VK_STRUCTURE_TYPE_CUDA_LAUNCH_INFO_NV = 1000307002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_FEATURES_NV = 1000307003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUDA_KERNEL_LAUNCH_PROPERTIES_NV = 1000307004,
     VK_STRUCTURE_TYPE_REFRESH_OBJECT_LIST_KHR = 1000308000,
     VK_STRUCTURE_TYPE_QUERY_LOW_LATENCY_SUPPORT_NV = 1000310000,
     VK_STRUCTURE_TYPE_EXPORT_METAL_OBJECT_CREATE_INFO_EXT = 1000311000,
@@ -2200,6 +2206,9 @@ typedef enum
     VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT = 1000411001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PAGEABLE_DEVICE_LOCAL_MEMORY_FEATURES_EXT = 1000412000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_ARM = 1000415000,
+    VK_STRUCTURE_TYPE_DEVICE_QUEUE_SHADER_CORE_CONTROL_CREATE_INFO_ARM = 1000417000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_FEATURES_ARM = 1000417001,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_PROPERTIES_ARM = 1000417002,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_SLICED_VIEW_OF_3D_FEATURES_EXT = 1000418000,
     VK_STRUCTURE_TYPE_IMAGE_VIEW_SLICED_CREATE_INFO_EXT = 1000418001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_SET_HOST_MAPPING_FEATURES_VALVE = 1000420000,
@@ -2658,6 +2667,8 @@ typedef enum
     VK_OBJECT_TYPE_PERFORMANCE_CONFIGURATION_INTEL = 1000210000,
     VK_OBJECT_TYPE_DEFERRED_OPERATION_KHR = 1000268000,
     VK_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NV = 1000277000,
+    VK_OBJECT_TYPE_CUDA_MODULE_NV = 1000307000,
+    VK_OBJECT_TYPE_CUDA_FUNCTION_NV = 1000307001,
     VK_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA = 1000366000,
     VK_OBJECT_TYPE_MICROMAP_EXT = 1000396000,
     VK_OBJECT_TYPE_OPTICAL_FLOW_SESSION_NV = 1000464000,
@@ -9995,6 +10006,18 @@ typedef void (VKAPI_PTR *PFN_vkCmdNextSubpass2KHR)(VkCommandBuffer commandBuffer
 typedef void (VKAPI_PTR *PFN_vkCmdEndRenderPass2KHR)(VkCommandBuffer commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo);
 
 
+#define VK_IMG_relaxed_line_rasterization 1
+#define VK_IMG_RELAXED_LINE_RASTERIZATION_SPEC_VERSION 1
+#define VK_IMG_RELAXED_LINE_RASTERIZATION_EXTENSION_NAME "VK_IMG_relaxed_line_rasterization"
+
+typedef struct VkPhysicalDeviceRelaxedLineRasterizationFeaturesIMG
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 relaxedLineRasterization;
+} VkPhysicalDeviceRelaxedLineRasterizationFeaturesIMG;
+
+
 #define VK_KHR_shared_presentable_image 1
 #define VK_KHR_SHARED_PRESENTABLE_IMAGE_SPEC_VERSION 1
 #define VK_KHR_SHARED_PRESENTABLE_IMAGE_EXTENSION_NAME "VK_KHR_shared_presentable_image"
@@ -10500,6 +10523,8 @@ typedef enum
     VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT = 1000085000,
     VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR_EXT = 1000150000,
     VK_DEBUG_REPORT_OBJECT_TYPE_ACCELERATION_STRUCTURE_NV_EXT = 1000165000,
+    VK_DEBUG_REPORT_OBJECT_TYPE_CUDA_MODULE_NV_EXT = 1000307000,
+    VK_DEBUG_REPORT_OBJECT_TYPE_CUDA_FUNCTION_NV_EXT = 1000307001,
     VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_COLLECTION_FUCHSIA_EXT = 1000366000,
     VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR_EXT = VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_EXT,
     VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_KHR_EXT = VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION_EXT,
@@ -14137,6 +14162,71 @@ typedef struct VkDeviceDiagnosticsConfigCreateInfoNV
 #define VK_QCOM_RENDER_PASS_STORE_OPS_EXTENSION_NAME "VK_QCOM_render_pass_store_ops"
 
 
+#define VK_NV_cuda_kernel_launch 1
+#define VK_NV_CUDA_KERNEL_LAUNCH_SPEC_VERSION 2
+#define VK_NV_CUDA_KERNEL_LAUNCH_EXTENSION_NAME "VK_NV_cuda_kernel_launch"
+
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCudaModuleNV)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkCudaFunctionNV)
+
+typedef struct VkCudaModuleCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    size_t dataSize;
+    const void* pData;
+} VkCudaModuleCreateInfoNV;
+
+typedef struct VkCudaFunctionCreateInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkCudaModuleNV module;
+    const char* pName;
+} VkCudaFunctionCreateInfoNV;
+
+typedef struct VkCudaLaunchInfoNV
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkCudaFunctionNV function;
+    uint32_t gridDimX;
+    uint32_t gridDimY;
+    uint32_t gridDimZ;
+    uint32_t blockDimX;
+    uint32_t blockDimY;
+    uint32_t blockDimZ;
+    uint32_t sharedMemBytes;
+    size_t paramCount;
+    const void* const * pParams;
+    size_t extraCount;
+    const void* const * pExtras;
+} VkCudaLaunchInfoNV;
+
+typedef struct VkPhysicalDeviceCudaKernelLaunchFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 cudaKernelLaunchFeatures;
+} VkPhysicalDeviceCudaKernelLaunchFeaturesNV;
+
+typedef struct VkPhysicalDeviceCudaKernelLaunchPropertiesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t computeCapabilityMinor;
+    uint32_t computeCapabilityMajor;
+} VkPhysicalDeviceCudaKernelLaunchPropertiesNV;
+
+
+typedef VkResult (VKAPI_PTR *PFN_vkCreateCudaModuleNV)(VkDevice device, const VkCudaModuleCreateInfoNV* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCudaModuleNV* pModule);
+typedef VkResult (VKAPI_PTR *PFN_vkGetCudaModuleCacheNV)(VkDevice device, VkCudaModuleNV module, size_t* pCacheSize, void* pCacheData);
+typedef VkResult (VKAPI_PTR *PFN_vkCreateCudaFunctionNV)(VkDevice device, const VkCudaFunctionCreateInfoNV* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCudaFunctionNV* pFunction);
+typedef void (VKAPI_PTR *PFN_vkDestroyCudaModuleNV)(VkDevice device, VkCudaModuleNV module, const VkAllocationCallbacks* pAllocator);
+typedef void (VKAPI_PTR *PFN_vkDestroyCudaFunctionNV)(VkDevice device, VkCudaFunctionNV function, const VkAllocationCallbacks* pAllocator);
+typedef void (VKAPI_PTR *PFN_vkCmdCudaLaunchKernelNV)(VkCommandBuffer commandBuffer, const VkCudaLaunchInfoNV* pLaunchInfo);
+
+
 #define VK_KHR_object_refresh 1
 #define VK_KHR_OBJECT_REFRESH_SPEC_VERSION 1
 #define VK_KHR_OBJECT_REFRESH_EXTENSION_NAME "VK_KHR_object_refresh"
@@ -15767,6 +15857,37 @@ typedef struct VkPhysicalDeviceShaderCorePropertiesARM
 } VkPhysicalDeviceShaderCorePropertiesARM;
 
 
+#define VK_ARM_scheduling_controls 1
+#define VK_ARM_SCHEDULING_CONTROLS_SPEC_VERSION 1
+#define VK_ARM_SCHEDULING_CONTROLS_EXTENSION_NAME "VK_ARM_scheduling_controls"
+
+
+typedef VkFlags64 VkPhysicalDeviceSchedulingControlsFlagBitsARM;
+static const VkPhysicalDeviceSchedulingControlsFlagBitsARM VK_PHYSICAL_DEVICE_SCHEDULING_CONTROLS_SHADER_CORE_COUNT_ARM = 0x00000001;
+typedef VkFlags64 VkPhysicalDeviceSchedulingControlsFlagsARM;
+
+typedef struct VkDeviceQueueShaderCoreControlCreateInfoARM
+{
+    VkStructureType sType;
+    void* pNext;
+    uint32_t shaderCoreCount;
+} VkDeviceQueueShaderCoreControlCreateInfoARM;
+
+typedef struct VkPhysicalDeviceSchedulingControlsFeaturesARM
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 schedulingControls;
+} VkPhysicalDeviceSchedulingControlsFeaturesARM;
+
+typedef struct VkPhysicalDeviceSchedulingControlsPropertiesARM
+{
+    VkStructureType sType;
+    void* pNext;
+    VkPhysicalDeviceSchedulingControlsFlagsARM schedulingControlsFlags;
+} VkPhysicalDeviceSchedulingControlsPropertiesARM;
+
+
 #define VK_EXT_image_sliced_view_of_3d 1
 #define VK_EXT_IMAGE_SLICED_VIEW_OF_3D_SPEC_VERSION 1
 #define VK_EXT_IMAGE_SLICED_VIEW_OF_3D_EXTENSION_NAME "VK_EXT_image_sliced_view_of_3d"
@@ -16293,7 +16414,7 @@ typedef struct VkDirectDriverLoadingInfoLUNARG
 typedef struct VkDirectDriverLoadingListLUNARG
 {
     VkStructureType sType;
-    void* pNext;
+    const void* pNext;
     VkDirectDriverLoadingModeLUNARG mode;
     uint32_t driverCount;
     const VkDirectDriverLoadingInfoLUNARG* pDrivers;
@@ -16933,7 +17054,7 @@ typedef struct VkPhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT
 
 
 #define VK_NV_low_latency2 1
-#define VK_NV_LOW_LATENCY_2_SPEC_VERSION 1
+#define VK_NV_LOW_LATENCY_2_SPEC_VERSION 2
 #define VK_NV_LOW_LATENCY_2_EXTENSION_NAME "VK_NV_low_latency2"
 
 typedef enum
@@ -17010,6 +17131,7 @@ typedef struct VkGetLatencyMarkerInfoNV
 {
     VkStructureType sType;
     const void* pNext;
+    uint32_t timingCount;
     VkLatencyTimingsFrameReportNV* pTimings;
 } VkGetLatencyMarkerInfoNV;
 
@@ -17046,7 +17168,7 @@ typedef struct VkLatencySurfaceCapabilitiesNV
 typedef VkResult (VKAPI_PTR *PFN_vkSetLatencySleepModeNV)(VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepModeInfoNV* pSleepModeInfo);
 typedef VkResult (VKAPI_PTR *PFN_vkLatencySleepNV)(VkDevice device, VkSwapchainKHR swapchain, const VkLatencySleepInfoNV* pSleepInfo);
 typedef void (VKAPI_PTR *PFN_vkSetLatencyMarkerNV)(VkDevice device, VkSwapchainKHR swapchain, const VkSetLatencyMarkerInfoNV* pLatencyMarkerInfo);
-typedef void (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)(VkDevice device, VkSwapchainKHR swapchain, uint32_t* pTimingCount, VkGetLatencyMarkerInfoNV* pLatencyMarkerInfo);
+typedef void (VKAPI_PTR *PFN_vkGetLatencyTimingsNV)(VkDevice device, VkSwapchainKHR swapchain, VkGetLatencyMarkerInfoNV* pLatencyMarkerInfo);
 typedef void (VKAPI_PTR *PFN_vkQueueNotifyOutOfBandNV)(VkQueue queue, const VkOutOfBandQueueTypeInfoNV* pQueueTypeInfo);
 
 
@@ -19765,6 +19887,12 @@ extern PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 extern PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 extern PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 extern PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+extern PFN_vkCreateCudaModuleNV vkCreateCudaModuleNV;
+extern PFN_vkGetCudaModuleCacheNV vkGetCudaModuleCacheNV;
+extern PFN_vkCreateCudaFunctionNV vkCreateCudaFunctionNV;
+extern PFN_vkDestroyCudaModuleNV vkDestroyCudaModuleNV;
+extern PFN_vkDestroyCudaFunctionNV vkDestroyCudaFunctionNV;
+extern PFN_vkCmdCudaLaunchKernelNV vkCmdCudaLaunchKernelNV;
 extern PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
 extern PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
 extern PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
@@ -20480,6 +20608,12 @@ typedef struct
     PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
     PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
     PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+    PFN_vkCreateCudaModuleNV vkCreateCudaModuleNV;
+    PFN_vkGetCudaModuleCacheNV vkGetCudaModuleCacheNV;
+    PFN_vkCreateCudaFunctionNV vkCreateCudaFunctionNV;
+    PFN_vkDestroyCudaModuleNV vkDestroyCudaModuleNV;
+    PFN_vkDestroyCudaFunctionNV vkDestroyCudaFunctionNV;
+    PFN_vkCmdCudaLaunchKernelNV vkCmdCudaLaunchKernelNV;
     PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
     PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
@@ -21281,6 +21415,12 @@ PFN_vkCreatePrivateDataSlotEXT vkCreatePrivateDataSlotEXT;
 PFN_vkDestroyPrivateDataSlotEXT vkDestroyPrivateDataSlotEXT;
 PFN_vkSetPrivateDataEXT vkSetPrivateDataEXT;
 PFN_vkGetPrivateDataEXT vkGetPrivateDataEXT;
+PFN_vkCreateCudaModuleNV vkCreateCudaModuleNV;
+PFN_vkGetCudaModuleCacheNV vkGetCudaModuleCacheNV;
+PFN_vkCreateCudaFunctionNV vkCreateCudaFunctionNV;
+PFN_vkDestroyCudaModuleNV vkDestroyCudaModuleNV;
+PFN_vkDestroyCudaFunctionNV vkDestroyCudaFunctionNV;
+PFN_vkCmdCudaLaunchKernelNV vkCmdCudaLaunchKernelNV;
 PFN_vkCmdRefreshObjectsKHR vkCmdRefreshObjectsKHR;
 PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR vkGetPhysicalDeviceRefreshableObjectTypesKHR;
 PFN_vkCmdSetEvent2KHR vkCmdSetEvent2KHR;
@@ -22073,6 +22213,12 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)vkb_dlsym(g_vkbVulkanSO, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)vkb_dlsym(g_vkbVulkanSO, "vkGetPrivateDataEXT");
+    pAPI->vkCreateCudaModuleNV = (PFN_vkCreateCudaModuleNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateCudaModuleNV");
+    pAPI->vkGetCudaModuleCacheNV = (PFN_vkGetCudaModuleCacheNV)vkb_dlsym(g_vkbVulkanSO, "vkGetCudaModuleCacheNV");
+    pAPI->vkCreateCudaFunctionNV = (PFN_vkCreateCudaFunctionNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateCudaFunctionNV");
+    pAPI->vkDestroyCudaModuleNV = (PFN_vkDestroyCudaModuleNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyCudaModuleNV");
+    pAPI->vkDestroyCudaFunctionNV = (PFN_vkDestroyCudaFunctionNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyCudaFunctionNV");
+    pAPI->vkCmdCudaLaunchKernelNV = (PFN_vkCmdCudaLaunchKernelNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCudaLaunchKernelNV");
     pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdRefreshObjectsKHR");
     pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = (PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetPhysicalDeviceRefreshableObjectTypesKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetEvent2KHR");
@@ -22804,6 +22950,12 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = vkDestroyPrivateDataSlotEXT;
     pAPI->vkSetPrivateDataEXT = vkSetPrivateDataEXT;
     pAPI->vkGetPrivateDataEXT = vkGetPrivateDataEXT;
+    pAPI->vkCreateCudaModuleNV = vkCreateCudaModuleNV;
+    pAPI->vkGetCudaModuleCacheNV = vkGetCudaModuleCacheNV;
+    pAPI->vkCreateCudaFunctionNV = vkCreateCudaFunctionNV;
+    pAPI->vkDestroyCudaModuleNV = vkDestroyCudaModuleNV;
+    pAPI->vkDestroyCudaFunctionNV = vkDestroyCudaFunctionNV;
+    pAPI->vkCmdCudaLaunchKernelNV = vkCmdCudaLaunchKernelNV;
     pAPI->vkCmdRefreshObjectsKHR = vkCmdRefreshObjectsKHR;
     pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     pAPI->vkCmdSetEvent2KHR = vkCmdSetEvent2KHR;
@@ -23618,6 +23770,12 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetInstanceProcAddr(instance, "vkGetPrivateDataEXT");
+    pAPI->vkCreateCudaModuleNV = (PFN_vkCreateCudaModuleNV)pAPI->vkGetInstanceProcAddr(instance, "vkCreateCudaModuleNV");
+    pAPI->vkGetCudaModuleCacheNV = (PFN_vkGetCudaModuleCacheNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetCudaModuleCacheNV");
+    pAPI->vkCreateCudaFunctionNV = (PFN_vkCreateCudaFunctionNV)pAPI->vkGetInstanceProcAddr(instance, "vkCreateCudaFunctionNV");
+    pAPI->vkDestroyCudaModuleNV = (PFN_vkDestroyCudaModuleNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyCudaModuleNV");
+    pAPI->vkDestroyCudaFunctionNV = (PFN_vkDestroyCudaFunctionNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyCudaFunctionNV");
+    pAPI->vkCmdCudaLaunchKernelNV = (PFN_vkCmdCudaLaunchKernelNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCudaLaunchKernelNV");
     pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdRefreshObjectsKHR");
     pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR = (PFN_vkGetPhysicalDeviceRefreshableObjectTypesKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceRefreshableObjectTypesKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetEvent2KHR");
@@ -24275,6 +24433,12 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkDestroyPrivateDataSlotEXT = (PFN_vkDestroyPrivateDataSlotEXT)pAPI->vkGetDeviceProcAddr(device, "vkDestroyPrivateDataSlotEXT");
     pAPI->vkSetPrivateDataEXT = (PFN_vkSetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkSetPrivateDataEXT");
     pAPI->vkGetPrivateDataEXT = (PFN_vkGetPrivateDataEXT)pAPI->vkGetDeviceProcAddr(device, "vkGetPrivateDataEXT");
+    pAPI->vkCreateCudaModuleNV = (PFN_vkCreateCudaModuleNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateCudaModuleNV");
+    pAPI->vkGetCudaModuleCacheNV = (PFN_vkGetCudaModuleCacheNV)pAPI->vkGetDeviceProcAddr(device, "vkGetCudaModuleCacheNV");
+    pAPI->vkCreateCudaFunctionNV = (PFN_vkCreateCudaFunctionNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateCudaFunctionNV");
+    pAPI->vkDestroyCudaModuleNV = (PFN_vkDestroyCudaModuleNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyCudaModuleNV");
+    pAPI->vkDestroyCudaFunctionNV = (PFN_vkDestroyCudaFunctionNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyCudaFunctionNV");
+    pAPI->vkCmdCudaLaunchKernelNV = (PFN_vkCmdCudaLaunchKernelNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCudaLaunchKernelNV");
     pAPI->vkCmdRefreshObjectsKHR = (PFN_vkCmdRefreshObjectsKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdRefreshObjectsKHR");
     pAPI->vkCmdSetEvent2KHR = (PFN_vkCmdSetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetEvent2KHR");
     pAPI->vkCmdResetEvent2KHR = (PFN_vkCmdResetEvent2KHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdResetEvent2KHR");
@@ -24968,6 +25132,12 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkDestroyPrivateDataSlotEXT = pAPI->vkDestroyPrivateDataSlotEXT;
     vkSetPrivateDataEXT = pAPI->vkSetPrivateDataEXT;
     vkGetPrivateDataEXT = pAPI->vkGetPrivateDataEXT;
+    vkCreateCudaModuleNV = pAPI->vkCreateCudaModuleNV;
+    vkGetCudaModuleCacheNV = pAPI->vkGetCudaModuleCacheNV;
+    vkCreateCudaFunctionNV = pAPI->vkCreateCudaFunctionNV;
+    vkDestroyCudaModuleNV = pAPI->vkDestroyCudaModuleNV;
+    vkDestroyCudaFunctionNV = pAPI->vkDestroyCudaFunctionNV;
+    vkCmdCudaLaunchKernelNV = pAPI->vkCmdCudaLaunchKernelNV;
     vkCmdRefreshObjectsKHR = pAPI->vkCmdRefreshObjectsKHR;
     vkGetPhysicalDeviceRefreshableObjectTypesKHR = pAPI->vkGetPhysicalDeviceRefreshableObjectTypesKHR;
     vkCmdSetEvent2KHR = pAPI->vkCmdSetEvent2KHR;
