@@ -801,9 +801,9 @@ VkbResult vkbBuildParseEnums(VkbBuild &context, tinyxml2::XMLElement* pEnumsElem
             theEnum.bitpos = (childBitPos != NULL) ? vkbTrim(childBitPos) : "";
 
             // There's an <enums> tag that's specifically used for "#define" style enums. These are treated slightly differently. In this case, the <enums> type
-            // will be empty, but we store a separate vkbBuildEnums object for each item within that <enums> tag. This object will contain only a single item,
+            // will be "constants", but we store a separate vkbBuildEnums object for each item within that <enums> tag. This object will contain only a single item,
             // which is the name/value of the #define.
-            if (enums.type == "") {
+            if (enums.type == "constants") {
                 // #define enum.
                 vkbBuildEnums defineEnum;
                 defineEnum.name = childName;
