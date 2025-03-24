@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define VKB_BUILD_XML_PATH_VK       "../../resources/vk.xml"
-#define VKB_BUILD_XML_PATH_VIDEO    "../../resources/video.xml"
-#define VKB_BUILD_TEMPLATE_PATH     "../../source/vkbind_template.h"
+#define VKB_BUILD_XML_PATH_VK       "resources/vk.xml"
+#define VKB_BUILD_XML_PATH_VIDEO    "resources/video.xml"
+#define VKB_BUILD_TEMPLATE_PATH     "source/vkbind_template.h"
 
 typedef int VkbResult;
 #define VKB_SUCCESS                 0
@@ -3311,7 +3311,7 @@ VkbResult vkbBuildGenerateCode_C_Revision(VkbBuild &context, std::string &codeOu
 
     size_t fileSize;
     char* pFileData;
-    if (vkbOpenAndReadTextFile("../../vkbind.h", &fileSize, &pFileData) == VKB_SUCCESS) {
+    if (vkbOpenAndReadTextFile("vkbind.h", &fileSize, &pFileData) == VKB_SUCCESS) {
         // We need to parse the previous version.
         std::string prevVersionMajor;
         std::string prevVersionMinor;
@@ -3562,7 +3562,7 @@ static VkbResult GenerateHeaders_Video(VkbBuild &context)
     */
     VkbResult result;
     std::string code;
-    std::string outputFilePath = "../../vk_video.h";
+    std::string outputFilePath = "vk_video.h";
 
     result = vkbBuildGenerateCode_C_Main(context, code);
     if (result != VKB_SUCCESS) {
@@ -3574,7 +3574,13 @@ static VkbResult GenerateHeaders_Video(VkbBuild &context)
 #endif
 
 
+#ifdef _WIN32
 #include <io.h>
+#define vkb_access _access_s
+#else
+#include <unistd.h>
+#define vkb_access access
+#endif
 
 int main(int argc, char** argv)
 {
@@ -3586,7 +3592,7 @@ int main(int argc, char** argv)
     (void)argv;
 
     bool forceDownload = true;
-    if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VK, 04) != 0) {   // 04 = Read access.
+    if (forceDownload || vkb_access(VKB_BUILD_XML_PATH_VK, 04) != 0) {   // 04 = Read access.
         printf("vk.xml not found. Attempting to download...\n");
         std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VK " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/vk.xml";
         if (system(cmd.c_str()) != 0) {
@@ -3595,7 +3601,7 @@ int main(int argc, char** argv)
         }
     }
 
-    if (forceDownload || _access_s(VKB_BUILD_XML_PATH_VIDEO, 04) != 0) {   // 04 = Read access.
+    if (forceDownload || vkb_access(VKB_BUILD_XML_PATH_VIDEO, 04) != 0) {   // 04 = Read access.
         printf("video.xml not found. Attempting to download...\n");
         std::string cmd = "curl -o " VKB_BUILD_XML_PATH_VIDEO " https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/main/xml/video.xml";
         if (system(cmd.c_str()) != 0) {
@@ -3618,7 +3624,7 @@ int main(int argc, char** argv)
     }
 
 
-    result = vkbBuildGenerateLib_C(vk, video, "../../vkbind.h");
+    result = vkbBuildGenerateLib_C(vk, video, "vkbind.h");
     if (result != VKB_SUCCESS) {
         printf("Failed to generate C code.\n");
         return result;
