@@ -1,0 +1,7 @@
+.vscode
+/#docs
+/build
+/examples/_build
+/resources/vk.xml
+/resources/video.xml
+*.spirv
