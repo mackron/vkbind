@@ -193,7 +193,7 @@ Uninitializes vkbind.
 
 Each call to vkbInit() must be matched up with a call to vkbUninit().
 */
-void vkbUninit();
+void vkbUninit(void);
 
 /*
 Loads per-instance function pointers into the specified API object.
@@ -291,7 +291,7 @@ static VkbProc vkb_dlsym(VkbHandle handle, const char* symbol)
 static unsigned int g_vkbInitCount = 0;
 static VkbHandle g_vkbVulkanSO = NULL;
 
-static VkResult vkbLoadVulkanSO()
+static VkResult vkbLoadVulkanSO(void)
 {
     size_t i;
 
@@ -413,7 +413,7 @@ VkResult vkbInit(VkbAPI* pAPI)
     return VK_SUCCESS;
 }
 
-void vkbUninit()
+void vkbUninit(void)
 {
     if (g_vkbInitCount == 0) {
         return;
