@@ -433,6 +433,9 @@ int main(int argc, char** argv)
         printf("Failed to create a Vulkan surface for the main window.");
         return -1;
     }
+#else
+    /* TODO: Add support for Xlib. */
+    surface = VK_NULL_HANDLE;   /* To prevent a warning. */
 #endif
 
     /*
