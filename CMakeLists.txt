@@ -88,4 +88,7 @@ endif()
 if (VKBIND_BUILD_TOOLS)
     add_executable(vkbind_build source/vkbind_build.cpp)
     target_link_libraries(vkbind_build vkbind_common)
+
+    #add_executable(vkbind_example_codegen source/vkbind_example_codegen.cpp)
+    #target_link_libraries(vkbind_example_codegen vkbind_common)
 endif()
