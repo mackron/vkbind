@@ -88,8 +88,6 @@ static const uint32_t g_TextureDataRGBA[4] = {
 #ifndef _WIN32
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <stdlib.h>
-#include <string.h>
 #endif
 
 /*
