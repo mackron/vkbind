@@ -69,6 +69,24 @@ if (UNIX)
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
         list(APPEND COMMON_LINK_LIBRARIES atomic)
     endif()
+    
+    # X11 libraries for Vulkan surface support
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(X11 QUIET x11)
+        if(X11_FOUND)
+            list(APPEND COMMON_LINK_LIBRARIES ${X11_LIBRARIES})
+            message(STATUS "Found X11 libraries: ${X11_LIBRARIES}")
+        else()
+            # Fallback to standard X11 library
+            list(APPEND COMMON_LINK_LIBRARIES X11)
+            message(STATUS "Using fallback X11 library")
+        endif()
+    else()
+        # Fallback to standard X11 library
+        list(APPEND COMMON_LINK_LIBRARIES X11)
+        message(STATUS "Using fallback X11 library (no pkg-config)")
+    endif()
 endif()
 
 

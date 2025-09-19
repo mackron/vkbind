@@ -84,6 +84,14 @@ static const uint32_t g_TextureDataRGBA[4] = {
 
 #include <stdio.h>
 
+/* Platform-specific includes for X11 */
+#ifndef _WIN32
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <stdlib.h>
+#include <string.h>
+#endif
+
 /*
 This is just a standard, and empty, Win32 window procedure for event handling. The contents of this do not matter for
 this example, but in a real program you'd handle your input and resizing stuff here. For resizing in particular, you
@@ -178,6 +186,36 @@ int main(int argc, char** argv)
     }
 
     ShowWindow(hWnd, SW_SHOWNORMAL);
+#else
+    /* X11 window creation */
+    Display* pDisplay = XOpenDisplay(NULL);
+    if (pDisplay == NULL) {
+        printf("Failed to open X11 display.\n");
+        return -1;
+    }
+
+    int screen = DefaultScreen(pDisplay);
+    
+    /* Create a simple window */
+    Window window = XCreateSimpleWindow(pDisplay, RootWindow(pDisplay, screen), 0, 0, 640, 480, 1, BlackPixel(pDisplay, screen), WhitePixel(pDisplay, screen));
+    if (window == 0) {
+        printf("Failed to create X11 window.\n");
+        XCloseDisplay(pDisplay);
+        return -1;
+    }
+
+    Atom wmDeleteMessage = XInternAtom(pDisplay, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(pDisplay, window, &wmDeleteMessage, 1);
+    
+    /* Set window title */
+    XStoreName(pDisplay, window, "Vulkan Tutorial");
+
+    /* Select input events */
+    XSelectInput(pDisplay, window, ExposureMask | KeyPressMask | StructureNotifyMask);
+
+    /* Make the window visible */
+    XMapWindow(pDisplay, window);
+    XFlush(pDisplay);
 #endif
 
     /*
@@ -254,6 +292,9 @@ int main(int argc, char** argv)
     ppEnabledExtensionNames[enabledExtensionCount++] = VK_KHR_SURFACE_EXTENSION_NAME;
 #ifdef VK_USE_PLATFORM_WIN32_KHR
     ppEnabledExtensionNames[enabledExtensionCount++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+#endif
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+    ppEnabledExtensionNames[enabledExtensionCount++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
 #endif
 
     /*
@@ -434,8 +475,20 @@ int main(int argc, char** argv)
         return -1;
     }
 #else
-    /* TODO: Add support for Xlib. */
-    surface = VK_NULL_HANDLE;   /* To prevent a warning. */
+    /* X11 surface creation */
+    VkXlibSurfaceCreateInfoKHR surfaceInfo;
+    surfaceInfo.sType  = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+    surfaceInfo.pNext  = NULL;
+    surfaceInfo.flags  = 0;
+    surfaceInfo.dpy    = pDisplay;
+    surfaceInfo.window = window;
+    result = vkCreateXlibSurfaceKHR(instance, &surfaceInfo, NULL, &surface);
+    if (result != VK_SUCCESS) {
+        vkDestroyInstance(instance, NULL);
+        XCloseDisplay(pDisplay);
+        printf("Failed to create a Vulkan surface for the main window.");
+        return -1;
+    }
 #endif
 
     /*
@@ -2237,7 +2290,7 @@ int main(int argc, char** argv)
 
     /* Main loop. */
     for (;;) {
-#ifdef _WIN32
+    #ifdef _WIN32
         MSG msg;
         if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (msg.message == WM_QUIT) {
@@ -2247,7 +2300,20 @@ int main(int argc, char** argv)
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
         }
-#endif
+    #else
+        /* X11 event handling */
+        XEvent event;
+        if (XPending(pDisplay)) {
+            XNextEvent(pDisplay, &event);
+            if (event.type == ClientMessage) {
+                if ((Atom)event.xclient.data.l[0] == wmDeleteMessage) {
+                    break;  /* Received a quit message. */
+                }
+            } else if (event.type == DestroyNotify) {
+                break;  /* Window was destroyed, probably by the window manager. */
+            }
+        }
+    #endif
      
         uint32_t swapchainImageIndex;
         result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, swapchainSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
