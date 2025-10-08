@@ -1281,7 +1281,7 @@ int main(int argc, char** argv)
     colorAttachment.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkAttachmentReference depthStencilAttachment;
-    depthStencilAttachment.attachment = 1;  /* Index into attachmentDescp[] */
+    depthStencilAttachment.attachment = 1;  /* Index into attachmentDesc[] */
     depthStencilAttachment.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpassDesc;

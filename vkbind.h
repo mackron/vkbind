@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.4.327.0 - 2025-09-20
+vkbind - v1.4.328.0 - 2025-10-09
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -2104,7 +2104,7 @@ typedef struct StdVideoEncodeAV1ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 327
+#define VK_HEADER_VERSION 328
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 4, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -3032,8 +3032,6 @@ typedef enum
     VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_BEGIN_INFO_ARM = 1000424002,
     VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_INFO_ARM = 1000424003,
     VK_STRUCTURE_TYPE_RENDER_PASS_STRIPE_SUBMIT_INFO_ARM = 1000424004,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_NV = 1000426000,
-    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_NV = 1000426001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_FEATURES_NV = 1000427000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_DECOMPRESSION_PROPERTIES_NV = 1000427001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_COMPUTE_FEATURES_NV = 1000428000,
@@ -3256,6 +3254,11 @@ typedef enum
     VK_STRUCTURE_TYPE_TILE_MEMORY_REQUIREMENTS_QCOM = 1000547002,
     VK_STRUCTURE_TYPE_TILE_MEMORY_BIND_INFO_QCOM = 1000547003,
     VK_STRUCTURE_TYPE_TILE_MEMORY_SIZE_INFO_QCOM = 1000547004,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_KHR = 1000549000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_KHR = 1000426001,
+    VK_STRUCTURE_TYPE_COPY_MEMORY_INDIRECT_INFO_KHR = 1000549002,
+    VK_STRUCTURE_TYPE_COPY_MEMORY_TO_IMAGE_INDIRECT_INFO_KHR = 1000549003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_FEATURES_NV = 1000426000,
     VK_STRUCTURE_TYPE_DISPLAY_SURFACE_STEREO_CREATE_INFO_NV = 1000551000,
     VK_STRUCTURE_TYPE_DISPLAY_MODE_STEREO_PROPERTIES_NV = 1000551001,
     VK_STRUCTURE_TYPE_VIDEO_ENCODE_INTRA_REFRESH_CAPABILITIES_KHR = 1000552000,
@@ -3603,6 +3606,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO_KHR = VK_STRUCTURE_TYPE_PUSH_CONSTANTS_INFO,
     VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO_KHR = VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_INFO,
     VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_WITH_TEMPLATE_INFO_KHR = VK_STRUCTURE_TYPE_PUSH_DESCRIPTOR_SET_WITH_TEMPLATE_INFO,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_NV = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COPY_MEMORY_INDIRECT_PROPERTIES_KHR,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_EXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_ZERO_ONE_FEATURES_KHR,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_KHR,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_EXT = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_PROPERTIES_KHR,
@@ -8283,6 +8287,7 @@ static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_CLUSTER_CULLING_SHADER
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_OPTICAL_FLOW_BIT_NV = 0x20000000;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_CONVERT_COOPERATIVE_VECTOR_MATRIX_BIT_NV = (VkPipelineStageFlagBits2)(((VkPipelineStageFlagBits2)0x00001000 << 32) | (0x00000000));
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_DATA_GRAPH_BIT_ARM = (VkPipelineStageFlagBits2)(((VkPipelineStageFlagBits2)0x00000400 << 32) | (0x00000000));
+static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_COPY_INDIRECT_BIT_KHR = (VkPipelineStageFlagBits2)(((VkPipelineStageFlagBits2)0x00004000 << 32) | (0x00000000));
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_NONE_KHR = 0;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR = 0x00000001;
 static const VkPipelineStageFlagBits2 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT_KHR = 0x00000002;
@@ -8466,6 +8471,7 @@ static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_OPTICAL_FLOW_IMAGE_BIT
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_OPTICAL_FLOW_VECTOR_BIT_NV = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00000200 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_OPTICAL_FLOW_COST_BIT_NV = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00000400 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_TENSOR_DATA_GRAPH_BIT_ARM = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00010000 << 32) | (0x00000000));
+static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_COPY_IMAGE_INDIRECT_DST_BIT_KHR = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x08000000 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00020000 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00040000 << 32) | (0x00000000));
 static const VkFormatFeatureFlagBits2 VK_FORMAT_FEATURE_2_HOST_IMAGE_TRANSFER_BIT_EXT = (VkFormatFeatureFlagBits2)(((VkFormatFeatureFlagBits2)0x00004000 << 32) | (0x00000000));
@@ -18266,46 +18272,6 @@ typedef struct VkRenderPassStripeSubmitInfoARM
 } VkRenderPassStripeSubmitInfoARM;
 
 
-#define VK_NV_copy_memory_indirect 1
-#define VK_NV_COPY_MEMORY_INDIRECT_SPEC_VERSION 1
-#define VK_NV_COPY_MEMORY_INDIRECT_EXTENSION_NAME "VK_NV_copy_memory_indirect"
-
-typedef struct VkCopyMemoryIndirectCommandNV
-{
-    VkDeviceAddress srcAddress;
-    VkDeviceAddress dstAddress;
-    VkDeviceSize size;
-} VkCopyMemoryIndirectCommandNV;
-
-typedef struct VkCopyMemoryToImageIndirectCommandNV
-{
-    VkDeviceAddress srcAddress;
-    uint32_t bufferRowLength;
-    uint32_t bufferImageHeight;
-    VkImageSubresourceLayers imageSubresource;
-    VkOffset3D imageOffset;
-    VkExtent3D imageExtent;
-} VkCopyMemoryToImageIndirectCommandNV;
-
-typedef struct VkPhysicalDeviceCopyMemoryIndirectFeaturesNV
-{
-    VkStructureType sType;
-    void* pNext;
-    VkBool32 indirectCopy;
-} VkPhysicalDeviceCopyMemoryIndirectFeaturesNV;
-
-typedef struct VkPhysicalDeviceCopyMemoryIndirectPropertiesNV
-{
-    VkStructureType sType;
-    void* pNext;
-    VkQueueFlags supportedQueues;
-} VkPhysicalDeviceCopyMemoryIndirectPropertiesNV;
-
-
-typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryIndirectNV)(VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount, uint32_t stride);
-typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryToImageIndirectNV)(VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount, uint32_t stride, VkImage dstImage, VkImageLayout dstImageLayout, const VkImageSubresourceLayers* pImageSubresources);
-
-
 #define VK_NV_memory_decompression 1
 #define VK_NV_MEMORY_DECOMPRESSION_SPEC_VERSION 1
 #define VK_NV_MEMORY_DECOMPRESSION_EXTENSION_NAME "VK_NV_memory_decompression"
@@ -21262,6 +21228,108 @@ typedef struct VkTileMemorySizeInfoQCOM
 
 
 typedef void (VKAPI_PTR *PFN_vkCmdBindTileMemoryQCOM)(VkCommandBuffer commandBuffer, const VkTileMemoryBindInfoQCOM* pTileMemoryBindInfo);
+
+
+#define VK_KHR_copy_memory_indirect 1
+#define VK_KHR_COPY_MEMORY_INDIRECT_SPEC_VERSION 1
+#define VK_KHR_COPY_MEMORY_INDIRECT_EXTENSION_NAME "VK_KHR_copy_memory_indirect"
+
+
+typedef enum
+{
+    VK_ADDRESS_COPY_DEVICE_LOCAL_BIT_KHR = 0x00000001,
+    VK_ADDRESS_COPY_SPARSE_BIT_KHR = 0x00000002,
+    VK_ADDRESS_COPY_PROTECTED_BIT_KHR = 0x00000004,
+    VK_ADDRESS_COPY_FLAG_BITS_MAX_ENUM_KHR = 0x7FFFFFFF
+} VkAddressCopyFlagBitsKHR;
+typedef VkFlags VkAddressCopyFlagsKHR;
+
+typedef struct VkStridedDeviceAddressRangeKHR
+{
+    VkDeviceAddress address;
+    VkDeviceSize size;
+    VkDeviceSize stride;
+} VkStridedDeviceAddressRangeKHR;
+
+typedef struct VkCopyMemoryIndirectCommandKHR
+{
+    VkDeviceAddress srcAddress;
+    VkDeviceAddress dstAddress;
+    VkDeviceSize size;
+} VkCopyMemoryIndirectCommandKHR;
+
+typedef struct VkCopyMemoryIndirectInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkAddressCopyFlagsKHR srcCopyFlags;
+    VkAddressCopyFlagsKHR dstCopyFlags;
+    uint32_t copyCount;
+    VkStridedDeviceAddressRangeKHR copyAddressRange;
+} VkCopyMemoryIndirectInfoKHR;
+
+typedef struct VkCopyMemoryToImageIndirectCommandKHR
+{
+    VkDeviceAddress srcAddress;
+    uint32_t bufferRowLength;
+    uint32_t bufferImageHeight;
+    VkImageSubresourceLayers imageSubresource;
+    VkOffset3D imageOffset;
+    VkExtent3D imageExtent;
+} VkCopyMemoryToImageIndirectCommandKHR;
+
+typedef struct VkCopyMemoryToImageIndirectInfoKHR
+{
+    VkStructureType sType;
+    const void* pNext;
+    VkAddressCopyFlagsKHR srcCopyFlags;
+    uint32_t copyCount;
+    VkStridedDeviceAddressRangeKHR copyAddressRange;
+    VkImage dstImage;
+    VkImageLayout dstImageLayout;
+    const VkImageSubresourceLayers* pImageSubresources;
+} VkCopyMemoryToImageIndirectInfoKHR;
+
+typedef struct VkPhysicalDeviceCopyMemoryIndirectFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 indirectMemoryCopy;
+    VkBool32 indirectMemoryToImageCopy;
+} VkPhysicalDeviceCopyMemoryIndirectFeaturesKHR;
+
+typedef struct VkPhysicalDeviceCopyMemoryIndirectPropertiesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkQueueFlags supportedQueues;
+} VkPhysicalDeviceCopyMemoryIndirectPropertiesKHR;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryIndirectKHR)(VkCommandBuffer commandBuffer, const VkCopyMemoryIndirectInfoKHR* pCopyMemoryIndirectInfo);
+typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryToImageIndirectKHR)(VkCommandBuffer commandBuffer, const VkCopyMemoryToImageIndirectInfoKHR* pCopyMemoryToImageIndirectInfo);
+
+
+#define VK_NV_copy_memory_indirect 1
+#define VK_NV_COPY_MEMORY_INDIRECT_SPEC_VERSION 1
+#define VK_NV_COPY_MEMORY_INDIRECT_EXTENSION_NAME "VK_NV_copy_memory_indirect"
+
+typedef VkCopyMemoryIndirectCommandKHR VkCopyMemoryIndirectCommandNV;
+
+typedef VkCopyMemoryToImageIndirectCommandKHR VkCopyMemoryToImageIndirectCommandNV;
+
+typedef struct VkPhysicalDeviceCopyMemoryIndirectFeaturesNV
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 indirectCopy;
+} VkPhysicalDeviceCopyMemoryIndirectFeaturesNV;
+
+typedef VkPhysicalDeviceCopyMemoryIndirectPropertiesKHR VkPhysicalDeviceCopyMemoryIndirectPropertiesNV;
+
+
+typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryIndirectNV)(VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount, uint32_t stride);
+typedef void (VKAPI_PTR *PFN_vkCmdCopyMemoryToImageIndirectNV)(VkCommandBuffer commandBuffer, VkDeviceAddress copyBufferAddress, uint32_t copyCount, uint32_t stride, VkImage dstImage, VkImageLayout dstImageLayout, const VkImageSubresourceLayers* pImageSubresources);
 
 
 #define VK_NV_display_stereo 1
@@ -24795,8 +24863,6 @@ extern PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequireme
 extern PFN_vkGetDeviceImageSparseMemoryRequirementsKHR vkGetDeviceImageSparseMemoryRequirementsKHR;
 extern PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE vkGetDescriptorSetLayoutHostMappingInfoVALVE;
 extern PFN_vkGetDescriptorSetHostMappingVALVE vkGetDescriptorSetHostMappingVALVE;
-extern PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
-extern PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 extern PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
 extern PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
 extern PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
@@ -24905,6 +24971,10 @@ extern PFN_vkCmdPushDescriptorSetWithTemplate2KHR vkCmdPushDescriptorSetWithTemp
 extern PFN_vkCmdSetDescriptorBufferOffsets2EXT vkCmdSetDescriptorBufferOffsets2EXT;
 extern PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
 extern PFN_vkCmdBindTileMemoryQCOM vkCmdBindTileMemoryQCOM;
+extern PFN_vkCmdCopyMemoryIndirectKHR vkCmdCopyMemoryIndirectKHR;
+extern PFN_vkCmdCopyMemoryToImageIndirectKHR vkCmdCopyMemoryToImageIndirectKHR;
+extern PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
+extern PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 extern PFN_vkCreateExternalComputeQueueNV vkCreateExternalComputeQueueNV;
 extern PFN_vkDestroyExternalComputeQueueNV vkDestroyExternalComputeQueueNV;
 extern PFN_vkGetExternalComputeQueueDataNV vkGetExternalComputeQueueDataNV;
@@ -25608,8 +25678,6 @@ typedef struct
     PFN_vkGetDeviceImageSparseMemoryRequirementsKHR vkGetDeviceImageSparseMemoryRequirementsKHR;
     PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE vkGetDescriptorSetLayoutHostMappingInfoVALVE;
     PFN_vkGetDescriptorSetHostMappingVALVE vkGetDescriptorSetHostMappingVALVE;
-    PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
-    PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
     PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
     PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
     PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
@@ -25718,6 +25786,10 @@ typedef struct
     PFN_vkCmdSetDescriptorBufferOffsets2EXT vkCmdSetDescriptorBufferOffsets2EXT;
     PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
     PFN_vkCmdBindTileMemoryQCOM vkCmdBindTileMemoryQCOM;
+    PFN_vkCmdCopyMemoryIndirectKHR vkCmdCopyMemoryIndirectKHR;
+    PFN_vkCmdCopyMemoryToImageIndirectKHR vkCmdCopyMemoryToImageIndirectKHR;
+    PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
+    PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
     PFN_vkCreateExternalComputeQueueNV vkCreateExternalComputeQueueNV;
     PFN_vkDestroyExternalComputeQueueNV vkDestroyExternalComputeQueueNV;
     PFN_vkGetExternalComputeQueueDataNV vkGetExternalComputeQueueDataNV;
@@ -26509,8 +26581,6 @@ PFN_vkGetDeviceImageMemoryRequirementsKHR vkGetDeviceImageMemoryRequirementsKHR;
 PFN_vkGetDeviceImageSparseMemoryRequirementsKHR vkGetDeviceImageSparseMemoryRequirementsKHR;
 PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE vkGetDescriptorSetLayoutHostMappingInfoVALVE;
 PFN_vkGetDescriptorSetHostMappingVALVE vkGetDescriptorSetHostMappingVALVE;
-PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
-PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 PFN_vkCmdDecompressMemoryNV vkCmdDecompressMemoryNV;
 PFN_vkCmdDecompressMemoryIndirectCountNV vkCmdDecompressMemoryIndirectCountNV;
 PFN_vkGetPipelineIndirectMemoryRequirementsNV vkGetPipelineIndirectMemoryRequirementsNV;
@@ -26619,6 +26689,10 @@ PFN_vkCmdPushDescriptorSetWithTemplate2KHR vkCmdPushDescriptorSetWithTemplate2KH
 PFN_vkCmdSetDescriptorBufferOffsets2EXT vkCmdSetDescriptorBufferOffsets2EXT;
 PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
 PFN_vkCmdBindTileMemoryQCOM vkCmdBindTileMemoryQCOM;
+PFN_vkCmdCopyMemoryIndirectKHR vkCmdCopyMemoryIndirectKHR;
+PFN_vkCmdCopyMemoryToImageIndirectKHR vkCmdCopyMemoryToImageIndirectKHR;
+PFN_vkCmdCopyMemoryIndirectNV vkCmdCopyMemoryIndirectNV;
+PFN_vkCmdCopyMemoryToImageIndirectNV vkCmdCopyMemoryToImageIndirectNV;
 PFN_vkCreateExternalComputeQueueNV vkCreateExternalComputeQueueNV;
 PFN_vkDestroyExternalComputeQueueNV vkDestroyExternalComputeQueueNV;
 PFN_vkGetExternalComputeQueueDataNV vkGetExternalComputeQueueDataNV;
@@ -27399,8 +27473,6 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkGetDeviceImageSparseMemoryRequirementsKHR = (PFN_vkGetDeviceImageSparseMemoryRequirementsKHR)vkb_dlsym(g_vkbVulkanSO, "vkGetDeviceImageSparseMemoryRequirementsKHR");
     pAPI->vkGetDescriptorSetLayoutHostMappingInfoVALVE = (PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorSetLayoutHostMappingInfoVALVE");
     pAPI->vkGetDescriptorSetHostMappingVALVE = (PFN_vkGetDescriptorSetHostMappingVALVE)vkb_dlsym(g_vkbVulkanSO, "vkGetDescriptorSetHostMappingVALVE");
-    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryIndirectNV");
-    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdDecompressMemoryIndirectCountNV");
     pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)vkb_dlsym(g_vkbVulkanSO, "vkGetPipelineIndirectMemoryRequirementsNV");
@@ -27509,6 +27581,10 @@ static VkResult vkbLoadVulkanSymbols(VkbAPI* pAPI)
     pAPI->vkCmdSetDescriptorBufferOffsets2EXT = (PFN_vkCmdSetDescriptorBufferOffsets2EXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdSetDescriptorBufferOffsets2EXT");
     pAPI->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
     pAPI->vkCmdBindTileMemoryQCOM = (PFN_vkCmdBindTileMemoryQCOM)vkb_dlsym(g_vkbVulkanSO, "vkCmdBindTileMemoryQCOM");
+    pAPI->vkCmdCopyMemoryIndirectKHR = (PFN_vkCmdCopyMemoryIndirectKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryIndirectKHR");
+    pAPI->vkCmdCopyMemoryToImageIndirectKHR = (PFN_vkCmdCopyMemoryToImageIndirectKHR)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryToImageIndirectKHR");
+    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryIndirectNV");
+    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)vkb_dlsym(g_vkbVulkanSO, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCreateExternalComputeQueueNV = (PFN_vkCreateExternalComputeQueueNV)vkb_dlsym(g_vkbVulkanSO, "vkCreateExternalComputeQueueNV");
     pAPI->vkDestroyExternalComputeQueueNV = (PFN_vkDestroyExternalComputeQueueNV)vkb_dlsym(g_vkbVulkanSO, "vkDestroyExternalComputeQueueNV");
     pAPI->vkGetExternalComputeQueueDataNV = (PFN_vkGetExternalComputeQueueDataNV)vkb_dlsym(g_vkbVulkanSO, "vkGetExternalComputeQueueDataNV");
@@ -28228,8 +28304,6 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkGetDeviceImageSparseMemoryRequirementsKHR = vkGetDeviceImageSparseMemoryRequirementsKHR;
     pAPI->vkGetDescriptorSetLayoutHostMappingInfoVALVE = vkGetDescriptorSetLayoutHostMappingInfoVALVE;
     pAPI->vkGetDescriptorSetHostMappingVALVE = vkGetDescriptorSetHostMappingVALVE;
-    pAPI->vkCmdCopyMemoryIndirectNV = vkCmdCopyMemoryIndirectNV;
-    pAPI->vkCmdCopyMemoryToImageIndirectNV = vkCmdCopyMemoryToImageIndirectNV;
     pAPI->vkCmdDecompressMemoryNV = vkCmdDecompressMemoryNV;
     pAPI->vkCmdDecompressMemoryIndirectCountNV = vkCmdDecompressMemoryIndirectCountNV;
     pAPI->vkGetPipelineIndirectMemoryRequirementsNV = vkGetPipelineIndirectMemoryRequirementsNV;
@@ -28338,6 +28412,10 @@ static void vkbInitFromGlobalAPI(VkbAPI* pAPI)
     pAPI->vkCmdSetDescriptorBufferOffsets2EXT = vkCmdSetDescriptorBufferOffsets2EXT;
     pAPI->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT = vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
     pAPI->vkCmdBindTileMemoryQCOM = vkCmdBindTileMemoryQCOM;
+    pAPI->vkCmdCopyMemoryIndirectKHR = vkCmdCopyMemoryIndirectKHR;
+    pAPI->vkCmdCopyMemoryToImageIndirectKHR = vkCmdCopyMemoryToImageIndirectKHR;
+    pAPI->vkCmdCopyMemoryIndirectNV = vkCmdCopyMemoryIndirectNV;
+    pAPI->vkCmdCopyMemoryToImageIndirectNV = vkCmdCopyMemoryToImageIndirectNV;
     pAPI->vkCreateExternalComputeQueueNV = vkCreateExternalComputeQueueNV;
     pAPI->vkDestroyExternalComputeQueueNV = vkDestroyExternalComputeQueueNV;
     pAPI->vkGetExternalComputeQueueDataNV = vkGetExternalComputeQueueDataNV;
@@ -29140,8 +29218,6 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkGetDeviceImageSparseMemoryRequirementsKHR = (PFN_vkGetDeviceImageSparseMemoryRequirementsKHR)pAPI->vkGetInstanceProcAddr(instance, "vkGetDeviceImageSparseMemoryRequirementsKHR");
     pAPI->vkGetDescriptorSetLayoutHostMappingInfoVALVE = (PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE)pAPI->vkGetInstanceProcAddr(instance, "vkGetDescriptorSetLayoutHostMappingInfoVALVE");
     pAPI->vkGetDescriptorSetHostMappingVALVE = (PFN_vkGetDescriptorSetHostMappingVALVE)pAPI->vkGetInstanceProcAddr(instance, "vkGetDescriptorSetHostMappingVALVE");
-    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryIndirectNV");
-    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdDecompressMemoryIndirectCountNV");
     pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetPipelineIndirectMemoryRequirementsNV");
@@ -29250,6 +29326,10 @@ VkResult vkbInitInstanceAPI(VkInstance instance, VkbAPI* pAPI)
     pAPI->vkCmdSetDescriptorBufferOffsets2EXT = (PFN_vkCmdSetDescriptorBufferOffsets2EXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdSetDescriptorBufferOffsets2EXT");
     pAPI->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
     pAPI->vkCmdBindTileMemoryQCOM = (PFN_vkCmdBindTileMemoryQCOM)pAPI->vkGetInstanceProcAddr(instance, "vkCmdBindTileMemoryQCOM");
+    pAPI->vkCmdCopyMemoryIndirectKHR = (PFN_vkCmdCopyMemoryIndirectKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryIndirectKHR");
+    pAPI->vkCmdCopyMemoryToImageIndirectKHR = (PFN_vkCmdCopyMemoryToImageIndirectKHR)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryToImageIndirectKHR");
+    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryIndirectNV");
+    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetInstanceProcAddr(instance, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCreateExternalComputeQueueNV = (PFN_vkCreateExternalComputeQueueNV)pAPI->vkGetInstanceProcAddr(instance, "vkCreateExternalComputeQueueNV");
     pAPI->vkDestroyExternalComputeQueueNV = (PFN_vkDestroyExternalComputeQueueNV)pAPI->vkGetInstanceProcAddr(instance, "vkDestroyExternalComputeQueueNV");
     pAPI->vkGetExternalComputeQueueDataNV = (PFN_vkGetExternalComputeQueueDataNV)pAPI->vkGetInstanceProcAddr(instance, "vkGetExternalComputeQueueDataNV");
@@ -29894,8 +29974,6 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkGetDeviceImageSparseMemoryRequirementsKHR = (PFN_vkGetDeviceImageSparseMemoryRequirementsKHR)pAPI->vkGetDeviceProcAddr(device, "vkGetDeviceImageSparseMemoryRequirementsKHR");
     pAPI->vkGetDescriptorSetLayoutHostMappingInfoVALVE = (PFN_vkGetDescriptorSetLayoutHostMappingInfoVALVE)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutHostMappingInfoVALVE");
     pAPI->vkGetDescriptorSetHostMappingVALVE = (PFN_vkGetDescriptorSetHostMappingVALVE)pAPI->vkGetDeviceProcAddr(device, "vkGetDescriptorSetHostMappingVALVE");
-    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryIndirectNV");
-    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCmdDecompressMemoryNV = (PFN_vkCmdDecompressMemoryNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDecompressMemoryNV");
     pAPI->vkCmdDecompressMemoryIndirectCountNV = (PFN_vkCmdDecompressMemoryIndirectCountNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdDecompressMemoryIndirectCountNV");
     pAPI->vkGetPipelineIndirectMemoryRequirementsNV = (PFN_vkGetPipelineIndirectMemoryRequirementsNV)pAPI->vkGetDeviceProcAddr(device, "vkGetPipelineIndirectMemoryRequirementsNV");
@@ -29996,6 +30074,10 @@ VkResult vkbInitDeviceAPI(VkDevice device, VkbAPI* pAPI)
     pAPI->vkCmdSetDescriptorBufferOffsets2EXT = (PFN_vkCmdSetDescriptorBufferOffsets2EXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdSetDescriptorBufferOffsets2EXT");
     pAPI->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT = (PFN_vkCmdBindDescriptorBufferEmbeddedSamplers2EXT)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindDescriptorBufferEmbeddedSamplers2EXT");
     pAPI->vkCmdBindTileMemoryQCOM = (PFN_vkCmdBindTileMemoryQCOM)pAPI->vkGetDeviceProcAddr(device, "vkCmdBindTileMemoryQCOM");
+    pAPI->vkCmdCopyMemoryIndirectKHR = (PFN_vkCmdCopyMemoryIndirectKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryIndirectKHR");
+    pAPI->vkCmdCopyMemoryToImageIndirectKHR = (PFN_vkCmdCopyMemoryToImageIndirectKHR)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryToImageIndirectKHR");
+    pAPI->vkCmdCopyMemoryIndirectNV = (PFN_vkCmdCopyMemoryIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryIndirectNV");
+    pAPI->vkCmdCopyMemoryToImageIndirectNV = (PFN_vkCmdCopyMemoryToImageIndirectNV)pAPI->vkGetDeviceProcAddr(device, "vkCmdCopyMemoryToImageIndirectNV");
     pAPI->vkCreateExternalComputeQueueNV = (PFN_vkCreateExternalComputeQueueNV)pAPI->vkGetDeviceProcAddr(device, "vkCreateExternalComputeQueueNV");
     pAPI->vkDestroyExternalComputeQueueNV = (PFN_vkDestroyExternalComputeQueueNV)pAPI->vkGetDeviceProcAddr(device, "vkDestroyExternalComputeQueueNV");
     pAPI->vkGetExternalComputeQueueDataNV = (PFN_vkGetExternalComputeQueueDataNV)pAPI->vkGetDeviceProcAddr(device, "vkGetExternalComputeQueueDataNV");
@@ -30679,8 +30761,6 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkGetDeviceImageSparseMemoryRequirementsKHR = pAPI->vkGetDeviceImageSparseMemoryRequirementsKHR;
     vkGetDescriptorSetLayoutHostMappingInfoVALVE = pAPI->vkGetDescriptorSetLayoutHostMappingInfoVALVE;
     vkGetDescriptorSetHostMappingVALVE = pAPI->vkGetDescriptorSetHostMappingVALVE;
-    vkCmdCopyMemoryIndirectNV = pAPI->vkCmdCopyMemoryIndirectNV;
-    vkCmdCopyMemoryToImageIndirectNV = pAPI->vkCmdCopyMemoryToImageIndirectNV;
     vkCmdDecompressMemoryNV = pAPI->vkCmdDecompressMemoryNV;
     vkCmdDecompressMemoryIndirectCountNV = pAPI->vkCmdDecompressMemoryIndirectCountNV;
     vkGetPipelineIndirectMemoryRequirementsNV = pAPI->vkGetPipelineIndirectMemoryRequirementsNV;
@@ -30789,6 +30869,10 @@ VkResult vkbBindAPI(const VkbAPI* pAPI)
     vkCmdSetDescriptorBufferOffsets2EXT = pAPI->vkCmdSetDescriptorBufferOffsets2EXT;
     vkCmdBindDescriptorBufferEmbeddedSamplers2EXT = pAPI->vkCmdBindDescriptorBufferEmbeddedSamplers2EXT;
     vkCmdBindTileMemoryQCOM = pAPI->vkCmdBindTileMemoryQCOM;
+    vkCmdCopyMemoryIndirectKHR = pAPI->vkCmdCopyMemoryIndirectKHR;
+    vkCmdCopyMemoryToImageIndirectKHR = pAPI->vkCmdCopyMemoryToImageIndirectKHR;
+    vkCmdCopyMemoryIndirectNV = pAPI->vkCmdCopyMemoryIndirectNV;
+    vkCmdCopyMemoryToImageIndirectNV = pAPI->vkCmdCopyMemoryToImageIndirectNV;
     vkCreateExternalComputeQueueNV = pAPI->vkCreateExternalComputeQueueNV;
     vkDestroyExternalComputeQueueNV = pAPI->vkDestroyExternalComputeQueueNV;
     vkGetExternalComputeQueueDataNV = pAPI->vkGetExternalComputeQueueDataNV;
