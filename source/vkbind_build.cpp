@@ -1569,9 +1569,10 @@ struct vkbBuildCodeGenState
 {
     std::vector<vkbBuildCodeGenDependencies> featureDependencies;
     std::vector<vkbBuildCodeGenDependencies> extensionDependencies;
-    std::vector<std::string> outputDefines;     // <-- Keeps track of #define's that have already been output.
-    std::vector<std::string> outputTypes;       // <-- Keeps track of types that have already been output (base types, struct, union, etc.).
-    std::vector<std::string> outputCommands;    // <-- Keeps track of the commands that have already been output.
+    std::vector<std::string> outputDefines;      // <-- Keeps track of #define's that have already been output.
+    std::vector<std::string> outputTypes;        // <-- Keeps track of types that have already been output (base types, struct, union, etc.).
+    std::vector<std::string> outputCommands;     // <-- Keeps track of the commands that have already been output.
+    std::vector<std::string> outputInitializers; // <-- Keeps track of struct initializers that have already been output.
 
     bool HasOutputDefine(const std::string &name) const
     {
@@ -1586,6 +1587,11 @@ struct vkbBuildCodeGenState
     bool HasOutputCommand(const std::string &name) const
     {
         return vkbContains(outputCommands, name);
+    }
+
+    bool HasOutputInitializer(const std::string &name) const
+    {
+        return vkbContains(outputInitializers, name);
     }
 
 
@@ -1605,6 +1611,12 @@ struct vkbBuildCodeGenState
     {
         assert(!HasOutputCommand(name));
         outputCommands.push_back(name);
+    }
+
+    void MarkInitializerAsOutput(const std::string &name)
+    {
+        assert(!HasOutputInitializer(name));
+        outputInitializers.push_back(name);
     }
 };
 
@@ -2280,6 +2292,125 @@ VkbResult vkbBuildGenerateCode_C_Dependencies(VkbBuild &context, vkbBuildCodeGen
             }
         }
         if (count > 0) { codeOut += "\n"; }
+    }
+
+    return VKB_SUCCESS;
+}
+
+VkbResult vkbBuildGenerateCode_C_StructInitializers(VkbBuild &context, vkbBuildCodeGenState &codegenState, const vkbBuildCodeGenDependencies &dependencies, std::string &codeOut)
+{
+    const std::vector<size_t> &typeIndices = dependencies.typeIndexes;
+
+    // Generate initializer functions for structs that have an sType member.
+    for (size_t iType = 0; iType < typeIndices.size(); ++iType) {
+        vkbBuildType &type = context.types[typeIndices[iType]];
+        
+        // Only process structs (not unions, aliases, etc.) and only if not already output.
+        if (type.category == "struct" && type.alias == "" && type.structData.members.size() > 0 && !codegenState.HasOutputInitializer(type.name)) {
+            // Check if the struct has an sType member with a values attribute.
+            std::string sTypeValue = "";
+            for (size_t iMember = 0; iMember < type.structData.members.size(); ++iMember) {
+                const vkbBuildStructMember &member = type.structData.members[iMember];
+                if (member.name == "sType" && member.values != "") {
+                    sTypeValue = member.values;
+                    break;
+                }
+            }
+            
+            // If we found an sType, generate an initializer function.
+            if (sTypeValue != "") {
+                codeOut += "static VKBIND_INLINE " + type.name + " " + type.name + "Init(void)\n";
+                codeOut += "{\n";
+                codeOut += "    " + type.name + " result = {0};\n";
+                codeOut += "    result.sType = " + sTypeValue + ";\n";
+                codeOut += "    return result;\n";
+                codeOut += "}\n\n";
+                codegenState.MarkInitializerAsOutput(type.name);
+            }
+        }
+    }
+
+    return VKB_SUCCESS;
+}
+
+VkbResult vkbBuildGenerateCode_C_AllStructInitializers(VkbBuild &context, std::string &codeOut)
+{
+    VkbResult result;
+    vkbBuildCodeGenState codegenState;
+
+    // Extract all dependencies for each feature and extension.
+    for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
+        vkbBuildCodeGenDependencies dependencies;
+        result = dependencies.ParseFeatureDependencies(context, context.features[iFeature]);
+        if (result != VKB_SUCCESS) {
+            return result;
+        }
+        codegenState.featureDependencies.push_back(dependencies);
+    }
+
+    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+        vkbBuildCodeGenDependencies dependencies;
+        result = dependencies.ParseExtensionDependencies(context, context.extensions[iExtension]);
+        if (result != VKB_SUCCESS) {
+            return result;
+        }
+        codegenState.extensionDependencies.push_back(dependencies);
+    }
+
+    codeOut += "/* vkbind Struct Initializer Helpers */\n";
+    codeOut += "/* These functions initialize structs with sType set correctly and all other fields zeroed. */\n\n";
+
+    // Generate initializers for all features.
+    for (size_t iFeature = 0; iFeature < context.features.size(); ++iFeature) {
+        result = vkbBuildGenerateCode_C_StructInitializers(context, codegenState, codegenState.featureDependencies[iFeature], codeOut);
+        if (result != VKB_SUCCESS) {
+            return result;
+        }
+    }
+
+    // Generate initializers for cross-platform extensions.
+    for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+        vkbBuildExtension &extension = context.extensions[iExtension];
+        if (extension.platform == "") {
+            result = vkbBuildGenerateCode_C_StructInitializers(context, codegenState, codegenState.extensionDependencies[iExtension], codeOut);
+            if (result != VKB_SUCCESS) {
+                return result;
+            }
+        }
+    }
+
+    // Generate initializers for platform-specific extensions.
+    for (size_t iPlatform = 0; iPlatform < context.platforms.size(); ++iPlatform) {
+        vkbBuildPlatform &platform = context.platforms[iPlatform];
+
+        // Support for Mir is being dropped from Vulkan. Skip it.
+        if (platform.name == "mir") {
+            continue;
+        }
+        
+        bool hasPlatformInitializers = false;
+        std::string platformCode = "";
+
+        for (size_t iExtension = 0; iExtension < context.extensions.size(); ++iExtension) {
+            vkbBuildExtension &extension = context.extensions[iExtension];
+            if (extension.platform == platform.name) {
+                std::string initCode = "";
+                result = vkbBuildGenerateCode_C_StructInitializers(context, codegenState, codegenState.extensionDependencies[iExtension], initCode);
+                if (result != VKB_SUCCESS) {
+                    return result;
+                }
+                if (initCode.length() > 0) {
+                    hasPlatformInitializers = true;
+                    platformCode += initCode;
+                }
+            }
+        }
+
+        if (hasPlatformInitializers) {
+            codeOut += "#ifdef " + platform.protect + "\n";
+            codeOut += platformCode;
+            codeOut += "#endif /*" + platform.protect + "*/\n\n";
+        }
     }
 
     return VKB_SUCCESS;
@@ -3401,6 +3532,9 @@ VkbResult vkbBuildGenerateCode_C(VkbBuild &vk, VkbBuild &video, const char* tag,
     if (strcmp(tag, "/*<<vulkan_main>>*/") == 0) {
         result = vkbBuildGenerateCode_C_Main(vk, codeOut);
     }
+    if (strcmp(tag, "/*<<vulkan_struct_initializers>>*/") == 0) {
+        result = vkbBuildGenerateCode_C_AllStructInitializers(vk, codeOut);
+    }
     if (strcmp(tag, "/*<<vulkan_funcpointers_decl_global:extern>>*/") == 0) {
         result = vkbBuildGenerateCode_C_FuncPointersDeclGlobal(vk, 0, true, codeOut);
     }
@@ -3465,6 +3599,7 @@ VkbResult vkbBuildGenerateLib_C(VkbBuild &vk, VkbBuild &video, const char* outpu
     const char* tags[] = {
         "/*<<vk_video>>*/",
         "/*<<vulkan_main>>*/",
+        "/*<<vulkan_struct_initializers>>*/",
         "/*<<vulkan_funcpointers_decl_global:extern>>*/",
         "/*<<vulkan_funcpointers_decl_global:4>>*/",
         "/*<<vulkan_funcpointers_decl_global>>*/",

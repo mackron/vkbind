@@ -92,6 +92,33 @@ Example:
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+    #define VKBIND_INLINE __forceinline
+#elif defined(__GNUC__)
+    /*
+    I've had a bug report where GCC is emitting warnings about functions possibly not being inlineable. This warning happens when
+    the __attribute__((always_inline)) attribute is defined without an "inline" statement. I think therefore there must be some
+    case where "__inline__" is not always defined, thus the compiler emitting these warnings. When using -std=c89 or -ansi on the
+    command line, we cannot use the "inline" keyword and instead need to use "__inline__". In an attempt to work around this issue
+    I am using "__inline__" only when we're compiling in strict ANSI mode.
+    */
+    #if defined(__STRICT_ANSI__)
+        #define VKBIND_GNUC_INLINE_HINT __inline__
+    #else
+        #define VKBIND_GNUC_INLINE_HINT inline
+    #endif
+
+    #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)) || defined(__clang__)
+        #define VKBIND_INLINE VKBIND_GNUC_INLINE_HINT __attribute__((always_inline))
+    #else
+        #define VKBIND_INLINE VKBIND_GNUC_INLINE_HINT
+    #endif
+#elif defined(__WATCOMC__)
+    #define VKBIND_INLINE __inline
+#else
+    #define VKBIND_INLINE
+#endif
+
 /*
 vkbind's vk_platform.h implementation. See: https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#boilerplate-platform-specific-calling-conventions
 
@@ -162,6 +189,8 @@ will be added later. Let me know what isn't supported properly and I'll look int
 
 /*<<vk_video>>*/
 /*<<vulkan_main>>*/
+
+/*<<vulkan_struct_initializers>>*/
 
 #ifndef VKBIND_NO_GLOBAL_API
 /*<<vulkan_funcpointers_decl_global:extern>>*/
