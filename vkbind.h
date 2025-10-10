@@ -1,6 +1,6 @@
 /*
 Vulkan API loader. Choice of public domain or MIT-0. See license statements at the end of this file.
-vkbind - v1.4.328.1 - 2025-10-09
+vkbind - v1.4.329.0 - 2025-10-10
 
 David Reid - davidreidsoftware@gmail.com
 */
@@ -2131,7 +2131,7 @@ typedef struct StdVideoEncodeAV1ReferenceInfo
 #endif
 #define VK_MAKE_API_VERSION(variant, major, minor, patch)     ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)
-#define VK_HEADER_VERSION 328
+#define VK_HEADER_VERSION 329
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 4, VK_HEADER_VERSION)
 #define VK_MAKE_VERSION(major, minor, patch)     ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
@@ -3355,6 +3355,7 @@ typedef enum
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_FEATURES_MESA = 1000575000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_ALIGNMENT_CONTROL_PROPERTIES_MESA = 1000575001,
     VK_STRUCTURE_TYPE_IMAGE_ALIGNMENT_CONTROL_CREATE_INFO_MESA = 1000575002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FMA_FEATURES_KHR = 1000579000,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLAMP_CONTROL_FEATURES_EXT = 1000582000,
     VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_DEPTH_CLAMP_CONTROL_CREATE_INFO_EXT = 1000582001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VERTEX_ATTRIBUTE_ROBUSTNESS_FEATURES_EXT = 1000608000,
@@ -22386,6 +22387,20 @@ typedef struct VkImageAlignmentControlCreateInfoMESA
 } VkImageAlignmentControlCreateInfoMESA;
 
 
+#define VK_KHR_shader_fma 1
+#define VK_KHR_SHADER_FMA_SPEC_VERSION 1
+#define VK_KHR_SHADER_FMA_EXTENSION_NAME "VK_KHR_shader_fma"
+
+typedef struct VkPhysicalDeviceShaderFmaFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderFmaFloat16;
+    VkBool32 shaderFmaFloat32;
+    VkBool32 shaderFmaFloat64;
+} VkPhysicalDeviceShaderFmaFeaturesKHR;
+
+
 #define VK_EXT_depth_clamp_control 1
 #define VK_EXT_DEPTH_CLAMP_CONTROL_SPEC_VERSION 1
 #define VK_EXT_DEPTH_CLAMP_CONTROL_EXTENSION_NAME "VK_EXT_depth_clamp_control"
@@ -31212,6 +31227,13 @@ static VKBIND_INLINE VkImageAlignmentControlCreateInfoMESA VkImageAlignmentContr
 {
     VkImageAlignmentControlCreateInfoMESA result = {0};
     result.sType = VK_STRUCTURE_TYPE_IMAGE_ALIGNMENT_CONTROL_CREATE_INFO_MESA;
+    return result;
+}
+
+static VKBIND_INLINE VkPhysicalDeviceShaderFmaFeaturesKHR VkPhysicalDeviceShaderFmaFeaturesKHRInit(void)
+{
+    VkPhysicalDeviceShaderFmaFeaturesKHR result = {0};
+    result.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FMA_FEATURES_KHR;
     return result;
 }
 
