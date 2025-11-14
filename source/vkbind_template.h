@@ -151,7 +151,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
 #endif
 #endif  /* VK_NO_STDINT_H */
 
-/* stddef.h is required for size_t */
+/* stddef.h is required for size_t. */
 #ifndef VK_NO_STDDEF_H
     #include <stddef.h>
 #endif  /* VK_NO_STDDEF_H */
@@ -174,7 +174,7 @@ will be added later. Let me know what isn't supported properly and I'll look int
     #endif
 #endif
 
-/* We need to define vkbind_Display and vkbind_Window */
+/* We need to define vkbind_Display and vkbind_Window. */
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
     #if !defined(VKBIND_NO_XLIB_HEADERS)
         typedef Display       vkbind_Display;
@@ -185,6 +185,11 @@ will be added later. Let me know what isn't supported properly and I'll look int
         typedef unsigned long vkbind_Window;
         typedef unsigned long vkbind_VisualID;
     #endif
+#endif
+
+#ifndef VKBIND_ZERO_MEMORY
+#include <string.h>
+#define VKBIND_ZERO_MEMORY(p, size)    memset((p), 0, (size))
 #endif
 
 /*<<vk_video>>*/

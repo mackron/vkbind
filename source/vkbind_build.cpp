@@ -2321,7 +2321,8 @@ VkbResult vkbBuildGenerateCode_C_StructInitializers(VkbBuild &context, vkbBuildC
             if (sTypeValue != "") {
                 codeOut += "static VKBIND_INLINE " + type.name + " " + type.name + "Init(void)\n";
                 codeOut += "{\n";
-                codeOut += "    " + type.name + " result = {0};\n";
+                codeOut += "    " + type.name + " result;\n";
+                codeOut += "    VKBIND_ZERO_MEMORY(&result, sizeof(result));\n";
                 codeOut += "    result.sType = " + sTypeValue + ";\n";
                 codeOut += "    return result;\n";
                 codeOut += "}\n\n";
