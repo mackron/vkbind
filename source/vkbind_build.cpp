@@ -504,14 +504,6 @@ VkbResult vkbBuildParseTypeNamePair(std::string &typeC, std::string &type, std::
     return VKB_SUCCESS;
 }
 
-std::string vkbExtractFuncionPointerReturnType(const std::string &value)
-{
-    // value = "typedef <type> (VKAPI_PTR *"
-    size_t beg = strlen("typedef ");
-    size_t end = value.find("(VKAPI_PTR *");
-    return vkbTrim(value.substr(beg, end-beg));
-}
-
 VkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLElement* pMemberElement)
 {
     // The type can possible be split over multiple nodes. We just append the values of each node until we find the name node.
@@ -557,82 +549,6 @@ VkbResult vkbBuildParseStructMember(vkbBuildStructMember &member, tinyxml2::XMLE
     return VKB_SUCCESS;
 }
 
-void vkbBuildParseFuncPointerParams(VkbBuild &context, const std::string &paramString, vkbBuildType &type)
-{
-    (void)context;
-
-    // First of all we need to clean the string. It will start with ")(" and will end with ");".
-    std::string paramStringClean = vkbReplaceAll(vkbReplaceAll(paramString, ")(", ""), ");", "");
-
-    // Now we need to split the string for each parameter. Each parameter will be separated by a comma.
-    std::vector<std::string> params;
-    const char* paramBeg = paramStringClean.c_str();
-    for (;;) {
-        const char* paramEnd = strchr(paramBeg, ',');
-        if (paramEnd != NULL) {
-            // Not the last parameter.
-            params.push_back(vkbTrim(std::string(paramBeg, paramEnd-paramBeg)));
-            paramBeg = paramEnd + 1;    // <-- Skip past the ",".
-            continue;
-        } else {
-            // Reached the last parameter. It could also be a situation where there is no parameters. To handle this we just need
-            // to check if the trimmed parameter string has any length.
-            std::string param = vkbTrim(paramBeg);
-            if (param.length() > 0) {
-                params.push_back(param);
-            }
-            break;
-        }
-    }
-
-    // At this point we should have cleanly trimmed strings for each parameter. The separator between the type and the name is the last
-    // space character.
-    for (auto param : params) {
-        // There could be a case where there are no parameters, but there will be a "void" in the parameter list. Just skip this.
-        if (param == "void") {
-            continue;
-        }
-
-        const char* paramStr = param.c_str();
-        std::string paramType;
-        std::string paramName;
-
-        const char* lastSpace = strrchr(paramStr, ' ');
-        paramType = vkbTrim(std::string(paramStr, lastSpace-paramStr));
-        paramName = vkbTrim(std::string(lastSpace));
-
-        // At this point we have the name, and most of the type. We just need to do one last bit of parsing for the type to extract the
-        // <type> tag and construct the C type string. To do this, we need to find the <type> tag (if any - it should always exist, but
-        // I'll build this with the assumption that it may not). The C string is easy - it's the whole paramType string with the <type>
-        // and </type> segments removed. The Vulkan type (the part inside the <type> tag) is also quite easy - we just find both <type>
-        // and </type> and take the contents.
-        std::string paramTypeC = vkbReplaceAll(vkbReplaceAll(paramType, "<type>", ""), "</type>", "");
-
-        std::string paramTypeVK;
-        const char* tagOpening = strstr(paramStr, "<type>");
-        const char* tagClosing = NULL;
-        if (tagOpening != NULL) {
-            tagClosing = strstr(paramStr, "</type>");
-            if (tagClosing != NULL) {
-                const char* typeNameBeg = tagOpening + strlen("<type>");
-                const char* typeNameEnd = tagClosing;
-                paramTypeVK = std::string(typeNameBeg, typeNameEnd-typeNameBeg);
-            }
-        }
-        
-        // And we're done!
-        vkbBuildFunctionParameter newParam;
-        newParam.name = paramName;
-        newParam.nameC = paramName;
-        newParam.type = paramTypeVK;
-        newParam.typeC = paramTypeC;
-        type.funcpointer.params.push_back(newParam);
-    }
-    
-
-    return;
-}
-
 VkbResult vkbBuildParseTypes(VkbBuild &context, tinyxml2::XMLElement* pTagsElement)
 {
     if (pTagsElement == NULL) {
@@ -670,35 +586,61 @@ VkbResult vkbBuildParseTypes(VkbBuild &context, tinyxml2::XMLElement* pTagsEleme
         if (strcmp(type.category.c_str(), "funcpointer") == 0) {
             tinyxml2::XMLNode* pFirstChild = pChildElement->FirstChild();
             if (pFirstChild != NULL) {
-                // The first child will contain the "typedef <return type> (VKAPI_PTR *" part. We only care about the return type (the other parts
-                // can be reconstructed). To reconstruct this we just find the end of "typedef " and the start of the "(VKAPI_PTR *" part and use
-                // that as the return type.
-                type.funcpointer.returnType = vkbExtractFuncionPointerReturnType(pFirstChild->Value());
-                
-                // The second child should be the name of the function with "PFN_" appended to it.
-                tinyxml2::XMLNode* pSecondChild = pFirstChild->NextSibling();
-                if (pSecondChild != NULL) {
-                    type.funcpointer.name = pSecondChild->FirstChild()->Value();
-                    type.name = type.funcpointer.name;
-
-                    // This is the part that get's annoying. For some reason, funcpointer types are declared as just a normal C function declaration
-                    // with <type> tags wrapped around the types of each parameter. The annoying part is that the <type> tags don't wrap around the
-                    // _whole_ type declaration. Instead it looks something like this: "const <type>void</type>* pSomeParam". What happens here is
-                    // that the XML parser interprets this as three nodes: "const ", "<type>void</type>" and "* pSomeParam". This makes parsing non-
-                    // trivial.
-                    //
-                    // The way I'm working around this is by concatenating the parameters as one big string, then having a custom function to parse
-                    // this string manually, outside of tinyxml.
-                    std::string paramString;
-                    for (tinyxml2::XMLNode* pParamNode = pSecondChild->NextSibling(); pParamNode != NULL; pParamNode = pParamNode->NextSibling()) {
-                        if (pParamNode->FirstChild() == NULL) {
-                            paramString = paramString + pParamNode->Value();
+                // The first child should be a "<proto>" tag. It looks like this:
+                //
+                //    <proto><type>void</type>* <name>PFN_vkReallocationFunction</name></proto>
+                //
+                // Note how the type does *not* include the `*` for pointer types (why?!). It needs special handling. For the return
+                // type we just include every child until the <name> tag. Then the name will be handled separately.
+                {
+                    for (tinyxml2::XMLNode* pProtoNode = pFirstChild->FirstChild(); pProtoNode != NULL; pProtoNode = pProtoNode->NextSibling()) {
+                        tinyxml2::XMLElement* pElement = pProtoNode->ToElement();
+                        if (pElement != NULL) {
+                            if (strcmp(pElement->Name(), "name") == 0) {
+                                /* It's the name. End iteration here. */
+                                type.funcpointer.name = pElement->FirstChild()->Value();
+                                type.name = type.funcpointer.name;
+                                break;
+                            } else {
+                                type.funcpointer.returnType += pElement->FirstChild()->Value();
+                            }
                         } else {
-                            paramString = paramString + "<" + pParamNode->Value() + ">" + pParamNode->FirstChild()->Value() + "</" + pParamNode->Value() + ">";
+                            /* Not the name. Assume it's part of the return type. */
+                            type.funcpointer.returnType += pProtoNode->Value();
                         }
                     }
 
-                    vkbBuildParseFuncPointerParams(context, paramString, type);
+                    type.funcpointer.returnType = vkbTrim(type.funcpointer.returnType);
+                }
+
+                // The second child will be the first <param> element.
+                for (tinyxml2::XMLNode* pParamNode = pFirstChild->NextSibling(); pParamNode != NULL; pParamNode = pParamNode->NextSibling()) {
+                    std::string paramName;
+                    std::string paramTypeVK;    /* The name inside the <type></type> tags. */
+                    std::string paramTypeC;     /* The full C type such as "const void*" */
+
+                    for (tinyxml2::XMLNode* pParamChildNode = pParamNode->FirstChild(); pParamChildNode != NULL; pParamChildNode = pParamChildNode->NextSibling()) {
+                        tinyxml2::XMLElement* pElement = pParamChildNode->ToElement();
+                        if (pElement != NULL) {
+                            if (strcmp(pElement->Name(), "name") == 0) {
+                                /* It's the name. End iteration here. */
+                                paramName = pElement->FirstChild()->Value();
+
+                                vkbBuildFunctionParameter newParam;
+                                newParam.name = paramName;
+                                newParam.nameC = paramName;
+                                newParam.type = paramTypeVK;
+                                newParam.typeC = vkbTrim(paramTypeC);
+                                type.funcpointer.params.push_back(newParam);
+                                break;
+                            } else if (strcmp(pElement->Name(), "type") == 0) {
+                                paramTypeVK = pElement->FirstChild()->Value();
+                                paramTypeC += paramTypeVK;
+                            }
+                        } else {
+                            paramTypeC += pParamChildNode->Value();
+                        }
+                    }
                 }
             }
         }
